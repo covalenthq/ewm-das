@@ -14,6 +14,7 @@ import (
 const (
 	G1CompressedSize = 48
 	G2CompressedSize = 96
+	splitFactor      = 8 // Number of concurrent chunks to read
 )
 
 // TrustedSetup contains the necessary parameters and precomputed values for KZG commitments.
@@ -141,8 +142,6 @@ func LoadSetup(config Config) ([]bls.G1Point, []bls.G2Point, error) {
 	s1 := make([]bls.G1Point, n)
 	s2 := make([]bls.G2Point, n)
 
-	// Define the number of chunks for concurrent reading
-	const splitFactor = 8
 	chunkSize := n / splitFactor
 
 	var wg sync.WaitGroup
@@ -204,7 +203,6 @@ func LoadSetup(config Config) ([]bls.G1Point, []bls.G2Point, error) {
 	}
 
 	return s1, s2, nil
-
 }
 
 // bitsNeeded calculates the number of bits needed to represent the given value.
