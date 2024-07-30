@@ -12,9 +12,13 @@ import (
 )
 
 const (
+
+	// G1CompressedSize is the size of a compressed G1 point in bytes.
 	G1CompressedSize = 48
+	// G2CompressedSize is the size of a compressed G2 point in bytes.
 	G2CompressedSize = 96
-	splitFactor      = 8 // Number of concurrent chunks to read
+	// splitFactor is the number of goroutines to use for concurrent reading.
+	splitFactor = 8
 )
 
 // TrustedSetup contains the necessary parameters and precomputed values for KZG commitments.
