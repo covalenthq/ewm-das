@@ -8,3 +8,9 @@ const BinaryName = "defaultBinaryName"
 func LogFileName() string {
 	return "/var/log/" + BinaryName + ".log"
 }
+
+// Version is the version of the binary
+const Version = "v0.1.0"
+
+// GitCommit is the commit hash of the binary
+const GitCommit = "00000000"
