@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
@@ -23,8 +24,8 @@ func main() {
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
 	go func() {
 		<-sigs
-		log.Println("Shutting down deamon...")
-		// TODO: Add cleanup code here (e.g. close connections, etc.)
+		log.Println("Shutting down daemon...")
+		// TODO: Add cleanup code here (e.g., close connections, etc.)
 		os.Exit(0)
 	}()
 
@@ -63,33 +64,35 @@ func main() {
 }
 
 func daemonize() {
-	// Fork the process and detach from the terminal
-	if os.Getenv("GO_DAEMON") != "1" {
-		// Set environment variable to prevent infinite loop
-		os.Setenv("GO_DAEMON", "1")
-		// Re-execute the process
-		cmd := os.Args[0]
-		args := os.Args[1:]
-		if len(args) > 0 && args[0] == "--" {
-			args = args[1:]
-		}
-		procAttr := &os.ProcAttr{
-			Files: []*os.File{
-				os.Stdin,
-				os.Stdout,
-				os.Stderr,
-			},
-			Sys: &syscall.SysProcAttr{
-				Setsid: true,
-			},
-		}
-		process, err := os.StartProcess(cmd, args, procAttr)
-		if err != nil {
-			log.Fatalf("Error starting process: %v\n", err)
-		}
-		process.Release()
-		os.Exit(0)
+	// Get the absolute path of the executable
+	executablePath, err := filepath.Abs(os.Args[0])
+	if err != nil {
+		log.Fatalf("Error getting absolute path: %v\n", err)
 	}
+	args := os.Args[1:]
+
+	// Set environment variable to prevent infinite loop
+	env := append(os.Environ(), "GO_DAEMON=1")
+
+	procAttr := &os.ProcAttr{
+		Dir: filepath.Dir(executablePath),
+		Files: []*os.File{
+			os.Stdin,
+			os.Stdout,
+			os.Stderr,
+		},
+		Env: env,
+		Sys: &syscall.SysProcAttr{
+			Setsid: true,
+		},
+	}
+
+	process, err := os.StartProcess(executablePath, args, procAttr)
+	if err != nil {
+		log.Fatalf("Error starting process: %v\n", err)
+	}
+	process.Release()
+	os.Exit(0)
 }
 
 // getEnv gets the environment variable or returns a default value if not set
