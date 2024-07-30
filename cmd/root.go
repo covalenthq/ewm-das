@@ -3,14 +3,13 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"net/http"
 	"os"
-	"os/signal"
 	"path/filepath"
 	"syscall"
 
 	"github.com/spf13/cobra"
 
+	"github.com/covalenthq/das-ipfs-pinner/api"
 	"github.com/covalenthq/das-ipfs-pinner/common"
 )
 
@@ -42,8 +41,8 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// Default action, start the server
-		startServer()
+		// Start the API server
+		api.StartServer(addr)
 	},
 }
 
@@ -97,38 +96,4 @@ func getEnv(key, fallback string) string {
 		return value
 	}
 	return fallback
-}
-
-func startServer() {
-	// Set up signal handling for graceful shutdown
-	sigs := make(chan os.Signal, 1)
-	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
-	go func() {
-		<-sigs
-		log.Println("Shutting down daemon...")
-		// TODO: Add cleanup code here (e.g., close connections, etc.)
-		os.Exit(0)
-	}()
-
-	// Set up HTTP handlers
-	http.HandleFunc("/store", func(w http.ResponseWriter, r *http.Request) {
-		// Handle storing data
-		fmt.Fprintln(w, "Data stored")
-	})
-
-	http.HandleFunc("/extract", func(w http.ResponseWriter, r *http.Request) {
-		// Handle extracting data
-		cid := r.URL.Query().Get("cid")
-		if cid == "" {
-			http.Error(w, "CID is required", http.StatusBadRequest)
-			return
-		}
-		fmt.Fprintf(w, "Extracting data for CID: %s\n", cid)
-	})
-
-	// Start the HTTP server
-	log.Printf("Starting daemon on %s...\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("Could not start server: %v\n", err)
-	}
 }
