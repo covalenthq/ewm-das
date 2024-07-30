@@ -1,5 +1,7 @@
 # Pinner
 
+[![Go CI](https://github.com/covalenthq/das-ipfs-pinner/actions/workflows/go.yml/badge.svg)](https://github.com/covalenthq/das-ipfs-pinner/actions)
+
 Pinner is a Go-based project consisting of a daemon service and a CLI tool. The daemon service handles backend operations, while the CLI tool provides an interface for interacting with the daemon.
 
 ## Table of Contents
