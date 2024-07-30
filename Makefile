@@ -16,6 +16,10 @@ CLI_SOURCE := cmd/pinner-cli/main.go
 # Define the directories containing Go files
 GO_DIRS := cmd/pinner cmd/pinner-cli common internal
 
+# Retrieve version and git commit hash
+VERSION := $(shell git describe --tags --always --dirty)
+GIT_COMMIT := $(shell git rev-parse HEAD)
+
 # Default target to build all binaries
 .PHONY: all
 all: fmt vet test build
@@ -31,18 +35,12 @@ build: $(BIN_DIR) build-daemon build-cli
 # Build the daemon binary with a custom name
 .PHONY: build-daemon
 build-daemon: $(BIN_DIR)
-	@VERSION=$$(git describe --tags --always --dirty || echo "dev"); \
-	GIT_COMMIT=$$(git rev-parse HEAD || echo "00000000"); \
-	echo "Building $(DAEMON_BINARY) with version $$VERSION and commit $$GIT_COMMIT"; \
-	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner -X $(COMMON_PACKAGE).Version=$$VERSION -X $(COMMON_PACKAGE).GitCommit=$$GIT_COMMIT" -o $(DAEMON_BINARY) $(DAEMON_SOURCE)
+	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner -X $(COMMON_PACKAGE).Version=$(VERSION) -X $(COMMON_PACKAGE).GitCommit=$(GIT_COMMIT)" -o $(DAEMON_BINARY) $(DAEMON_SOURCE)
 
 # Build the CLI tool binary with a custom name
 .PHONY: build-cli
 build-cli: $(BIN_DIR)
-	@VERSION=$$(git describe --tags --always --dirty || echo "dev"); \
-	GIT_COMMIT=$$(git rev-parse HEAD || echo "00000000"); \
-	echo "Building $(CLI_BINARY) with version $$VERSION and commit $$GIT_COMMIT"; \
-	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner-cli -X $(COMMON_PACKAGE).Version=$$VERSION -X $(COMMON_PACKAGE).GitCommit=$$GIT_COMMIT" -o $(CLI_BINARY) $(CLI_SOURCE)
+	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner-cli -X $(COMMON_PACKAGE).Version=$(VERSION) -X $(COMMON_PACKAGE).GitCommit=$(GIT_COMMIT)" -o $(CLI_BINARY) $(CLI_SOURCE)
 
 # Run tests
 .PHONY: test
