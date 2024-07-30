@@ -1,0 +1,41 @@
+name: Go CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.17'  # Set the version of Go you are using
+
+    - name: Install dependencies
+      run: go mod download
+
+    - name: Run go fmt
+      run: go fmt ./...
+
+    - name: Run go vet
+      run: go vet ./...
+
+    - name: Run lint
+      run: |
+        go install golang.org/x/lint/golint@latest
+        golint ./...
+
+    - name: Run tests
+      run: go test -v ./...
+
+    - name: Build binaries
+      run: make build
