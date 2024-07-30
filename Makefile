@@ -14,7 +14,7 @@ DAEMON_SOURCE := cmd/pinner/main.go
 CLI_SOURCE := cmd/pinner-cli/main.go
 
 # Define the directories containing Go files
-GO_DIRS := cmd/pinner cmd/pinner-cli common internal
+GO_DIRS := api cmd/pinner cmd/pinner-cli common internal
 
 # Retrieve version and git commit hash
 VERSION := $(shell git describe --tags --always --dirty)
