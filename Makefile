@@ -1,6 +1,6 @@
 # Automatically determine the module path using go list
 MODULE_PATH := $(shell go list -m -f {{.Path}})
-COMMON_PACKAGE := $(MODULE_PATH)/cmd/common
+COMMON_PACKAGE := $(MODULE_PATH)/common
 
 # Define the output directory for binaries
 BIN_DIR := bin
@@ -14,7 +14,7 @@ DAEMON_SOURCE := cmd/pinner/main.go
 CLI_SOURCE := cmd/pinner-cli/main.go
 
 # Define the directories containing Go files
-GO_DIRS := cmd/pinner cmd/pinner-cli cmd/common internal
+GO_DIRS := cmd/pinner cmd/pinner-cli common internal
 
 # Default target to build all binaries
 .PHONY: all
@@ -31,12 +31,18 @@ build: $(BIN_DIR) build-daemon build-cli
 # Build the daemon binary with a custom name
 .PHONY: build-daemon
 build-daemon: $(BIN_DIR)
-	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner" -o $(DAEMON_BINARY) $(DAEMON_SOURCE)
+	@VERSION=$$(git describe --tags --always --dirty || echo "dev"); \
+	GIT_COMMIT=$$(git rev-parse HEAD || echo "00000000"); \
+	echo "Building $(DAEMON_BINARY) with version $$VERSION and commit $$GIT_COMMIT"; \
+	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner -X $(COMMON_PACKAGE).Version=$$VERSION -X $(COMMON_PACKAGE).GitCommit=$$GIT_COMMIT" -o $(DAEMON_BINARY) $(DAEMON_SOURCE)
 
 # Build the CLI tool binary with a custom name
 .PHONY: build-cli
 build-cli: $(BIN_DIR)
-	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner-cli" -o $(CLI_BINARY) $(CLI_SOURCE)
+	@VERSION=$$(git describe --tags --always --dirty || echo "dev"); \
+	GIT_COMMIT=$$(git rev-parse HEAD || echo "00000000"); \
+	echo "Building $(CLI_BINARY) with version $$VERSION and commit $$GIT_COMMIT"; \
+	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner-cli -X $(COMMON_PACKAGE).Version=$$VERSION -X $(COMMON_PACKAGE).GitCommit=$$GIT_COMMIT" -o $(CLI_BINARY) $(CLI_SOURCE)
 
 # Run tests
 .PHONY: test
