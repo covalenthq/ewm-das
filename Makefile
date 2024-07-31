@@ -1,3 +1,7 @@
+# Stop execution when a command fails
+.ONESHELL:
+.SHELLFLAGS = -ec
+
 # Automatically determine the module path using go list
 MODULE_PATH := $(shell go list -m -f {{.Path}})
 COMMON_PACKAGE := $(MODULE_PATH)/common
