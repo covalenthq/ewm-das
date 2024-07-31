@@ -2,11 +2,14 @@ package api
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/covalenthq/das-ipfs-pinner/internal/kzg"
 )
 
 // StartServer initializes and starts the HTTP server.
@@ -33,8 +36,32 @@ func StartServer(addr string) {
 }
 
 func storeHandler(w http.ResponseWriter, r *http.Request) {
-	// Handle storing data
-	fmt.Fprintln(w, "Data stored")
+	// Ensure that the request is a POST method
+	if r.Method != http.MethodPost {
+		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Read the binary data from the request body
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		return
+	}
+	defer r.Body.Close()
+
+	// Handle the binary data (e.g., save it to a file or a database)
+	// For demonstration purposes, we'll just print the data length
+	log.Printf("Received %d bytes of data\n", len(data))
+
+	_, err = kzg.Encode(data)
+	if err != nil {
+		http.Error(w, "Failed to store data", http.StatusInternalServerError)
+		return
+	}
+
+	// Respond to the client
+	fmt.Fprintln(w, "Data stored successfully")
 }
 
 func extractHandler(w http.ResponseWriter, r *http.Request) {

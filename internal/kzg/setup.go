@@ -26,8 +26,6 @@ type TrustedSetup struct {
 	SubGroupLen   uint64
 	SubGroupCount uint64
 	EvalLen       uint64
-	FftSettings   *kzg.FFTSettings
-	KzgSettings   *kzg.KZGSettings
 	Fk20Settings  *kzg.FK20MultiSettings
 }
 
@@ -70,8 +68,6 @@ func initializeFromPoints(s1 []bls.G1Point, s2 []bls.G2Point, config Config) *Tr
 		SubGroupLen:   config.SubGroupLen,
 		SubGroupCount: config.SubGroupCount,
 		EvalLen:       config.EvalLen,
-		FftSettings:   fftSettings,
-		KzgSettings:   kzgSettings,
 		Fk20Settings:  fk20Settings,
 	}
 }
