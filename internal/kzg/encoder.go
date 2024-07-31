@@ -83,17 +83,6 @@ func (db *DataBlock) Encode(data []byte) error {
 		}
 
 		i++
-
-		if offset+db.FieldSize >= dataLen {
-			remainingBytes := dataLen - offset
-			if remainingBytes > 0 {
-				copy(bytes32[:remainingBytes], data[offset:offset+remainingBytes])
-				if !bls.FrFrom32(&polynomials[offset/(db.Degree*db.FieldSize)][i%db.Degree], bytes32) {
-					return fmt.Errorf("%w at index %d", ErrEncodingFailed, offset)
-				}
-			}
-			break
-		}
 	}
 
 	db.Polynomials = &polynomials
