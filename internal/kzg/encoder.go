@@ -185,6 +185,7 @@ func (db *DataBlock) Commit(setup *TrustedSetup) error {
 	return nil
 }
 
+// Extend extends the polynomials by zero-padding and performing forward and inverse FFT.
 func (db *DataBlock) Extend(setup *TrustedSetup) error {
 	if db.Polynomials == nil || len(db.Polynomials) == 0 {
 		return ErrNoPolynomials
