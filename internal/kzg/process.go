@@ -4,9 +4,12 @@ package kzg
 func Encode(data []byte) (*DataBlock, error) {
 
 	// Encode the data into polynomials
-	encoded := NewDataBlock(setup.EvalLen, 31)
+	encoded, err := NewDataBlock(setup.EvalLen, 31)
+	if err != nil {
+		return nil, err
+	}
 
-	err := encoded.Encode(data)
+	err = encoded.Encode(data)
 	if err != nil {
 		return nil, err
 	}

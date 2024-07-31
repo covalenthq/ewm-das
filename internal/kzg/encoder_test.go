@@ -15,10 +15,13 @@ func TestEncodeDecode(t *testing.T) {
 	fieldSize := uint64(32)
 
 	// Create a new DataBlock
-	db := NewDataBlock(degree, fieldSize)
+	db, err := NewDataBlock(degree, fieldSize)
+	if err != nil {
+		t.Fatalf("Failed to create DataBlock: %v", err)
+	}
 
 	// Encode the data
-	err := db.Encode(originalData)
+	err = db.Encode(originalData)
 	if err != nil {
 		t.Fatalf("Encoding failed: %v", err)
 	}
@@ -47,10 +50,13 @@ func TestLargeData(t *testing.T) {
 	fieldSize := uint64(31)
 
 	// Create a new DataBlock
-	db := NewDataBlock(degree, fieldSize)
+	db, err := NewDataBlock(degree, fieldSize)
+	if err != nil {
+		t.Fatalf("Failed to create DataBlock: %v", err)
+	}
 
 	// Encode the data
-	err := db.Encode(originalData)
+	err = db.Encode(originalData)
 	if err != nil {
 		t.Fatalf("Encoding failed: %v", err)
 	}
@@ -73,10 +79,9 @@ func TestInvalidDegree(t *testing.T) {
 	fieldSize := uint64(32)
 
 	// Try to create a new DataBlock
-	db := NewDataBlock(degree, fieldSize)
-
-	if db != nil {
-		t.Fatalf("Expected DataBlock to be nil when degree is invalid")
+	_, err := NewDataBlock(degree, fieldSize)
+	if err == nil {
+		t.Fatalf("Expected error when degree is invalid, but got nil")
 	}
 }
 
@@ -88,10 +93,13 @@ func TestPartialFieldSizeData(t *testing.T) {
 	fieldSize := uint64(32)
 
 	// Create a new DataBlock
-	db := NewDataBlock(degree, fieldSize)
+	db, err := NewDataBlock(degree, fieldSize)
+	if err != nil {
+		t.Fatalf("Failed to create DataBlock: %v", err)
+	}
 
 	// Encode the data
-	err := db.Encode(originalData)
+	err = db.Encode(originalData)
 	if err != nil {
 		t.Fatalf("Encoding failed: %v", err)
 	}
@@ -116,10 +124,13 @@ func TestOversizedFieldSize(t *testing.T) {
 	fieldSize := uint64(64) // Oversized field size
 
 	// Create a new DataBlock
-	db := NewDataBlock(degree, fieldSize)
+	db, err := NewDataBlock(degree, fieldSize)
+	if err != nil {
+		t.Fatalf("Failed to create DataBlock: %v", err)
+	}
 
 	// Encode the data and expect an error
-	err := db.Encode(originalData)
+	err = db.Encode(originalData)
 	if err == nil {
 		t.Fatalf("Expected encoding to fail due to oversized field size, but it succeeded")
 	}
