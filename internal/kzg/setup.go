@@ -211,7 +211,7 @@ func LoadSetup(config Config) ([]bls.G1Point, []bls.G2Point, error) {
 
 // bitsNeeded calculates the number of bits needed to represent the given value.
 func bitsNeeded(x uint64) uint8 {
-	return uint8((big.NewInt(0).SetUint64(x).BitLen() + 7) / 8 * 8)
+	return uint8((big.NewInt(0).SetUint64(x).BitLen()+7)/8*8) - 1
 }
 
 // GetTrustedSetup returns the initialized trusted setup.
