@@ -2,6 +2,7 @@ package kzg
 
 import (
 	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"path/filepath"
@@ -42,13 +43,13 @@ func InitTrustedSetup(config Config) error {
 	s1, s2, err := LoadSetup(config)
 	if err == nil && len(s1) > 0 && len(s2) > 0 {
 		// Successfully loaded setup, now use it
-		fmt.Println("Loaded trusted setup from cache")
+		log.Println("Loaded trusted setup from cache")
 		setup = initializeFromPoints(s1, s2, config)
 		return nil
 	}
 
 	// If loading fails, generate the setup and cache it
-	fmt.Println("Generating new trusted setup")
+	log.Println("Generating new trusted setup")
 	s1, s2 = kzg.GenerateTestingSetup(config.Seed, config.EvalLen*2)
 	if err := StoreSetup(s1, s2, config); err != nil {
 		return fmt.Errorf("failed to store trusted setup: %w", err)

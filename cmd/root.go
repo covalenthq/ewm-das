@@ -54,6 +54,18 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
+	log.Println("Initializing root command...", os.Args)
+
+	// Check if we're in the child process (daemon)
+	if os.Getenv("GO_DAEMON") == "1" {
+		log.Println("Running in daemon mode.")
+		// Do not reinitialize flags or commands here
+		// Proceed directly to running the server or minimal initialization required
+		return
+	}
+
+	log.Println("Running in non-daemon mode.")
+
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Run in debug mode")
 	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("DAEMON_ADDR", "localhost:5080"), "Address to run the daemon")
@@ -64,31 +76,41 @@ func initConfig() {
 }
 
 func daemonize() {
+	// Get the executable path
 	executablePath, err := filepath.Abs(os.Args[0])
 	if err != nil {
 		log.Fatalf("Error getting absolute path: %v\n", err)
 	}
-	args := os.Args[1:]
 
+	// Ensure arguments are correctly passed to the child process
+	var args []string
+
+	if len(os.Args) > 1 {
+		args = os.Args[1:]
+	} else {
+		// Log a message if there are no arguments
+		log.Println("No arguments provided to the child process.")
+	}
+
+	// Set up the environment with a specific variable to identify the forked process
 	env := append(os.Environ(), "GO_DAEMON=1")
 
+	// Set up process attributes
 	procAttr := &os.ProcAttr{
-		Dir: filepath.Dir(executablePath),
-		Files: []*os.File{
-			os.Stdin,
-			os.Stdout,
-			os.Stderr,
-		},
-		Env: env,
+		Dir:   filepath.Dir(executablePath),
+		Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
+		Env:   env,
 		Sys: &syscall.SysProcAttr{
 			Setsid: true,
 		},
 	}
 
+	// Start the new process
 	process, err := os.StartProcess(executablePath, args, procAttr)
 	if err != nil {
 		log.Fatalf("Error starting process: %v\n", err)
 	}
+	// Release the parent process
 	process.Release()
 	os.Exit(0)
 }
