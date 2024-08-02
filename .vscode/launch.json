@@ -12,7 +12,10 @@
             "program": "${workspaceFolder}/cmd/pinner/main.go",
             "args": [
                 "--debug"
-            ]
+            ],
+            "env": {
+                "TRUSTED_DIR": "${workspaceFolder}/test/data"
+            }
         },
         {
             "name": "Pinner CLI: STORE",

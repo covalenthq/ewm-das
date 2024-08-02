@@ -9,7 +9,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/covalenthq/das-ipfs-pinner/internal/kzg"
+	"github.com/covalenthq/das-ipfs-pinner/internal/das"
 )
 
 // StartServer initializes and starts the HTTP server.
@@ -54,7 +54,7 @@ func storeHandler(w http.ResponseWriter, r *http.Request) {
 	// For demonstration purposes, we'll just print the data length
 	log.Printf("Received %d bytes of data\n", len(data))
 
-	_, err = kzg.Encode(data)
+	_, err = das.Encode(data)
 	if err != nil {
 		http.Error(w, "Failed to store data", http.StatusInternalServerError)
 		return

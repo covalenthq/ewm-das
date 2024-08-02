@@ -11,7 +11,7 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/api"
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"github.com/covalenthq/das-ipfs-pinner/internal/kzg"
+	"github.com/covalenthq/das-ipfs-pinner/internal/das"
 )
 
 var (
@@ -26,9 +26,10 @@ var rootCmd = &cobra.Command{
 	Long:    `Pinner is a daemon that handles storing binary data and extracting it via HTTP.`,
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		// Load the configuration
+		config := das.LoadConfig()
 		// Initialize the KZG trusted setup
-		config := kzg.LoadConfig()
-		if err := kzg.InitTrustedSetup(config); err != nil {
+		if err := das.InitializeTrustedSetup(config); err != nil {
 			log.Fatalf("Failed to initialize trusted setup: %v", err)
 		}
 
