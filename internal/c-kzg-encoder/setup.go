@@ -6,21 +6,26 @@ import (
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
-type trustedSetup struct{}
+// TrustedSetup is the trusted setup.
+type TrustedSetup struct{}
 
-func NewTrustedSetup() *trustedSetup {
-	return &trustedSetup{}
+// NewTrustedSetup creates a new trusted setup.
+func NewTrustedSetup() *TrustedSetup {
+	return &TrustedSetup{}
 }
 
-func (t *trustedSetup) GenerateTrustedSetup() error {
+// GenerateTrustedSetup generates a trusted setup.
+func (t *TrustedSetup) GenerateTrustedSetup() error {
 	return nil
 }
 
-func (t *trustedSetup) LoadTrustedSetup(config Config) error {
+// LoadTrustedSetup loads a trusted setup.
+func (t *TrustedSetup) LoadTrustedSetup(config Config) error {
 	trustedSetupFile := filepath.Join(config.TrustedDir, "trusted_setup.txt")
 	return ckzg4844.LoadTrustedSetupFile(trustedSetupFile)
 }
 
-func (t *trustedSetup) FreeTrustedSetup() error {
+// FreeTrustedSetup frees a trusted setup.
+func (t *TrustedSetup) FreeTrustedSetup() error {
 	return nil
 }

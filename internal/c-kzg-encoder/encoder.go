@@ -4,10 +4,12 @@ import (
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
+// Encode encodes the data block.
 func (d *DataBlockImpl) Encode(data []byte) error {
 	return d.encodeBlobs(data)
 }
 
+// Decode decodes the data block.
 func (d *DataBlockImpl) Decode() ([]byte, error) {
 	return d.decodeBlobs()
 }
