@@ -6,6 +6,7 @@ require (
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/protolambda/go-kzg v0.0.0-20221224134646-c91cee5e954e
 	github.com/spf13/cobra v1.8.1
+	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
 )
 
 require (

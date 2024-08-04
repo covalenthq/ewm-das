@@ -56,6 +56,7 @@ func storeHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, err = das.Encode(data)
 	if err != nil {
+		log.Printf("Failed to encode data: %v\n", err)
 		http.Error(w, "Failed to store data", http.StatusInternalServerError)
 		return
 	}

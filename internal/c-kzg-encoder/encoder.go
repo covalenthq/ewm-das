@@ -1,65 +1,77 @@
 package ckzgencoder
 
 import (
-	"fmt"
-
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
 func (d *DataBlockImpl) Encode(data []byte) error {
-	err := d.encodeBlobs(data)
-	if err != nil {
-		return err
-	}
-
-	err = d.commitToBlobs()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return d.encodeBlobs(data)
 }
 
 func (d *DataBlockImpl) Decode() ([]byte, error) {
-	return nil, nil
+	return d.decodeBlobs()
 }
 
 func (d *DataBlockImpl) encodeBlobs(data []byte) error {
-	var blobs []ckzg4844.Blob
+	var (
+		blobs       []*ckzg4844.Blob
+		commitments []ckzg4844.KZGCommitment
+		j           int
+		blob        = new(ckzg4844.Blob)
+	)
 
-	// Split data into blobs
-	for i := 0; i < len(data); i += ckzg4844.BytesPerBlob {
-		// if the remaining data is less than BytesPerBlob, copy the remaining data
-		if len(data)-i < ckzg4844.BytesPerBlob {
-			blob := ckzg4844.Blob{}
-			copy(blob[:], data[i:])
-			blobs = append(blobs, blob)
-			break
+	for i := 0; i < len(data); i += 31 {
+		if j == ckzg4844.BytesPerBlob {
+			if err := d.addBlobAndCommitment(&blobs, &commitments, blob); err != nil {
+				return err
+			}
+			blob = new(ckzg4844.Blob)
+			j = 0
 		}
 
-		blob := ckzg4844.Blob{}
-		copy(blob[:], data[i:i+ckzg4844.BytesPerBlob])
-		blobs = append(blobs, blob)
+		copy(blob[j+1:j+min(32, len(data)+1)], data[i:min(i+31, len(data))])
+		j += 32
 	}
-	d.Blobs = blobs
+
+	if j > 0 {
+		if err := d.addBlobAndCommitment(&blobs, &commitments, blob); err != nil {
+			return err
+		}
+	}
+
 	d.Size = uint64(len(data))
+	d.Blobs = blobs
+	d.Commitments = commitments
 	return nil
 }
 
-func (d *DataBlockImpl) commitToBlobs() error {
-	if d.Blobs == nil {
-		return fmt.Errorf("no blobs to commit")
+func (d *DataBlockImpl) addBlobAndCommitment(blobs *[]*ckzg4844.Blob, commitments *[]ckzg4844.KZGCommitment, blob *ckzg4844.Blob) error {
+	commitment, err := ckzg4844.BlobToKZGCommitment(blob)
+	if err != nil {
+		return err
 	}
-
-	commitments := make([]ckzg4844.KZGCommitment, len(d.Blobs))
-	for i, blob := range d.Blobs {
-		commitment, err := ckzg4844.BlobToKZGCommitment(&blob)
-		if err != nil {
-			return err
-		}
-		commitments[i] = commitment
-	}
-
-	d.Commitments = commitments
+	*blobs = append(*blobs, blob)
+	*commitments = append(*commitments, commitment)
 	return nil
+}
+
+func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
+	data := make([]byte, d.Size)
+	j := 0
+
+	for _, blob := range d.Blobs {
+		for k := 0; k < len(blob); k += 32 {
+			remaining := len(data) - j
+			if remaining < 31 {
+				copy(data[j:], blob[k+1:k+1+remaining])
+				j += remaining
+				break
+			}
+
+			copy(data[j:j+31], blob[k+1:k+32])
+			j += 31
+		}
+	}
+
+	return data, nil
 }

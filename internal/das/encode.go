@@ -1,6 +1,8 @@
 package das
 
-import ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/c-kzg-encoder"
+import (
+	ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/c-kzg-encoder"
+)
 
 func Encode(data []byte) (interface{}, error) {
 	datablock := ckzgencoder.DataBlockImpl{}
