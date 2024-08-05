@@ -26,26 +26,21 @@ jobs:
         git submodule update    
 
     - name: Install dependencies
-      run: go mod download
+      run: make deps
 
     - name: Run go fmt
-      run: go fmt ./...
+      run: make fmt
 
     - name: Run go vet
-      run: go vet ./...
+      run: make vet
 
-    # - name: Run golint
-    #   run: |
-    #     go install golang.org/x/lint/golint@latest
-    #     OUTPUT=$(golint ./... | grep -v c-kzg-4844); \
-    #     echo "$OUTPUT"; \
-    #     if [ -n "$OUTPUT" ]; then \
-    #       echo "Linting issues found"; \
-    #       exit 1; \
-    #     fi
+    - name: Run golint
+      run: |
+        go install golang.org/x/lint/golint@latest
+        make lint
 
     - name: Run tests
-      run: go test -v ./...
+      run: make test
 
     - name: Build binaries
       run: make build
