@@ -59,12 +59,12 @@ test-cover:
 # Format the code
 .PHONY: fmt
 fmt:
-	for dir in $(GO_DIRS); do go fmt $$dir/...; done
+	go fmt ./...
 
 # Run static analysis (vet)
 .PHONY: vet
 vet:
-	for dir in $(GO_DIRS); do go vet $$dir/...; done
+	go vet ./...
 
 # Tidy up module dependencies
 .PHONY: tidy
