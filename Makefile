@@ -82,11 +82,6 @@ clean:
 generate:
 	go generate ./...
 
-# Lint the code (requires golint to be installed)
-.PHONY: lint
-lint:
-	golint ./...
-
 # Install dependencies
 .PHONY: deps
 deps:
@@ -94,7 +89,7 @@ deps:
 
 .PHONY: lint
 lint:
-	@OUTPUT=$$(golint ./... | grep -v "c-kzg-4844"); \
+	@OUTPUT=$$(golint ./... | grep -v c-kzg-4844); \
 	echo "$$OUTPUT"; \
 	if [ -n "$$OUTPUT" ]; then \
 	  echo "Linting issues found"; \
