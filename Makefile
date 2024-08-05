@@ -26,7 +26,7 @@ GIT_COMMIT := $(shell git rev-parse HEAD)
 
 # Default target to build all binaries
 .PHONY: all
-all: fmt vet test build
+all: fmt vet test build lint
 
 # Create the bin directory if it doesn't exist
 $(BIN_DIR):
@@ -91,3 +91,7 @@ lint:
 .PHONY: deps
 deps:
 	go mod download
+
+.PHONY: lint
+lint:
+	golint ./...
