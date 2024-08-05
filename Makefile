@@ -89,9 +89,9 @@ deps:
 
 .PHONY: lint
 lint:
-	@OUTPUT=$$(golint ./... | grep -v c-kzg-4844); \
-	echo "$$OUTPUT"; \
-	if [ -n "$$OUTPUT" ]; then \
+	@OUTPUT=$(golint ./... | grep -v c-kzg-4844); \
+	echo "${OUTPUT}"; \
+	if [ -n "${OUTPUT}" ]; then \
 	  echo "Linting issues found"; \
 	  exit 1; \
 	fi
