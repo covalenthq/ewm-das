@@ -22,10 +22,11 @@ func (t *TrustedSetup) GenerateTrustedSetup() error {
 // LoadTrustedSetup loads a trusted setup.
 func (t *TrustedSetup) LoadTrustedSetup(config Config) error {
 	trustedSetupFile := filepath.Join(config.TrustedDir, "trusted_setup.txt")
-	return ckzg4844.LoadTrustedSetupFile(trustedSetupFile)
+	return ckzg4844.LoadTrustedSetupFile(trustedSetupFile, 0)
 }
 
 // FreeTrustedSetup frees a trusted setup.
 func (t *TrustedSetup) FreeTrustedSetup() error {
+	ckzg4844.FreeTrustedSetup()
 	return nil
 }

@@ -77,3 +77,20 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 
 	return data, nil
 }
+
+// ComputeCellsAndKZGProofs converts the blobs to cells and KZG proofs.
+func (d *DataBlockImpl) ComputeCellsAndKZGProofs() error {
+	d.Cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, len(d.Blobs))
+	d.Proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, len(d.Blobs))
+
+	for i, blob := range d.Blobs {
+		cells, proofs, err := ckzg4844.ComputeCellsAndKZGProofs(blob)
+		if err != nil {
+			return err
+		}
+		d.Cells[i] = cells
+		d.Proofs[i] = proofs
+	}
+
+	return nil
+}

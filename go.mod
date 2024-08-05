@@ -18,3 +18,5 @@ require (
 	github.com/supranational/blst v0.3.11 // indirect
 	golang.org/x/sys v0.0.0-20220818161305-2296e01440c6 // indirect
 )
+
+replace github.com/ethereum/c-kzg-4844 => ./c-kzg-4844

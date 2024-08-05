@@ -18,7 +18,7 @@ func fillRandomBytes(size int) []byte {
 
 // TestMain sets up the testing environment
 func TestMain(m *testing.M) {
-	err := ckzg4844.LoadTrustedSetupFile("../../test/data/trusted_setup.txt")
+	err := ckzg4844.LoadTrustedSetupFile("../../test/data/trusted_setup.txt", 0)
 	if err != nil {
 		log.Fatalf("Failed to load trusted setup: %v", err)
 	}

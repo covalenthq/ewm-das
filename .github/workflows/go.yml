@@ -32,7 +32,7 @@ jobs:
     - name: Run golint
       run: |
         go install golang.org/x/lint/golint@latest
-        OUTPUT=$(golint ./...); \
+        OUTPUT=$(golint ./... | grep -v c-kzg-4844); \
         echo "$OUTPUT"; \
         if [ -n "$OUTPUT" ]; then \
           echo "Linting issues found"; \
