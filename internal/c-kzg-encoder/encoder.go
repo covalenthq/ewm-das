@@ -1,17 +1,70 @@
 package ckzgencoder
 
 import (
+	"errors"
+
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+)
+
+var (
+	ErrCellsOrProofsMissing = errors.New("cells or proofs missing")
+	ErrVerificationFailed   = errors.New("verification failed")
 )
 
 // Encode encodes the data block.
 func (d *DataBlockImpl) Encode(data []byte) error {
-	return d.encodeBlobs(data)
+	// Step 1: Encode the data into blobs and commitments
+	if err := d.encodeBlobs(data); err != nil {
+		return err
+	}
+	// Step 2: Compute cells and KZG proofs
+	if err := d.computeCellsAndKZGProofs(); err != nil {
+		return err
+	}
+	return nil
 }
 
 // Decode decodes the data block.
 func (d *DataBlockImpl) Decode() ([]byte, error) {
 	return d.decodeBlobs()
+}
+
+func (d *DataBlockImpl) Verify() error {
+	if d.Blobs == nil {
+		return nil
+	}
+
+	if d.Cells == nil || d.Proofs == nil {
+		return ErrCellsOrProofsMissing
+	}
+
+	for i, commitment := range d.Commitments {
+		// Prepare the commitment
+		var commitments [1]ckzg4844.Bytes48
+		copy(commitments[0][:], commitment[:])
+
+		for j, cell := range d.Cells[i] {
+			// Prepare the cell, proof, and index for verification
+			var subCells [1]ckzg4844.Cell
+			copy(subCells[0][:], cell[:])
+
+			var proofs [1]ckzg4844.Bytes48
+			copy(proofs[0][:], d.Proofs[i][j][:])
+
+			indexes := [1]uint64{uint64(j)}
+
+			// Verify the cell KZG proof
+			ok, err := ckzg4844.VerifyCellKZGProofBatch(commitments[:], indexes[:], subCells[:], proofs[:])
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return ErrVerificationFailed
+			}
+		}
+	}
+
+	return nil
 }
 
 func (d *DataBlockImpl) encodeBlobs(data []byte) error {
@@ -78,8 +131,11 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 	return data, nil
 }
 
-// ComputeCellsAndKZGProofs converts the blobs to cells and KZG proofs.
-func (d *DataBlockImpl) ComputeCellsAndKZGProofs() error {
+func (d *DataBlockImpl) computeCellsAndKZGProofs() error {
+	if d.Blobs == nil {
+		return nil
+	}
+
 	d.Cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, len(d.Blobs))
 	d.Proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, len(d.Blobs))
 
