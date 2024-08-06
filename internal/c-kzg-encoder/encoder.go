@@ -11,17 +11,12 @@ var (
 	ErrVerificationFailed   = errors.New("verification failed")
 )
 
-// Encode encodes the data block.
+// Encode encodes the data block and computes the cells and KZG proofs.
 func (d *DataBlockImpl) Encode(data []byte) error {
-	// Step 1: Encode the data into blobs and commitments
 	if err := d.encodeBlobs(data); err != nil {
 		return err
 	}
-	// Step 2: Compute cells and KZG proofs
-	if err := d.computeCellsAndKZGProofs(); err != nil {
-		return err
-	}
-	return nil
+	return d.computeCellsAndKZGProofs()
 }
 
 // Decode decodes the data block.
@@ -29,44 +24,18 @@ func (d *DataBlockImpl) Decode() ([]byte, error) {
 	return d.decodeBlobs()
 }
 
+// Verify verifies the data block.
 func (d *DataBlockImpl) Verify() error {
 	if d.Blobs == nil {
 		return nil
 	}
-
 	if d.Cells == nil || d.Proofs == nil {
 		return ErrCellsOrProofsMissing
 	}
-
-	for i, commitment := range d.Commitments {
-		// Prepare the commitment
-		var commitments [1]ckzg4844.Bytes48
-		copy(commitments[0][:], commitment[:])
-
-		for j, cell := range d.Cells[i] {
-			// Prepare the cell, proof, and index for verification
-			var subCells [1]ckzg4844.Cell
-			copy(subCells[0][:], cell[:])
-
-			var proofs [1]ckzg4844.Bytes48
-			copy(proofs[0][:], d.Proofs[i][j][:])
-
-			indexes := [1]uint64{uint64(j)}
-
-			// Verify the cell KZG proof
-			ok, err := ckzg4844.VerifyCellKZGProofBatch(commitments[:], indexes[:], subCells[:], proofs[:])
-			if err != nil {
-				return err
-			}
-			if !ok {
-				return ErrVerificationFailed
-			}
-		}
-	}
-
-	return nil
+	return d.verifyCommitmentsAndProofs()
 }
 
+// encodeBlobs encodes the data into blobs and commitments.
 func (d *DataBlockImpl) encodeBlobs(data []byte) error {
 	var (
 		blobs       []*ckzg4844.Blob
@@ -100,6 +69,7 @@ func (d *DataBlockImpl) encodeBlobs(data []byte) error {
 	return nil
 }
 
+// addBlobAndCommitment adds a blob and its corresponding commitment.
 func (d *DataBlockImpl) addBlobAndCommitment(blobs *[]*ckzg4844.Blob, commitments *[]ckzg4844.KZGCommitment, blob *ckzg4844.Blob) error {
 	commitment, err := ckzg4844.BlobToKZGCommitment(blob)
 	if err != nil {
@@ -110,6 +80,7 @@ func (d *DataBlockImpl) addBlobAndCommitment(blobs *[]*ckzg4844.Blob, commitment
 	return nil
 }
 
+// decodeBlobs decodes the blobs back into the original data.
 func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 	data := make([]byte, d.Size)
 	j := 0
@@ -122,7 +93,6 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 				j += remaining
 				break
 			}
-
 			copy(data[j:j+31], blob[k+1:k+32])
 			j += 31
 		}
@@ -131,6 +101,7 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 	return data, nil
 }
 
+// computeCellsAndKZGProofs computes the cells and KZG proofs for the encoded blobs.
 func (d *DataBlockImpl) computeCellsAndKZGProofs() error {
 	if d.Blobs == nil {
 		return nil
@@ -148,5 +119,32 @@ func (d *DataBlockImpl) computeCellsAndKZGProofs() error {
 		d.Proofs[i] = proofs
 	}
 
+	return nil
+}
+
+// verifyCommitmentsAndProofs verifies the KZG commitments and proofs.
+func (d *DataBlockImpl) verifyCommitmentsAndProofs() error {
+	for i, commitment := range d.Commitments {
+		var commitments [1]ckzg4844.Bytes48
+		copy(commitments[0][:], commitment[:])
+
+		for j, cell := range d.Cells[i] {
+			var subCells [1]ckzg4844.Cell
+			copy(subCells[0][:], cell[:])
+
+			var proofs [1]ckzg4844.Bytes48
+			copy(proofs[0][:], d.Proofs[i][j][:])
+
+			indexes := [1]uint64{uint64(j)}
+
+			ok, err := ckzg4844.VerifyCellKZGProofBatch(commitments[:], indexes[:], subCells[:], proofs[:])
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return ErrVerificationFailed
+			}
+		}
+	}
 	return nil
 }
