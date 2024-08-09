@@ -6,9 +6,7 @@ import (
 
 // Encode encodes the data.
 func Encode(data []byte) (interface{}, error) {
-	datablock := ckzgencoder.DataBlockImpl{}
-
-	err := datablock.Encode(data)
+	_, err := ckzgencoder.EncodeDatablock(data)
 	if err != nil {
 		return nil, err
 	}

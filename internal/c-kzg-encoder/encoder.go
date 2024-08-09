@@ -3,6 +3,7 @@ package ckzgencoder
 import (
 	"errors"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
@@ -10,6 +11,17 @@ var (
 	ErrCellsOrProofsMissing = errors.New("cells or proofs missing")
 	ErrVerificationFailed   = errors.New("verification failed")
 )
+
+func EncodeDatablock(data []byte) (internal.DataBlock, error) {
+	datablock := &DataBlockImpl{}
+
+	err := datablock.Encode(data)
+	if err != nil {
+		return nil, err
+	}
+
+	return datablock, nil
+}
 
 // Encode encodes the data block and computes the cells and KZG proofs.
 func (d *DataBlockImpl) Encode(data []byte) error {
