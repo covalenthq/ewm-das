@@ -4,6 +4,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
+	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent/qp"
 	"github.com/ipld/go-ipld-prime/linking"
@@ -12,6 +13,11 @@ import (
 	"github.com/ipld/go-ipld-prime/storage/memstore"
 	mh "github.com/multiformats/go-multihash"
 )
+
+func EncodeDatablock(block internal.DataBlock) (interface{}, error) {
+	datablock := &IPLDDataBlock{}
+	return datablock.Encode(block)
+}
 
 // Encode encodes the data from the given DataBlock.
 func (b *IPLDDataBlock) Encode(block internal.DataBlock) (datamodel.Node, error) {
