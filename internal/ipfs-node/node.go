@@ -19,9 +19,20 @@ import (
 	"github.com/ipfs/kubo/core/node/libp2p"
 	"github.com/ipfs/kubo/plugin/loader"
 	"github.com/ipfs/kubo/repo/fsrepo"
-	"github.com/ipld/go-ipld-prime/codec/dagcbor"
-	mh "github.com/multiformats/go-multihash"
+	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/codec"
+	"github.com/ipld/go-ipld-prime/fluent/qp"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+	"github.com/ipld/go-ipld-prime/multicodec"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
+	mc "github.com/multiformats/go-multicodec"
 )
+
+// CodecConfig struct encapsulates codec encoder, decoder, and CID prefix.
+type CodecConfig struct {
+	Encoder codec.Encoder
+	Prefix  cid.Prefix
+}
 
 // IPFSNode struct encapsulates the IPFS node and CoreAPI.
 type IPFSNode struct {
@@ -31,19 +42,19 @@ type IPFSNode struct {
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
 func NewIPFSNode() (*IPFSNode, error) {
-	cfg := core.BuildCfg{
-		Online:    true, // networking
-		Permanent: true, // data persists across restarts?
+	buildConfig := core.BuildCfg{
+		Online:    true,
+		Permanent: true,
+		Routing:   libp2p.DHTOption,
+		Host:      libp2p.DefaultHostOption,
 	}
-	cfg.Routing = libp2p.DHTOption
-	cfg.Host = libp2p.DefaultHostOption
 
-	repoPath, err := initIpfsRepo()
+	repoPath, err := initializeRepo()
 	if err != nil {
 		return nil, err
 	}
 
-	if err := setupPlugins(repoPath); err != nil {
+	if err := loadPlugins(repoPath); err != nil {
 		return nil, err
 	}
 
@@ -57,12 +68,12 @@ func NewIPFSNode() (*IPFSNode, error) {
 		return nil, err
 	}
 
-	cfg.Repo, err = fsrepo.Open(repoPath)
+	buildConfig.Repo, err = fsrepo.Open(repoPath)
 	if err != nil {
 		return nil, err
 	}
 
-	node, err := core.NewNode(context.Background(), &cfg)
+	node, err := core.NewNode(context.Background(), &buildConfig)
 	if err != nil {
 		return nil, err
 	}
@@ -79,57 +90,148 @@ func NewIPFSNode() (*IPFSNode, error) {
 }
 
 // PublishBlock publishes a block to IPFS.
-func (ipfsNode *IPFSNode) PublishBlock(block *ipldencoder.IPLDDataBlock) error {
-	for _, subNodes := range block.DataNodes {
-		for _, dataNode := range subNodes {
-			var buf bytes.Buffer
-			if err := dagcbor.Encode(dataNode, &buf); err != nil {
+func (ipfsNode *IPFSNode) PublishBlock(dataBlock *ipldencoder.IPLDDataBlock) error {
+	codecConfig, err := prepareCodec("dag-cbor", "sha2-256")
+	if err != nil {
+		return err
+	}
+
+	// Encode the block data to CBOR DAG
+	for _, nodeGroup := range dataBlock.DataNodes {
+		for _, node := range nodeGroup {
+			var buffer bytes.Buffer
+			if err := codecConfig.Encoder(node, &buffer); err != nil {
 				return err
 			}
 
-			cidPrefix := cid.Prefix{
-				Version:  1,
-				Codec:    uint64(cid.DagCBOR),
-				MhType:   uint64(mh.SHA2_256),
-				MhLength: -1,
-			}
-
-			blockCid, err := cidPrefix.Sum(buf.Bytes())
+			blockCid, err := codecConfig.Prefix.Sum(buffer.Bytes())
 			if err != nil {
 				return err
 			}
 
-			blk, err := blocks.NewBlockWithCid(buf.Bytes(), blockCid)
+			block, err := blocks.NewBlockWithCid(buffer.Bytes(), blockCid)
 			if err != nil {
 				return err
 			}
 
+			// TODO: maybe use kubo's approach to store the block
 			// Use blockstore to store the block
 			blockStore := blockstore.NewBlockstore(ipfsNode.Node.Repo.Datastore())
-			if err := blockStore.Put(context.Background(), blk); err != nil {
+			if err := blockStore.Put(context.Background(), block); err != nil {
 				return err
 			}
 
 			// Log the CID of the stored CBOR DAG node
-			cborCID := blk.Cid()
-			log.Printf("CBOR DAG object added to IPFS with CID: %s", cborCID.String())
+			log.Printf("CBOR DAG object added to IPFS with CID: %s", blockCid.String())
 
-			// Example: Retrieve the CBOR DAG object back
-			retrievedNode, err := ipfsNode.API.Dag().Get(context.Background(), cborCID)
+			// Retrieve and log the CBOR DAG object
+			retrievedNode, err := ipfsNode.API.Dag().Get(context.Background(), blockCid)
 			if err != nil {
 				return err
 			}
-
 			log.Printf("Retrieved CBOR DAG object with CID: %s", retrievedNode.Cid().String())
 		}
 	}
 
+	for _, subLinks := range dataBlock.Links {
+		node, err := qp.BuildList(basicnode.Prototype.List, -1, func(la ipld.ListAssembler) {
+			for _, link := range subLinks {
+				newLink := cidlink.Link{Cid: link.(cidlink.Link).Cid}
+				qp.ListEntry(la, qp.Link(newLink))
+			}
+		})
+		if err != nil {
+			return err
+		}
+
+		var buffer bytes.Buffer
+		if err := codecConfig.Encoder(node, &buffer); err != nil {
+			return err
+		}
+
+		blockCid, err := codecConfig.Prefix.Sum(buffer.Bytes())
+		if err != nil {
+			return err
+		}
+
+		block, err := blocks.NewBlockWithCid(buffer.Bytes(), blockCid)
+		if err != nil {
+			return err
+		}
+
+		// TODO: maybe use kubo's approach to store the block
+		// Use blockstore to store the block
+		blockStore := blockstore.NewBlockstore(ipfsNode.Node.Repo.Datastore())
+		if err := blockStore.Put(context.Background(), block); err != nil {
+			return err
+		}
+
+		// Log the CID of the stored CBOR DAG node
+		log.Printf("CBOR DAG object added to IPFS with CID: %s", blockCid.String())
+	}
+
+	// Root
+
+	var buffer bytes.Buffer
+	if err := codecConfig.Encoder(dataBlock.Root, &buffer); err != nil {
+		return err
+	}
+
+	blockCid, err := codecConfig.Prefix.Sum(buffer.Bytes())
+	if err != nil {
+		return err
+	}
+
+	block, err := blocks.NewBlockWithCid(buffer.Bytes(), blockCid)
+	if err != nil {
+		return err
+	}
+
+	// TODO: maybe use kubo's approach to store the block
+	// Use blockstore to store the block
+	blockStore := blockstore.NewBlockstore(ipfsNode.Node.Repo.Datastore())
+	if err := blockStore.Put(context.Background(), block); err != nil {
+		return err
+	}
+
+	// Log the CID of the stored CBOR DAG node
+	log.Printf("CBOR DAG object added to IPFS with CID: %s", blockCid.String())
+
 	return nil
 }
 
-// setupPlugins loads and initializes any external plugins.
-func setupPlugins(externalPluginsPath string) error {
-	plugins, err := loader.NewPluginLoader(filepath.Join(externalPluginsPath, "plugins"))
+// prepareCodec sets up the encoder and CID prefix.
+func prepareCodec(storageFormat, hashAlgorithm string) (*CodecConfig, error) {
+	var storageCodec mc.Code
+	if err := storageCodec.Set(storageFormat); err != nil {
+		return nil, err
+	}
+	var multihashType mc.Code
+	if err := multihashType.Set(hashAlgorithm); err != nil {
+		return nil, err
+	}
+
+	cidPrefix := cid.Prefix{
+		Version:  1,
+		Codec:    uint64(storageCodec),
+		MhType:   uint64(multihashType),
+		MhLength: -1,
+	}
+
+	encoder, err := multicodec.LookupEncoder(uint64(storageCodec))
+	if err != nil {
+		return nil, err
+	}
+
+	return &CodecConfig{
+		Encoder: encoder,
+		Prefix:  cidPrefix,
+	}, nil
+}
+
+// loadPlugins loads and initializes any external plugins.
+func loadPlugins(pluginPath string) error {
+	plugins, err := loader.NewPluginLoader(filepath.Join(pluginPath, "plugins"))
 	if err != nil {
 		return err
 	}
@@ -145,15 +247,15 @@ func setupPlugins(externalPluginsPath string) error {
 	return nil
 }
 
-// initIpfsRepo initializes the IPFS repository.
-func initIpfsRepo() (string, error) {
-	pathRoot, err := config.PathRoot() // IFPS path root, can be changed via env variable too
+// initializeRepo initializes the IPFS repository.
+func initializeRepo() (string, error) {
+	repoPath, err := config.PathRoot() // IPFS path root, can be changed via env variable
 	if err != nil {
 		return "", err
 	}
-	if err = os.MkdirAll(pathRoot, fs.ModeDir); err != nil {
+	if err = os.MkdirAll(repoPath, fs.ModeDir); err != nil {
 		return "", err
 	}
 
-	return pathRoot, nil
+	return repoPath, nil
 }
