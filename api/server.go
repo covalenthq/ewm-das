@@ -10,10 +10,16 @@ import (
 	"syscall"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/das"
+	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/ipfs-node"
 )
 
 // StartServer initializes and starts the HTTP server.
 func StartServer(addr string) {
+	ipfsnode, err := ipfsnode.NewIPFSNode()
+	if err != nil {
+		log.Fatalf("Failed to initialize IPFS node: %v", err)
+	}
+
 	// Set up signal handling for graceful shutdown
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
@@ -25,7 +31,7 @@ func StartServer(addr string) {
 	}()
 
 	// Set up HTTP handlers
-	http.HandleFunc("/store", storeHandler)
+	http.HandleFunc("/store", createStoreHandler(ipfsnode))
 	http.HandleFunc("/extract", extractHandler)
 
 	// Start the HTTP server
@@ -63,6 +69,45 @@ func storeHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Respond to the client
 	fmt.Fprintln(w, "Data stored successfully")
+}
+
+func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Ensure that the request is a POST method
+		if r.Method != http.MethodPost {
+			http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Read the binary data from the request body
+		data, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+			return
+		}
+		defer r.Body.Close()
+
+		// Handle the binary data (e.g., encode and store it using IPFSNode)
+		log.Printf("Received %d bytes of data\n", len(data))
+
+		block, err := das.Encode(data)
+		if err != nil {
+			log.Printf("Failed to encode data: %v\n", err)
+			http.Error(w, "Failed to store data", http.StatusInternalServerError)
+			return
+		}
+
+		// Store the encoded block to IPFS
+		err = ipfsNode.PublishBlock(block)
+		if err != nil {
+			log.Printf("Failed to store data to IPFS: %v\n", err)
+			http.Error(w, "Failed to store data", http.StatusInternalServerError)
+			return
+		}
+
+		// Respond to the client
+		fmt.Fprintln(w, "Data stored successfully")
+	}
 }
 
 func extractHandler(w http.ResponseWriter, r *http.Request) {

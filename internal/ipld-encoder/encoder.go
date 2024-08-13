@@ -14,16 +14,21 @@ import (
 	mh "github.com/multiformats/go-multihash"
 )
 
-func EncodeDatablock(block internal.DataBlock) (interface{}, error) {
+func EncodeDatablock(block internal.DataBlock) (*IPLDDataBlock, error) {
 	datablock := &IPLDDataBlock{}
-	return datablock.Encode(block)
+	err := datablock.Encode(block)
+	if err != nil {
+		return nil, err
+	}
+
+	return datablock, nil
 }
 
 // Encode encodes the data from the given DataBlock.
-func (b *IPLDDataBlock) Encode(block internal.DataBlock) (datamodel.Node, error) {
+func (b *IPLDDataBlock) Encode(block internal.DataBlock) error {
 	// Encode data nodes
 	if err := b.encodeDataNodes(block); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Create the LinkSystem
@@ -31,16 +36,16 @@ func (b *IPLDDataBlock) Encode(block internal.DataBlock) (datamodel.Node, error)
 
 	// Encode links
 	if err := b.encodeLinks(lsys, block); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Encode the root node
 	if err := b.encodeRoot(lsys, block); err != nil {
-		return nil, err
+		return err
 	}
 
 	// Return the root node
-	return b.Root, nil
+	return nil
 }
 
 func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
