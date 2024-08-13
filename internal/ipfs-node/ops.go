@@ -1,0 +1,148 @@
+package ipfsnode
+
+import (
+	"bytes"
+	"context"
+	"log"
+
+	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/ipld-encoder"
+	"github.com/ipfs/boxo/blockstore"
+	blocks "github.com/ipfs/go-block-format"
+	"github.com/ipfs/go-cid"
+	"github.com/ipld/go-ipld-prime"
+	"github.com/ipld/go-ipld-prime/codec"
+	"github.com/ipld/go-ipld-prime/fluent/qp"
+	cidlink "github.com/ipld/go-ipld-prime/linking/cid"
+	"github.com/ipld/go-ipld-prime/multicodec"
+	"github.com/ipld/go-ipld-prime/node/basicnode"
+	mc "github.com/multiformats/go-multicodec"
+)
+
+// codecConfig struct encapsulates codec encoder, decoder, and CID prefix.
+type codecConfig struct {
+	Encoder codec.Encoder
+	Prefix  cid.Prefix
+}
+
+// PublishBlock publishes a block to IPFS.
+func (ipfsNode *IPFSNode) PublishBlock(dataBlock *ipldencoder.IPLDDataBlock) error {
+	codecConfig, err := prepareCodec("dag-cbor", "sha2-256")
+	if err != nil {
+		return err
+	}
+
+	// Process data nodes
+	for _, nodeGroup := range dataBlock.DataNodes {
+		for _, node := range nodeGroup {
+			if err := ipfsNode.processAndStoreNode(codecConfig, node); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Process links
+	for _, subLinks := range dataBlock.Links {
+		node, err := buildLinkNode(subLinks)
+		if err != nil {
+			return err
+		}
+		if err := ipfsNode.processAndStoreNode(codecConfig, node); err != nil {
+			return err
+		}
+	}
+
+	// Process root
+	return ipfsNode.processAndStoreNode(codecConfig, dataBlock.Root)
+}
+
+// processAndStoreNode encodes, creates a block, stores it, and logs the CID.
+func (ipfsNode *IPFSNode) processAndStoreNode(codecConfig *codecConfig, node ipld.Node) error {
+	buffer, blockCid, err := encodeAndCreateCID(codecConfig, node)
+	if err != nil {
+		return err
+	}
+
+	block, err := blocks.NewBlockWithCid(buffer.Bytes(), blockCid)
+	if err != nil {
+		return err
+	}
+
+	blockStore := blockstore.NewBlockstore(ipfsNode.Node.Repo.Datastore())
+	if err := blockStore.Put(context.Background(), block); err != nil {
+		return err
+	}
+
+	log.Printf("CBOR DAG object added to IPFS with CID: %s", blockCid.String())
+
+	retrievedNode, err := ipfsNode.API.Dag().Get(context.Background(), blockCid)
+	if err != nil {
+		return err
+	}
+	log.Printf("Retrieved CBOR DAG object with CID: %s", retrievedNode.Cid().String())
+
+	return nil
+}
+
+// prepareCodec sets up the encoder and CID prefix.
+func prepareCodec(storageFormat, hashAlgorithm string) (*codecConfig, error) {
+	storageCodec, err := getMulticodec(storageFormat)
+	if err != nil {
+		return nil, err
+	}
+
+	multihashType, err := getMulticodec(hashAlgorithm)
+	if err != nil {
+		return nil, err
+	}
+
+	cidPrefix := cid.Prefix{
+		Version:  1,
+		Codec:    uint64(storageCodec),
+		MhType:   uint64(multihashType),
+		MhLength: -1,
+	}
+
+	encoder, err := multicodec.LookupEncoder(uint64(storageCodec))
+	if err != nil {
+		return nil, err
+	}
+
+	return &codecConfig{
+		Encoder: encoder,
+		Prefix:  cidPrefix,
+	}, nil
+}
+
+// encodeAndCreateCID encodes the node and creates a CID.
+func encodeAndCreateCID(codecConfig *codecConfig, node ipld.Node) (*bytes.Buffer, cid.Cid, error) {
+	var buffer bytes.Buffer
+	if err := codecConfig.Encoder(node, &buffer); err != nil {
+		return nil, cid.Undef, err
+	}
+
+	blockCid, err := codecConfig.Prefix.Sum(buffer.Bytes())
+	if err != nil {
+		return nil, cid.Undef, err
+	}
+
+	return &buffer, blockCid, nil
+}
+
+// buildLinkNode creates an IPLD node for the given links.
+func buildLinkNode(subLinks []ipld.Link) (ipld.Node, error) {
+	return qp.BuildList(basicnode.Prototype.List, -1, func(la ipld.ListAssembler) {
+		for _, link := range subLinks {
+			newLink := cidlink.Link{Cid: link.(cidlink.Link).Cid}
+			qp.ListEntry(la, qp.Link(newLink))
+		}
+	})
+}
+
+// getMulticodec returns the multicodec code for the given format.
+func getMulticodec(format string) (mc.Code, error) {
+	var codec mc.Code
+	if err := codec.Set(format); err != nil {
+		return 0, err
+	}
+	return codec, nil
+}
