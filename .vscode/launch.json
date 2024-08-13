@@ -14,7 +14,8 @@
                 "--debug"
             ],
             "env": {
-                "TRUSTED_DIR": "${workspaceFolder}/test/data"
+                "TRUSTED_DIR": "${workspaceFolder}/test/data",
+                "IPFS_LOGGING": "info"
             }
         },
         {

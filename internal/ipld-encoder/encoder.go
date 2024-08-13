@@ -15,7 +15,11 @@ import (
 )
 
 func EncodeDatablock(block internal.DataBlock) (*IPLDDataBlock, error) {
-	datablock := &IPLDDataBlock{}
+	datablock := &IPLDDataBlock{
+		Version: 1,
+		Codec:   cid.DagCBOR,
+		MhType:  mh.SHA2_256,
+	}
 	err := datablock.Encode(block)
 	if err != nil {
 		return nil, err
@@ -85,7 +89,7 @@ func (b *IPLDDataBlock) encodeLinks(lsys *linking.LinkSystem, block internal.Dat
 	for i := uint64(0); i < rows; i++ {
 		b.Links[i] = make([]datamodel.Link, cols)
 		for j := uint64(0); j < cols; j++ {
-			link, err := createLink(lsys, b.DataNodes[i][j])
+			link, err := b.createLink(lsys, b.DataNodes[i][j])
 			if err != nil {
 				return err
 			}
@@ -111,7 +115,7 @@ func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.Data
 		if err != nil {
 			return err
 		}
-		link, err := createLink(lsys, node)
+		link, err := b.createLink(lsys, node)
 		if err != nil {
 			return err
 		}
@@ -165,11 +169,11 @@ func createLinkSystem() *linking.LinkSystem {
 }
 
 // Utility function to create a link from a node using a given LinkSystem
-func createLink(ls *linking.LinkSystem, node datamodel.Node) (datamodel.Link, error) {
+func (b *IPLDDataBlock) createLink(ls *linking.LinkSystem, node datamodel.Node) (datamodel.Link, error) {
 	lp := cidlink.LinkPrototype{Prefix: cid.Prefix{
-		Version:  1,
-		Codec:    cid.DagCBOR,
-		MhType:   mh.SHA2_256,
+		Version:  b.Version,
+		Codec:    b.Codec,
+		MhType:   b.MhType,
 		MhLength: 32,
 	}}
 

@@ -26,7 +26,7 @@ type codecConfig struct {
 
 // PublishBlock publishes a block to IPFS.
 func (ipfsNode *IPFSNode) PublishBlock(dataBlock *ipldencoder.IPLDDataBlock) error {
-	codecConfig, err := prepareCodec("dag-cbor", "sha2-256")
+	codecConfig, err := prepareCodec(mc.Code(dataBlock.Codec), mc.Code(dataBlock.MhType))
 	if err != nil {
 		return err
 	}
@@ -84,17 +84,7 @@ func (ipfsNode *IPFSNode) processAndStoreNode(codecConfig *codecConfig, node ipl
 }
 
 // prepareCodec sets up the encoder and CID prefix.
-func prepareCodec(storageFormat, hashAlgorithm string) (*codecConfig, error) {
-	storageCodec, err := getMulticodec(storageFormat)
-	if err != nil {
-		return nil, err
-	}
-
-	multihashType, err := getMulticodec(hashAlgorithm)
-	if err != nil {
-		return nil, err
-	}
-
+func prepareCodec(storageCodec, multihashType mc.Code) (*codecConfig, error) {
 	cidPrefix := cid.Prefix{
 		Version:  1,
 		Codec:    uint64(storageCodec),
