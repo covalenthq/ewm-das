@@ -9,6 +9,7 @@ require (
 	github.com/ipfs/go-cid v0.4.1
 	github.com/ipfs/kubo v0.29.0
 	github.com/ipld/go-ipld-prime v0.21.0
+	github.com/multiformats/go-multicodec v0.9.0
 	github.com/multiformats/go-multihash v0.2.3
 	github.com/protolambda/go-kzg v0.0.0-20221224134646-c91cee5e954e
 	github.com/spf13/cobra v1.8.1
@@ -139,7 +140,6 @@ require (
 	github.com/multiformats/go-multiaddr-dns v0.3.1 // indirect
 	github.com/multiformats/go-multiaddr-fmt v0.1.0 // indirect
 	github.com/multiformats/go-multibase v0.2.0 // indirect
-	github.com/multiformats/go-multicodec v0.9.0 // indirect
 	github.com/multiformats/go-multistream v0.5.0 // indirect
 	github.com/multiformats/go-varint v0.0.7 // indirect
 	github.com/onsi/ginkgo/v2 v2.17.3 // indirect
