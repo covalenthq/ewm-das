@@ -98,12 +98,14 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 		}
 
 		// Store the encoded block to IPFS
-		err = ipfsNode.PublishBlock(block)
+		cid, err := ipfsNode.PublishBlock(block, true)
 		if err != nil {
 			log.Printf("Failed to store data to IPFS: %v\n", err)
 			http.Error(w, "Failed to store data", http.StatusInternalServerError)
 			return
 		}
+
+		log.Printf("Data stored successfully with CID: %s\n", cid)
 
 		// Respond to the client
 		fmt.Fprintln(w, "Data stored successfully")
