@@ -13,9 +13,15 @@ import (
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/ipfs-node"
 )
 
+type ServerConfig struct {
+	Addr                  string
+	W3AgentKey            string
+	W3DelegationProofPath string
+}
+
 // StartServer initializes and starts the HTTP server.
-func StartServer(addr string) {
-	ipfsnode, err := ipfsnode.NewIPFSNode()
+func StartServer(config ServerConfig) {
+	ipfsnode, err := ipfsnode.NewIPFSNode(config.W3AgentKey, config.W3DelegationProofPath)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS node: %v", err)
 	}
@@ -35,8 +41,8 @@ func StartServer(addr string) {
 	http.HandleFunc("/extract", extractHandler)
 
 	// Start the HTTP server
-	log.Printf("Starting daemon on %s...\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
+	log.Printf("Starting daemon on %s...\n", config.Addr)
+	if err := http.ListenAndServe(config.Addr, nil); err != nil {
 		log.Fatalf("Could not start server: %v\n", err)
 	}
 }

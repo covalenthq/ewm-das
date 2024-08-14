@@ -15,8 +15,10 @@ import (
 )
 
 var (
-	debug bool
-	addr  string
+	debug                 bool
+	addr                  string
+	w3AgentKey            string
+	w3DelegationProofPath string
 )
 
 // rootCmd represents the base command
@@ -49,8 +51,13 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// Start the API server
-		api.StartServer(addr)
+		// Populate the ServerConfig struct
+		config := api.ServerConfig{
+			Addr:                  addr,
+			W3AgentKey:            w3AgentKey,
+			W3DelegationProofPath: w3DelegationProofPath,
+		}
+		api.StartServer(config)
 	},
 }
 
@@ -70,6 +77,14 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Run in debug mode")
 	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("DAEMON_ADDR", "localhost:5080"), "Address to run the daemon")
+
+	// W3 agent flags
+	rootCmd.PersistentFlags().StringVar(&w3AgentKey, "w3-agent-key", "", "Key for the W3 agent")
+	rootCmd.PersistentFlags().StringVar(&w3DelegationProofPath, "w3-delegation-proof-path", "", "Path to the W3 delegation proof")
+
+	// Mark the flags as required
+	rootCmd.MarkPersistentFlagRequired("w3-agent-key")
+	rootCmd.MarkPersistentFlagRequired("w3-delegation-proof-path")
 }
 
 func initConfig() {

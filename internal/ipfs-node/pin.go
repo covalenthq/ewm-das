@@ -47,7 +47,12 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) error {
 		return err
 	}
 
-	// TODO: pin the CAR file to the web3.storage
+	cid, err := ipfsNode.W3.Pin(carFile)
+	if err != nil {
+		return err
+	}
+
+	log.Printf("Data stored successfully with CID: %s\n", cid)
 
 	return nil
 }

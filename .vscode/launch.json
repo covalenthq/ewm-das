@@ -11,12 +11,14 @@
             "mode": "auto",
             "program": "${workspaceFolder}/cmd/pinner/main.go",
             "args": [
-                "--debug"
+                "--debug",
+                "--w3-agent-key", "<AGENT_KEY>",
+                "--w3-delegation-proof-path", "<DELEGATION_PROOF_PATH>",
             ],
             "env": {
                 "TRUSTED_DIR": "${workspaceFolder}/test/data",
-                "IPFS_LOGGING": "info"
-            }
+                "IPFS_LOGGING": "info",
+            },
         },
         {
             "name": "Pinner CLI: STORE",

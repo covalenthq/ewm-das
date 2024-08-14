@@ -19,10 +19,20 @@ import (
 type IPFSNode struct {
 	Node *core.IpfsNode
 	API  iface.CoreAPI
+	W3   *W3Storage
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
-func NewIPFSNode() (*IPFSNode, error) {
+func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
+	w3, err := NewW3Storage(w3Key, w3DelegationProofPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := w3.Initialize(); err != nil {
+		return nil, err
+	}
+
 	buildConfig, err := initializeIPFSConfig()
 	if err != nil {
 		return nil, err
@@ -41,6 +51,7 @@ func NewIPFSNode() (*IPFSNode, error) {
 	return &IPFSNode{
 		Node: node,
 		API:  api,
+		W3:   w3,
 	}, nil
 }
 
