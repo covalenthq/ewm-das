@@ -22,10 +22,10 @@ func (ds dagStore) Get(ctx context.Context, c cid.Cid) (blocks.Block, error) {
 	return ds.dag.Get(ctx, c)
 }
 
-func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) error {
+func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error) {
 	carFile, err := os.CreateTemp(os.TempDir(), "*.car")
 	if err != nil {
-		return err
+		return cid.Undef, err
 	}
 	defer carFile.Close() // should delete the file due to unlink
 	defer func() {
@@ -44,15 +44,13 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) error {
 	scar := gocar.NewSelectiveCar(ctx, store, []gocar.Dag{dag}, gocar.TraverseLinksOnlyOnce())
 
 	if err := scar.Write(carFile); err != nil {
-		return err
+		return cid.Undef, err
 	}
 
-	cid, err := ipfsNode.W3.Pin(carFile)
+	pinnedCid, err := ipfsNode.W3.Pin(carFile)
 	if err != nil {
-		return err
+		return cid.Undef, err
 	}
 
-	log.Printf("Data stored successfully with CID: %s\n", cid)
-
-	return nil
+	return pinnedCid, nil
 }

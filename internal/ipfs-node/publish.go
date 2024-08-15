@@ -3,6 +3,7 @@ package ipfsnode
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"log"
 
 	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/ipld-encoder"
@@ -58,8 +59,14 @@ func (ipfsNode *IPFSNode) PublishBlock(dataBlock *ipldencoder.IPLDDataBlock, pin
 	}
 
 	if pin {
-		if err := ipfsNode.Pin(context.Background(), rootCid); err != nil {
+		pinnedCid, err := ipfsNode.Pin(context.Background(), rootCid)
+		if err != nil {
 			return cid.Undef, err
+		}
+
+		if pinnedCid != rootCid {
+			log.Printf("Pinned CID %s does not match root CID %s", pinnedCid, rootCid)
+			return cid.Undef, fmt.Errorf("pinned CID %s does not match root CID %s", pinnedCid, rootCid)
 		}
 	}
 
