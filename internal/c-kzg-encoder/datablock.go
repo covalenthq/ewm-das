@@ -58,3 +58,30 @@ func (d *DataBlockImpl) Verify() error {
 	}
 	return d.verifyCommitmentsAndProofs()
 }
+
+// verifyCommitmentsAndProofs verifies the KZG commitments and proofs.
+func (d *DataBlockImpl) verifyCommitmentsAndProofs() error {
+	for i, commitment := range d.Commitments {
+		var commitments [1]ckzg4844.Bytes48
+		copy(commitments[0][:], commitment[:])
+
+		for j, cell := range d.Cells[i] {
+			var subCells [1]ckzg4844.Cell
+			copy(subCells[0][:], cell[:])
+
+			var proofs [1]ckzg4844.Bytes48
+			copy(proofs[0][:], d.Proofs[i][j][:])
+
+			indexes := [1]uint64{uint64(j)}
+
+			ok, err := ckzg4844.VerifyCellKZGProofBatch(commitments[:], indexes[:], subCells[:], proofs[:])
+			if err != nil {
+				return err
+			}
+			if !ok {
+				return ErrVerificationFailed
+			}
+		}
+	}
+	return nil
+}
