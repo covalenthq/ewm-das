@@ -12,5 +12,9 @@ func Encode(data []byte) (*ipldencoder.IPLDDataBlock, error) {
 		return nil, err
 	}
 
+	if err := block.Verify(); err != nil {
+		return nil, err
+	}
+
 	return ipldencoder.EncodeDatablock(block)
 }

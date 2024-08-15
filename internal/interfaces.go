@@ -6,6 +6,7 @@ type DataBlock interface {
 	Commitment(row uint64) ([]byte, error)
 	Proof(row uint64, col uint64) ([]byte, error)
 	Cell(row uint64, col uint64) ([]byte, error)
+	Verify() error
 }
 
 type DataBlockEncoder interface {
