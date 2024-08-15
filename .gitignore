@@ -27,3 +27,5 @@ go.work.sum
 
 .env
 delegation.proof
+settings.json
+c_cpp_properties.json

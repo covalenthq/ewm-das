@@ -150,6 +150,18 @@ func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.Data
 	return nil
 }
 
+// Utility function to create a link from a node using a given LinkSystem
+func (b *IPLDDataBlock) createLink(ls *linking.LinkSystem, node datamodel.Node) (datamodel.Link, error) {
+	lp := cidlink.LinkPrototype{Prefix: cid.Prefix{
+		Version:  b.Version,
+		Codec:    b.Codec,
+		MhType:   b.MhType,
+		MhLength: 32,
+	}}
+
+	return ls.Store(linking.LinkContext{}, lp, node)
+}
+
 // Utility function to create a cell node from proof and cell data
 func createCellNode(proof, cell []byte) (datamodel.Node, error) {
 	return qp.BuildMap(basicnode.Prototype.Map, 2, func(ma datamodel.MapAssembler) {
@@ -166,16 +178,4 @@ func createLinkSystem() *linking.LinkSystem {
 	lsys.SetReadStorage(&store)
 
 	return &lsys
-}
-
-// Utility function to create a link from a node using a given LinkSystem
-func (b *IPLDDataBlock) createLink(ls *linking.LinkSystem, node datamodel.Node) (datamodel.Link, error) {
-	lp := cidlink.LinkPrototype{Prefix: cid.Prefix{
-		Version:  b.Version,
-		Codec:    b.Codec,
-		MhType:   b.MhType,
-		MhLength: 32,
-	}}
-
-	return ls.Store(linking.LinkContext{}, lp, node)
 }

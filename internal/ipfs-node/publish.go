@@ -83,13 +83,13 @@ func (ipfsNode *IPFSNode) processAndStoreNode(codecConfig *codecConfig, node ipl
 		return cid.Undef, nil
 	}
 
-	log.Printf("CBOR DAG object added to IPFS with CID: %s", blockCid.String())
-
 	retrievedNode, err := ipfsNode.API.Dag().Get(context.Background(), blockCid)
 	if err != nil {
 		return cid.Undef, err
 	}
-	log.Printf("Retrieved CBOR DAG object with CID: %s", retrievedNode.Cid().String())
+	if retrievedNode.Cid() != blockCid {
+		log.Printf("Stored CID %s does not match retrieved CID %s", blockCid, retrievedNode.Cid())
+	}
 
 	return retrievedNode.Cid(), nil
 }

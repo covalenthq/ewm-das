@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strings"
 	"syscall"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/das"
@@ -85,36 +86,61 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			return
 		}
 
-		// Read the binary data from the request body
-		data, err := io.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "Failed to read request body", http.StatusInternalServerError)
-			return
-		}
-		defer r.Body.Close()
-
-		// Handle the binary data (e.g., encode and store it using IPFSNode)
-		log.Printf("Received %d bytes of data\n", len(data))
-
-		block, err := das.Encode(data)
-		if err != nil {
-			log.Printf("Failed to encode data: %v\n", err)
-			http.Error(w, "Failed to store data", http.StatusInternalServerError)
+		// Check if the request contains multipart form data
+		contentType := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(contentType, "multipart/form-data") {
+			http.Error(w, "Content-Type must be multipart/form-data", http.StatusUnsupportedMediaType)
 			return
 		}
 
-		// Store the encoded block to IPFS
-		cid, err := ipfsNode.PublishBlock(block, true)
+		// Parse the multipart form data
+		err := r.ParseMultipartForm(10 << 20) // 10 MB is the max memory size for parsing the form
 		if err != nil {
-			log.Printf("Failed to store data to IPFS: %v\n", err)
-			http.Error(w, "Failed to store data", http.StatusInternalServerError)
+			http.Error(w, "Failed to parse multipart form", http.StatusBadRequest)
 			return
 		}
 
-		log.Printf("Data stored successfully with CID: %s\n", cid)
+		// Iterate through the form data and process files
+		for _, fileHeaders := range r.MultipartForm.File {
+			for _, fileHeader := range fileHeaders {
+				file, err := fileHeader.Open()
+				if err != nil {
+					http.Error(w, "Failed to open file", http.StatusInternalServerError)
+					return
+				}
+				defer file.Close()
 
-		// Respond to the client
-		fmt.Fprintln(w, "Data stored successfully")
+				// Read the file content
+				data, err := io.ReadAll(file)
+				if err != nil {
+					http.Error(w, "Failed to read file content", http.StatusInternalServerError)
+					return
+				}
+
+				log.Printf("Received %d bytes of data from file: %s\n", len(data), fileHeader.Filename)
+
+				// Handle the binary data (e.g., encode and store it using IPFSNode)
+				block, err := das.Encode(data)
+				if err != nil {
+					log.Printf("Failed to encode data: %v\n", err)
+					http.Error(w, "Failed to store data", http.StatusInternalServerError)
+					return
+				}
+
+				// Store the encoded block to IPFS
+				cid, err := ipfsNode.PublishBlock(block, true)
+				if err != nil {
+					log.Printf("Failed to store data to IPFS: %v\n", err)
+					http.Error(w, "Failed to store data", http.StatusInternalServerError)
+					return
+				}
+
+				log.Printf("Data stored successfully with CID: %s\n", cid)
+
+				// Respond to the client with the CID
+				fmt.Fprintf(w, "File %s stored successfully with CID: %s\n", fileHeader.Filename, cid)
+			}
+		}
 	}
 }
 
