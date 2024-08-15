@@ -47,3 +47,14 @@ func (d *DataBlockImpl) Cell(row uint64, col uint64) ([]byte, error) {
 	}
 	return d.Cells[row][col][:], nil
 }
+
+// Verify verifies the data block.
+func (d *DataBlockImpl) Verify() error {
+	if d.Blobs == nil {
+		return nil
+	}
+	if d.Cells == nil || d.Proofs == nil {
+		return ErrCellsOrProofsMissing
+	}
+	return d.verifyCommitmentsAndProofs()
+}

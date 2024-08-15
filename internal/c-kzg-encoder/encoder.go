@@ -36,17 +36,6 @@ func (d *DataBlockImpl) Decode() ([]byte, error) {
 	return d.decodeBlobs()
 }
 
-// Verify verifies the data block.
-func (d *DataBlockImpl) Verify() error {
-	if d.Blobs == nil {
-		return nil
-	}
-	if d.Cells == nil || d.Proofs == nil {
-		return ErrCellsOrProofsMissing
-	}
-	return d.verifyCommitmentsAndProofs()
-}
-
 // encodeBlobs encodes the data into blobs and commitments.
 func (d *DataBlockImpl) encodeBlobs(data []byte) error {
 	var (
