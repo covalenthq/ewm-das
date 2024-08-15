@@ -48,16 +48,19 @@ func readAndDecodeCbor(filePath string) (datamodel.Node, error) {
 	return nb.Build(), nil
 }
 
-// TestReadAndDecodeCbor tests the ReadAndDecodeCbor function.
+// TestReadAndDecodeCbor tests the readAndDecodeCbor function.
 func TestReadAndDecodeCbor(t *testing.T) {
-	// Call the function with the temporary file path
 	rootCid := "bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi"
 	root, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", rootCid))
 	if err != nil {
-		t.Fatalf("ReadAndDecodeCbor returned an error: %v", err)
+		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
 	}
 
-	// extract key and value from the root node
+	verifyRootNode(t, root)
+}
+
+// verifyRootNode verifies the keys in the root node and processes the "links" key.
+func verifyRootNode(t *testing.T, root datamodel.Node) {
 	itr := root.MapIterator()
 	for !itr.Done() {
 		k, v, err := itr.Next()
@@ -70,78 +73,91 @@ func TestReadAndDecodeCbor(t *testing.T) {
 			t.Fatalf("Failed to extract key: %v", err)
 		}
 
-		// raise an error if the key is not in the expected keys
 		if !contains(expectedKeys, key) {
-			t.Fatalf("Key not found: %v", key)
+			t.Fatalf("Unexpected key found: %v", key)
 		}
 
-		// extract links from the root node
 		if key == "links" {
-			rowLink, err := v.LookupByIndex(2)
-			if err != nil {
-				t.Fatalf("Failed to extract link: %v", err)
-			}
-
-			// link to cid
-			cid, err := rowLink.AsLink()
-			if err != nil {
-				t.Fatalf("Failed to extract link: %v", err)
-			}
-
-			cols, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
-			if err != nil {
-				t.Fatalf("ReadAndDecodeCbor returned an error: %v", err)
-			}
-
-			// extract key and value from the cols node
-			colLink, err := cols.LookupByIndex(6)
-			if err != nil {
-				t.Fatalf("Failed to extract key and value: %v", err)
-			}
-
-			// link to cid
-			cid, err = colLink.AsLink()
-			if err != nil {
-				t.Fatalf("Failed to extract link: %v", err)
-			}
-
-			// read the data from the cid
-			cell, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
-			if err != nil {
-				t.Fatalf("ReadAndDecodeCbor returned an error: %v", err)
-			}
-
-			// extract key and value from the cell node iteartor
-			itr := cell.MapIterator()
-			for !itr.Done() {
-				k, v, err := itr.Next()
-				if err != nil {
-					t.Fatalf("Failed to extract key and value: %v", err)
-				}
-				key, err := k.AsString()
-				if err != nil {
-					t.Fatalf("Failed to extract key: %v", err)
-				}
-				// verify that "proof" value is a byte slice of length 48
-				if key == "proof" {
-					proof, err := v.AsBytes()
-					if err != nil {
-						t.Fatalf("Failed to extract proof: %v", err)
-					}
-					if len(proof) != 48 {
-						t.Fatalf("Proof is not of length 48: %v", err)
-					}
-				} else if key == "cell" {
-					// verify that "cell" value is a byte slice of length 48
-					cell, err := v.AsBytes()
-					if err != nil {
-						t.Fatalf("Failed to extract cell: %v", err)
-					}
-					if len(cell) != 2048 {
-						t.Fatalf("Cell is not of length 48: %v", err)
-					}
-				}
-			}
+			processLinks(t, v)
 		}
+	}
+}
+
+// processLinks processes the "links" key in the root node.
+func processLinks(t *testing.T, linksNode datamodel.Node) {
+	rowLink, err := linksNode.LookupByIndex(2)
+	if err != nil {
+		t.Fatalf("Failed to extract link: %v", err)
+	}
+
+	cid, err := rowLink.AsLink()
+	if err != nil {
+		t.Fatalf("Failed to extract CID: %v", err)
+	}
+
+	cols, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
+	if err != nil {
+		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
+	}
+
+	colLink, err := cols.LookupByIndex(6)
+	if err != nil {
+		t.Fatalf("Failed to extract key and value: %v", err)
+	}
+
+	cid, err = colLink.AsLink()
+	if err != nil {
+		t.Fatalf("Failed to extract CID: %v", err)
+	}
+
+	cell, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
+	if err != nil {
+		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
+	}
+
+	verifyCellNode(t, cell)
+}
+
+// verifyCellNode verifies the contents of the "cell" node.
+func verifyCellNode(t *testing.T, cell datamodel.Node) {
+	itr := cell.MapIterator()
+	for !itr.Done() {
+		k, v, err := itr.Next()
+		if err != nil {
+			t.Fatalf("Failed to extract key and value: %v", err)
+		}
+		key, err := k.AsString()
+		if err != nil {
+			t.Fatalf("Failed to extract key: %v", err)
+		}
+
+		switch key {
+		case "proof":
+			verifyProof(t, v)
+		case "cell":
+			verifyCell(t, v)
+		}
+	}
+}
+
+// verifyProof checks that the "proof" value is a byte slice of length 48.
+func verifyProof(t *testing.T, proofNode datamodel.Node) {
+	proof, err := proofNode.AsBytes()
+	if err != nil {
+		t.Fatalf("Failed to extract proof: %v", err)
+	}
+	if len(proof) != 48 {
+		t.Fatalf("Proof is not of length 48")
+	}
+}
+
+// verifyCell checks that the "cell" value is a byte slice of length 2048.
+func verifyCell(t *testing.T, cellNode datamodel.Node) {
+	cell, err := cellNode.AsBytes()
+	if err != nil {
+		t.Fatalf("Failed to extract cell: %v", err)
+	}
+	if len(cell) != 2048 {
+		t.Fatalf("Cell is not of length 2048")
 	}
 }
