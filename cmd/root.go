@@ -2,11 +2,11 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"syscall"
 
+	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 
 	"github.com/covalenthq/das-ipfs-pinner/api"
@@ -21,6 +21,8 @@ var (
 	w3DelegationProofPath string
 )
 
+var log = logging.Logger("das-pinner") // Initialize the logger
+
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:     common.BinaryName,
@@ -28,6 +30,12 @@ var rootCmd = &cobra.Command{
 	Long:    `Pinner is a daemon that handles storing binary data and extracting it via HTTP.`,
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		if debug {
+			logging.SetLogLevel("das-pinner", "debug")
+		} else {
+			logging.SetLogLevel("das-pinner", "info")
+		}
+
 		// Load the configuration
 		config := das.LoadConfig()
 		// Initialize the KZG trusted setup
@@ -40,14 +48,6 @@ var rootCmd = &cobra.Command{
 			if os.Getenv("GO_DAEMON") != "1" {
 				daemonize()
 			}
-			// Set up logging to a file in daemon mode
-			logFilePath := common.LogFileName()
-			logFile, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				log.Fatalf("Error opening log file: %v", err)
-			}
-			defer logFile.Close()
-			log.SetOutput(logFile)
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -62,17 +62,17 @@ var rootCmd = &cobra.Command{
 }
 
 func init() {
-	log.Println("Initializing root command...", os.Args)
+	log.Info("Initializing root command...", os.Args)
 
 	// Check if we're in the child process (daemon)
 	if os.Getenv("GO_DAEMON") == "1" {
-		log.Println("Running in daemon mode.")
+		log.Info("Running in daemon mode.")
 		// Do not reinitialize flags or commands here
 		// Proceed directly to running the server or minimal initialization required
 		return
 	}
 
-	log.Println("Running in non-daemon mode.")
+	log.Info("Running in non-daemon mode.")
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Run in debug mode")
@@ -105,7 +105,7 @@ func daemonize() {
 		args = os.Args[1:]
 	} else {
 		// Log a message if there are no arguments
-		log.Println("No arguments provided to the child process.")
+		log.Warn("No arguments provided to the child process.")
 	}
 
 	// Set up the environment with a specific variable to identify the forked process

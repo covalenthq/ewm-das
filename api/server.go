@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"os"
 	"os/signal"
@@ -10,7 +9,10 @@ import (
 	"time"
 
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/ipfs-node"
+	logging "github.com/ipfs/go-log/v2"
 )
+
+var log = logging.Logger("das-pinner") // Initialize the logger
 
 const MaxMultipartMemory = 10 << 20 // 10 MB
 
@@ -42,7 +44,7 @@ func StartServer(config ServerConfig) {
 
 	go func() {
 		<-sigs
-		log.Println("Shutting down server...")
+		log.Info("Shutting down server...")
 
 		// Create a context with timeout for the shutdown process
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -53,13 +55,13 @@ func StartServer(config ServerConfig) {
 		}
 	}()
 
-	log.Printf("Starting server on %s...\n", config.Addr)
+	log.Infof("Starting server on %s...", config.Addr)
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("Could not start server: %v\n", err)
+		log.Fatalf("Could not start server: %v", err)
 	}
 }
 
 func handleError(w http.ResponseWriter, errMsg string, statusCode int) {
-	log.Printf("%s: %v", errMsg, statusCode)
+	log.Infof("%s: %v", errMsg, statusCode)
 	http.Error(w, errMsg, statusCode)
 }

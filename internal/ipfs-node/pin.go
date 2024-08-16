@@ -2,7 +2,6 @@ package ipfsnode
 
 import (
 	"context"
-	"log"
 	"os"
 	"syscall"
 
@@ -31,7 +30,7 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error
 	defer func() {
 		err := syscall.Unlink(carFile.Name())
 		if err != nil {
-			log.Printf("error in unlinking:%v", err)
+			log.Errorf("error in unlinking:%v", err)
 		}
 	}()
 

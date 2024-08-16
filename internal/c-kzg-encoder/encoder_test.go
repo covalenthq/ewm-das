@@ -2,13 +2,15 @@ package ckzgencoder
 
 import (
 	"bytes"
-	"log"
 	"os"
 	"testing"
 
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	logging "github.com/ipfs/go-log/v2"
 	"golang.org/x/exp/rand"
 )
+
+var log = logging.Logger("das-pinner") // Initialize the logger
 
 func fillRandomBytes(size int) []byte {
 	data := make([]byte, size)

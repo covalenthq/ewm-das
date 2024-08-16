@@ -3,7 +3,6 @@ package api
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 
@@ -51,29 +50,32 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 		files, err := parseMultipartFormData(r, MaxMultipartMemory)
 		if err != nil {
+			log.Errorf("Failed to parse multipart form: %w", err)
 			handleError(w, "Failed to parse multipart form", http.StatusBadRequest)
 			return
 		}
 
 		for filename, data := range files {
-			log.Printf("Received %d bytes of data from file: %s\n", len(data), filename)
+			log.Debugf("Received %d bytes of data from file: %s", len(data), filename)
 
 			block, err := das.Encode(data)
 			if err != nil {
+				log.Errorf("Failed to encode data: %w", err)
 				handleError(w, "Failed to encode data", http.StatusInternalServerError)
 				return
 			}
 
 			cid, err := ipfsNode.PublishBlock(block, true)
 			if err != nil {
+				log.Errorf("Failed to store data to IPFS: %w", err)
 				handleError(w, "Failed to store data to IPFS", http.StatusInternalServerError)
 				return
 			}
 
-			log.Printf("Data stored successfully with CID: %s\n", cid)
+			log.Infof("Data stored successfully with CID: %s", cid)
 			succ_str := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
 			if _, err := w.Write([]byte(succ_str)); err != nil {
-				log.Println("error writing data to connection: %w", err)
+				log.Errorf("error writing data to connection: %w", err)
 			}
 		}
 	}
@@ -85,5 +87,5 @@ func extractHandler(w http.ResponseWriter, r *http.Request) {
 		handleError(w, "CID is required", http.StatusBadRequest)
 		return
 	}
-	fmt.Fprintf(w, "Extracting data for CID: %s\n", cid)
+	fmt.Fprintf(w, "Extracting data for CID: %s", cid)
 }

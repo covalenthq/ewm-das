@@ -3,7 +3,6 @@ package ipfsnode
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"strings"
@@ -66,14 +65,14 @@ func (w3 *W3Storage) Initialize() error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Initialized W3Storage with agent DID: %s\n", i)
+	log.Infof("Initialized W3Storage with agent DID: %s", i)
 
 	spaceDID, err := w3.addSpace()
 	if err != nil {
 		return err
 	}
 
-	log.Printf("Added space with DID: %s\n", spaceDID)
+	log.Infof("Added space with DID: %s", spaceDID)
 
 	return nil
 }
@@ -118,7 +117,7 @@ func (w3 *W3Storage) Pin(carFile *os.File) (cid.Cid, error) {
 		return cid.Undef, err
 	}
 
-	log.Printf("w3 up output: %s\n", output)
+	log.Infof("w3 up output: %s", output)
 
 	var result map[string]interface{}
 	if err := json.Unmarshal([]byte(output), &result); err != nil {

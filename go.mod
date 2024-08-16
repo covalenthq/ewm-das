@@ -7,6 +7,7 @@ require (
 	github.com/ipfs/boxo v0.20.0
 	github.com/ipfs/go-block-format v0.2.0
 	github.com/ipfs/go-cid v0.4.1
+	github.com/ipfs/go-log/v2 v2.5.1
 	github.com/ipfs/kubo v0.29.0
 	github.com/ipld/go-car v0.6.2
 	github.com/ipld/go-ipld-prime v0.21.0
@@ -93,7 +94,6 @@ require (
 	github.com/ipfs/go-ipld-git v0.1.1 // indirect
 	github.com/ipfs/go-ipld-legacy v0.2.1 // indirect
 	github.com/ipfs/go-log v1.0.5 // indirect
-	github.com/ipfs/go-log/v2 v2.5.1 // indirect
 	github.com/ipfs/go-merkledag v0.11.0 // indirect
 	github.com/ipfs/go-metrics-interface v0.0.1 // indirect
 	github.com/ipfs/go-peertaskqueue v0.8.1 // indirect

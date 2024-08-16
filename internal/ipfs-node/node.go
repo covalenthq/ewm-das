@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
+	logging "github.com/ipfs/go-log/v2"
 	config "github.com/ipfs/kubo/config"
 	"github.com/ipfs/kubo/core"
 	"github.com/ipfs/kubo/core/coreapi"
@@ -14,6 +15,8 @@ import (
 	"github.com/ipfs/kubo/plugin/loader"
 	"github.com/ipfs/kubo/repo/fsrepo"
 )
+
+var log = logging.Logger("das-pinner") // Initialize the logger
 
 // IPFSNode struct encapsulates the IPFS node and CoreAPI.
 type IPFSNode struct {

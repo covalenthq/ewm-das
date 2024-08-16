@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 
 	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/ipld-encoder"
 	"github.com/ipfs/boxo/blockstore"
@@ -65,7 +64,6 @@ func (ipfsNode *IPFSNode) PublishBlock(dataBlock *ipldencoder.IPLDDataBlock, pin
 		}
 
 		if pinnedCid != rootCid {
-			log.Printf("Pinned CID %s does not match root CID %s", pinnedCid, rootCid)
 			return cid.Undef, fmt.Errorf("pinned CID %s does not match root CID %s", pinnedCid, rootCid)
 		}
 	}
@@ -95,7 +93,7 @@ func (ipfsNode *IPFSNode) processAndStoreNode(codecConfig *codecConfig, node ipl
 		return cid.Undef, err
 	}
 	if retrievedNode.Cid() != blockCid {
-		log.Printf("Stored CID %s does not match retrieved CID %s", blockCid, retrievedNode.Cid())
+		return cid.Undef, fmt.Errorf("stored CID %s does not match retrieved CID %s", blockCid, retrievedNode.Cid())
 	}
 
 	return retrievedNode.Cid(), nil
