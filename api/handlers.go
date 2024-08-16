@@ -71,7 +71,10 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			}
 
 			log.Printf("Data stored successfully with CID: %s\n", cid)
-			fmt.Fprintf(w, "File %s stored successfully with CID: %s\n", filename, cid)
+			succ_str := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
+			if _, err := w.Write([]byte(succ_str)); err != nil {
+				log.Println("error writing data to connection: %w", err)
+			}
 		}
 	}
 }
