@@ -1,9 +1,7 @@
-// cli/cli.go
 package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -12,29 +10,54 @@ import (
 	"path/filepath"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	mode := flag.String("mode", "", "Mode of operation: store or extract")
-	data := flag.String("data", "", "Path to the binary file to send to the daemon or CID for extraction")
-	addr := flag.String("addr", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
-	flag.Parse()
+	var addr string
+	var data string
 
-	switch *mode {
-	case "store":
-		if *data == "" {
-			fmt.Println("File path is required for store mode")
-			os.Exit(1)
-		}
-		storeData(*addr, *data)
-	case "extract":
-		if *data == "" {
-			fmt.Println("CID is required for extract mode")
-			os.Exit(1)
-		}
-		extractData(*addr, *data)
-	default:
-		fmt.Printf("Invalid mode. Use %s -mode=store -data=path/to/file or %s -mode=extract -data=CID\n", common.BinaryName, common.BinaryName)
+	rootCmd := &cobra.Command{
+		Use:   common.BinaryName,
+		Short: "CLI for interacting with the DAS IPFS Pinner daemon",
+	}
+
+	// Set addr flag as a persistent flag so it can be used across all commands
+	rootCmd.PersistentFlags().StringVarP(&addr, "addr", "a", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
+
+	storeCmd := &cobra.Command{
+		Use:   "store",
+		Short: "Store a binary file in the daemon",
+		Run: func(cmd *cobra.Command, args []string) {
+			if data == "" {
+				fmt.Println("File path is required for store mode")
+				os.Exit(1)
+			}
+			storeData(addr, data)
+		},
+	}
+
+	storeCmd.Flags().StringVarP(&data, "data", "d", "", "Path to the binary file to send to the daemon")
+	rootCmd.AddCommand(storeCmd)
+
+	extractCmd := &cobra.Command{
+		Use:   "extract",
+		Short: "Extract data from the daemon using a CID",
+		Run: func(cmd *cobra.Command, args []string) {
+			if data == "" {
+				fmt.Println("CID is required for extract mode")
+				os.Exit(1)
+			}
+			extractData(addr, data)
+		},
+	}
+
+	extractCmd.Flags().StringVarP(&data, "data", "d", "", "CID for extraction")
+	rootCmd.AddCommand(extractCmd)
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
