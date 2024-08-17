@@ -6,6 +6,7 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 
@@ -40,20 +41,20 @@ func main() {
 	uploadCmd.Flags().StringVarP(&data, "data", "d", "", "Path to the binary file to send to the daemon")
 	rootCmd.AddCommand(uploadCmd)
 
-	extractCmd := &cobra.Command{
-		Use:   "extract",
-		Short: "Extract data from the daemon using a CID",
+	downloadCmd := &cobra.Command{
+		Use:   "download",
+		Short: "Download data from the daemon using a CID",
 		Run: func(cmd *cobra.Command, args []string) {
 			if data == "" {
-				fmt.Println("CID is required for extract mode")
+				fmt.Println("CID is required for download mode")
 				os.Exit(1)
 			}
-			extractData(addr, data)
+			downloadData(addr, data)
 		},
 	}
 
-	extractCmd.Flags().StringVarP(&data, "data", "d", "", "CID for extraction")
-	rootCmd.AddCommand(extractCmd)
+	downloadCmd.Flags().StringVarP(&data, "data", "d", "", "CID for download")
+	rootCmd.AddCommand(downloadCmd)
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
@@ -114,19 +115,27 @@ func uploadData(addr, filePath string) {
 	fmt.Println("Response from server:", string(response))
 }
 
-func extractData(addr, cid string) {
-	resp, err := http.Get(fmt.Sprintf("%s/extract?cid=%s", addr, cid))
+func downloadData(addr, cid string) {
+	// Create a form with the CID
+	formData := url.Values{}
+	formData.Set("cid", cid)
+
+	// Create a POST request with the form data
+	resp, err := http.PostForm(fmt.Sprintf("%s/get", addr), formData)
 	if err != nil {
-		fmt.Printf("Error extracting data: %v\n", err)
+		fmt.Printf("Error downloading data: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
 
+	// Read the response
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading response: %v\n", err)
 		return
 	}
+
+	// Print the response
 	fmt.Println(string(response))
 }
 

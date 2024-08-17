@@ -28,6 +28,22 @@
         "upload",
         "--data",
         "${workspaceFolder}/test/data/specimen.json",
+        "--addr",
+        "http://127.0.0.1:3001"
+      ]
+    },
+    {
+      "name": "Pinner-cli: download",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/pinner-cli/main.go",
+      "args": [
+        "download",
+        "--data",
+        "bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi",
+        "--addr",
+        "http://127.0.0.1:3001"
       ]
     },
     {
