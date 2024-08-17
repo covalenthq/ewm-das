@@ -25,20 +25,20 @@ func main() {
 	// Set addr flag as a persistent flag so it can be used across all commands
 	rootCmd.PersistentFlags().StringVarP(&addr, "addr", "a", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
 
-	storeCmd := &cobra.Command{
-		Use:   "store",
-		Short: "Store a binary file in the daemon",
+	uploadCmd := &cobra.Command{
+		Use:   "upload",
+		Short: "Upload data request to the daemon",
 		Run: func(cmd *cobra.Command, args []string) {
 			if data == "" {
-				fmt.Println("File path is required for store mode")
+				fmt.Println("File path is required for upload mode")
 				os.Exit(1)
 			}
-			storeData(addr, data)
+			uploadData(addr, data)
 		},
 	}
 
-	storeCmd.Flags().StringVarP(&data, "data", "d", "", "Path to the binary file to send to the daemon")
-	rootCmd.AddCommand(storeCmd)
+	uploadCmd.Flags().StringVarP(&data, "data", "d", "", "Path to the binary file to send to the daemon")
+	rootCmd.AddCommand(uploadCmd)
 
 	extractCmd := &cobra.Command{
 		Use:   "extract",
@@ -61,7 +61,7 @@ func main() {
 	}
 }
 
-func storeData(addr, filePath string) {
+func uploadData(addr, filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Printf("Error opening file: %v\n", err)
@@ -90,7 +90,7 @@ func storeData(addr, filePath string) {
 		return
 	}
 
-	req, err := http.NewRequest("POST", addr+"/store", &buf)
+	req, err := http.NewRequest("POST", addr+"/upload", &buf)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return

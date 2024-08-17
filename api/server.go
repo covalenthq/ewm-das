@@ -30,8 +30,8 @@ func StartServer(config ServerConfig) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/store", createStoreHandler(ipfsNode))
-	mux.HandleFunc("/extract", extractHandler)
+	mux.HandleFunc("/upload", createUploadHandler(ipfsNode))
+	mux.HandleFunc("/get", downloadHandler)
 
 	server := &http.Server{
 		Addr:    config.Addr,

@@ -35,7 +35,7 @@ func parseMultipartFormData(r *http.Request, maxMemory int64) (map[string][]byte
 	return files, nil
 }
 
-func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
@@ -67,12 +67,12 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 			cid, err := ipfsNode.PublishBlock(block, true)
 			if err != nil {
-				log.Errorf("Failed to store data to IPFS: %w", err)
-				handleError(w, "Failed to store data to IPFS", http.StatusInternalServerError)
+				log.Errorf("Failed to upload data to IPFS: %w", err)
+				handleError(w, "Failed to upload data to IPFS", http.StatusInternalServerError)
 				return
 			}
 
-			log.Infof("Data stored successfully with CID: %s", cid)
+			log.Infof("Data upload successfully with CID: %s", cid)
 			succ_str := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
 			if _, err := w.Write([]byte(succ_str)); err != nil {
 				log.Errorf("error writing data to connection: %w", err)
@@ -81,7 +81,7 @@ func createStoreHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	}
 }
 
-func extractHandler(w http.ResponseWriter, r *http.Request) {
+func downloadHandler(w http.ResponseWriter, r *http.Request) {
 	cid := r.URL.Query().Get("cid")
 	if cid == "" {
 		handleError(w, "CID is required", http.StatusBadRequest)
