@@ -1,4 +1,4 @@
-package cmd
+package main
 
 import (
 	"fmt"
@@ -20,8 +20,6 @@ var (
 	w3AgentKey            string
 	w3DelegationProofPath string
 )
-
-var log = logging.Logger("das-pinner") // Initialize the logger
 
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
@@ -132,7 +130,7 @@ func daemonize() {
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
-func Execute() error {
+func execute() error {
 	return rootCmd.Execute()
 }
 
