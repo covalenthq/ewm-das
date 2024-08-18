@@ -15,7 +15,7 @@ import (
 // readAndDecodeNode reads a CBOR encoded file, decodes it using the DAG-CBOR decoder, and returns the decoded node.
 func readAndDecodeNode(cid string) (datamodel.Node, error) {
 	// Read the file
-	data, err := os.ReadFile(fmt.Sprintf("../../test/data/%s.bin", cid))
+	data, err := os.ReadFile(fmt.Sprintf("../../../test/data/%s.bin", cid))
 	if err != nil {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}

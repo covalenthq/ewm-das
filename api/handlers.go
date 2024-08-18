@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/covalenthq/das-ipfs-pinner/internal/das"
-	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/ipfs-node"
+	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
+	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
 )
 
 func parseMultipartFormData(r *http.Request, maxMemory int64) (map[string][]byte, error) {
