@@ -63,7 +63,14 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		// Process commitments and then fetch "proof" and "cell"
-		s.handleProofAndCell(randomIndexData)
+		_, _, err = s.handleProofAndCell(randomIndexData)
+		if err != nil {
+			log.Errorf("Failed to process proof and cell: %v", err)
+			return
+		}
+
+		// Implement the logic to send the proof and cell to the service
+		// sendProofAndCell(proof, cell)
 	}(cidStr) // Pass cidStr to the anonymous function
 }
 
