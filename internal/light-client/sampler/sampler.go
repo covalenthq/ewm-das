@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	"math/rand"
+	"strings"
 
 	logging "github.com/ipfs/go-log/v2"
 
@@ -17,14 +18,22 @@ type Sampler struct {
 	IPFSShell *ipfs.Shell
 }
 
-func NewSampler(ipfsAddr string) *Sampler {
+// NewSampler creates a new Sampler instance and checks if the IPFS daemon is running.
+func NewSampler(ipfsAddr string) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
+
+	// Check if the IPFS daemon is running by getting the node's version
+	_, _, err := shell.Version()
+	if err != nil {
+		return nil, fmt.Errorf("failed to connect to IPFS daemon: %w", err)
+	}
+
 	return &Sampler{
 		IPFSShell: shell,
-	}
+	}, nil
 }
 
-// ProcessEvent processes the event received from the EventListener
+// ProcessEvent handles the event received from the EventListener
 func (s *Sampler) ProcessEvent(cidStr string) {
 	c, err := cid.Decode(cidStr)
 	if err != nil {
@@ -32,30 +41,30 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		return
 	}
 
-	rootData, err := s.retrieveDagData(c.String())
+	rootNodeData, err := s.fetchDagData(c.String())
 	if err != nil {
-		log.Errorf("Failed to retrieve root DAG data: %v", err)
+		log.Errorf("Failed to fetch root DAG data: %v", err)
 		return
 	}
 
-	nextData, err := s.retrieveDataFromRandomLink(rootData)
+	randomLinkData, err := s.fetchDataFromRandomLink(rootNodeData)
 	if err != nil {
-		log.Errorf("Failed to retrieve data from random link: %v", err)
+		log.Errorf("Failed to fetch data from random link: %v", err)
 		return
 	}
 
-	finalData, err := s.retrieveDataFromRandomIndex(nextData)
+	randomIndexData, err := s.fetchDataFromRandomIndex(randomLinkData)
 	if err != nil {
-		log.Errorf("Failed to retrieve data from random index: %v", err)
+		log.Errorf("Failed to fetch data from random index: %v", err)
 		return
 	}
 
-	// Process commitments and then retrieve "proof" and "cell"
-	s.processCommitments(finalData)
+	// Process commitments and then fetch "proof" and "cell"
+	s.handleCommitments(randomIndexData)
 }
 
-// retrieveDagData retrieves the DAG data for a given CID
-func (s *Sampler) retrieveDagData(cidStr string) (interface{}, error) {
+// fetchDagData retrieves the DAG data for a given CID
+func (s *Sampler) fetchDagData(cidStr string) (interface{}, error) {
 	var dagData interface{}
 	if err := s.IPFSShell.DagGet(cidStr, &dagData); err != nil {
 		return nil, err
@@ -64,8 +73,8 @@ func (s *Sampler) retrieveDagData(cidStr string) (interface{}, error) {
 	return dagData, nil
 }
 
-// retrieveDataFromRandomLink selects a random link and retrieves the DAG data
-func (s *Sampler) retrieveDataFromRandomLink(data interface{}) (interface{}, error) {
+// fetchDataFromRandomLink selects a random link and retrieves the DAG data
+func (s *Sampler) fetchDataFromRandomLink(data interface{}) (interface{}, error) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
 		return nil, fmt.Errorf("data is not a map[string]interface{}")
@@ -80,7 +89,7 @@ func (s *Sampler) retrieveDataFromRandomLink(data interface{}) (interface{}, err
 
 	linkMap, ok := selectedLink.(map[string]interface{})
 	if !ok {
-		return nil, fmt.Errorf("selectedLink is not a map[string]interface{}")
+		return nil, fmt.Errorf("selected link is not a map[string]interface{}")
 	}
 
 	nextCIDStr, ok := linkMap["/"].(string)
@@ -88,11 +97,11 @@ func (s *Sampler) retrieveDataFromRandomLink(data interface{}) (interface{}, err
 		return nil, fmt.Errorf(`linkMap["/"] is not a string`)
 	}
 
-	return s.retrieveDagData(nextCIDStr)
+	return s.fetchDagData(nextCIDStr)
 }
 
-// retrieveDataFromRandomIndex selects a random index and retrieves the DAG data
-func (s *Sampler) retrieveDataFromRandomIndex(data interface{}) (interface{}, error) {
+// fetchDataFromRandomIndex selects a random index and retrieves the DAG data
+func (s *Sampler) fetchDataFromRandomIndex(data interface{}) (interface{}, error) {
 	switch v := data.(type) {
 	case map[string]interface{}:
 		length, ok := v["length"].(float64)
@@ -108,14 +117,14 @@ func (s *Sampler) retrieveDataFromRandomIndex(data interface{}) (interface{}, er
 		randomIndex := rand.Intn(int(length))
 
 		if randomIndex >= len(links) {
-			return nil, fmt.Errorf("randomIndex is out of bounds")
+			return nil, fmt.Errorf("random index is out of bounds")
 		}
 
-		nextLink := links[randomIndex]
+		selectedLink := links[randomIndex]
 
-		linkMap, ok := nextLink.(map[string]interface{})
+		linkMap, ok := selectedLink.(map[string]interface{})
 		if !ok {
-			return nil, fmt.Errorf("nextLink is not a map[string]interface{}")
+			return nil, fmt.Errorf("selected link is not a map[string]interface{}")
 		}
 
 		finalCIDStr, ok := linkMap["/"].(string)
@@ -123,11 +132,10 @@ func (s *Sampler) retrieveDataFromRandomIndex(data interface{}) (interface{}, er
 			return nil, fmt.Errorf(`linkMap["/"] is not a string`)
 		}
 
-		return s.retrieveDagData(finalCIDStr)
+		return s.fetchDagData(finalCIDStr)
 
 	case []interface{}:
 		randomIndex := rand.Intn(len(v))
-
 		return v[randomIndex], nil
 
 	default:
@@ -135,29 +143,28 @@ func (s *Sampler) retrieveDataFromRandomIndex(data interface{}) (interface{}, er
 	}
 }
 
-// processCommitments retrieves data from a given CID, processes the commitments, and retrieves "proof" and "cell"
-func (s *Sampler) processCommitments(data interface{}) {
-	// Assume data is a CID string; retrieve the corresponding DAG data
+// handleCommitments processes the commitments data and retrieves "proof" and "cell"
+func (s *Sampler) handleCommitments(data interface{}) {
 	dataCID, ok := data.(map[string]interface{})["/"].(string)
 	if !ok {
-		log.Error("data is not a valid CID string")
+		log.Error("Data is not a valid CID string")
 		return
 	}
 
-	cellData, err := s.retrieveDagData(dataCID)
+	commitmentData, err := s.fetchDagData(dataCID)
 	if err != nil {
 		log.Errorf("Failed to retrieve commitment data: %v", err)
 		return
 	}
 
-	s.processProofAndCell(cellData)
+	s.processProofAndCell(commitmentData)
 }
 
-// processProofAndCell processes the "proof" and "cell" fields from the DAG data
+// processProofAndCell handles the "proof" and "cell" fields from the DAG data
 func (s *Sampler) processProofAndCell(data interface{}) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
-		log.Error("proof and cell data is not a map[string]interface{}")
+		log.Error("Proof and cell data is not a map[string]interface{}")
 		return
 	}
 
@@ -190,6 +197,17 @@ func (s *Sampler) processProofAndCell(data interface{}) {
 	log.Debugf("Cell (bytes): %x\n", cellBytes)
 }
 
+// addBase64Padding ensures the base64 string has correct padding
+func addBase64Padding(encoded string) string {
+	// Calculate the padding required
+	missingPadding := len(encoded) % 4
+	if missingPadding > 0 {
+		padding := 4 - missingPadding
+		encoded += strings.Repeat("=", padding)
+	}
+	return encoded
+}
+
 // extractBytesFromNestedMap navigates through the nested map structure and extracts the bytes.
 func extractBytesFromNestedMap(data map[string]interface{}) ([]byte, error) {
 	innerMap, ok := data["/"].(map[string]interface{})
@@ -201,6 +219,9 @@ func extractBytesFromNestedMap(data map[string]interface{}) ([]byte, error) {
 	if !ok {
 		return nil, fmt.Errorf(`expected "bytes" field to be a string but got %T`, innerMap["bytes"])
 	}
+
+	// Ensure correct padding before decoding
+	bytesEncoded = addBase64Padding(bytesEncoded)
 
 	decodedBytes, err := base64.StdEncoding.DecodeString(bytesEncoded)
 	if err != nil {

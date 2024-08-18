@@ -60,7 +60,10 @@ func initConfig() {
 func startClient() {
 	log.Info("Starting client...")
 
-	sampler := sampler.NewSampler(ipfsAddr)
+	sampler, err := sampler.NewSampler(ipfsAddr)
+	if err != nil {
+		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
+	}
 
 	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler)
 	eventlistener.SubscribeToLogs(context.Background())
