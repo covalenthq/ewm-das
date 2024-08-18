@@ -25,10 +25,11 @@ type Link struct {
 
 // RootNode represents a DAG node containing metadata and links.
 type RootNode struct {
-	Version string `json:"version"`
-	Size    int    `json:"size"`
-	Length  int    `json:"length"`
-	Links   []Link `json:"links"`
+	Version     string     `json:"version"`
+	Size        int        `json:"size"`
+	Length      int        `json:"length"`
+	Links       []Link     `json:"links"`
+	Commitments []InnerMap `json:"commitments"`
 }
 
 // NestedBytes holds the base64 decoded bytes.
