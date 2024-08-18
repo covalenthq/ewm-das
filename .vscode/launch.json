@@ -61,7 +61,10 @@
         "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
         "--service-url",
         "TODO"
-      ]
+      ],
+      "env": {
+        "TRUSTED_DIR": "${workspaceFolder}/test/data"
+      }
     },
     {
       "name": "C/C++ Runner: Debug Session",
