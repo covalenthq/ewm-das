@@ -1,6 +1,8 @@
 package verifier
 
 import (
+	"fmt"
+
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
 )
 
@@ -24,16 +26,21 @@ func NewKZGVerifier(commitment, proof, cell []byte, index uint64) *KZGVerifier {
 
 // Verify checks the validity of the proof against the commitment and cell.
 func (v *KZGVerifier) Verify() (bool, error) {
-	// Implement the actual KZG verification logic here
-	// This is a placeholder logic for demonstration
+	var (
+		commitment ckzg4844.Bytes48
+		proof      ckzg4844.Bytes48
+		cell       ckzg4844.Cell
+	)
 
-	var commitment ckzg4844.Bytes48
+	// verify the length of the commitment, proof, and cell
+	if len(v.Commitment) != ckzg4844.BytesPerCommitment ||
+		len(v.Proof) != ckzg4844.BytesPerProof ||
+		len(v.Cell) != ckzg4844.BytesPerCell {
+		return false, fmt.Errorf("invalid length of commitment, proof, or cell")
+	}
+
 	copy(commitment[:], v.Commitment)
-
-	var proof ckzg4844.Bytes48
 	copy(proof[:], v.Proof)
-
-	var cell ckzg4844.Cell
 	copy(cell[:], v.Cell)
 
 	commitments := [1]ckzg4844.Bytes48{commitment}
