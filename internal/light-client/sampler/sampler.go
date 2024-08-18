@@ -86,35 +86,35 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 // ProcessEvent handles events asynchronously by processing the provided CID.
 func (s *Sampler) ProcessEvent(cidStr string) {
 	go func(cidStr string) {
-		cidDecoded, err := cid.Decode(cidStr)
+		_, err := cid.Decode(cidStr)
 		if err != nil {
 			log.Errorf("Invalid CID: %v", err)
 			return
 		}
 
-		rootNode, err := s.getRootNode(cidDecoded.String())
-		if err != nil {
+		var rootNode RootNode
+		if err := s.IPFSShell.DagGet(cidStr, &rootNode); err != nil {
 			log.Errorf("Failed to fetch root DAG data: %v", err)
 			return
 		}
 
-		rowindex := getRandomIndex(len(rootNode.Links))
-		links, err := s.getLinks(rootNode.Links[rowindex].CID)
-		if err != nil {
+		rowindex := rand.Intn(len(rootNode.Links))
+		var links []Link
+		if err := s.IPFSShell.DagGet(rootNode.Links[rowindex].CID, &links); err != nil {
 			log.Errorf("Failed to fetch link data: %v", err)
 			return
 		}
 
-		colindex := getRandomIndex(len(links))
-		node, err := s.getDataNode(links[colindex].CID)
-		if err != nil {
+		var data DataMap
+		colindex := rand.Intn(len(links))
+		if err := s.IPFSShell.DagGet(links[colindex].CID, &data); err != nil {
 			log.Errorf("Failed to fetch data node: %v", err)
 			return
 		}
 
 		commitment := rootNode.Commitments[rowindex].Nested.Bytes
-		proof := node.Proof.Nested.Bytes
-		cell := node.Cell.Nested.Bytes
+		proof := data.Proof.Nested.Bytes
+		cell := data.Cell.Nested.Bytes
 		res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colindex)).Verify()
 		if err != nil {
 			log.Errorf("Failed to verify proof and cell: %v", err)
@@ -123,40 +123,6 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 
 		log.Infof("Verification result: %v", res)
 	}(cidStr)
-}
-
-func (s *Sampler) getRootNode(cidStr string) (*RootNode, error) {
-	var rootNode RootNode
-	if err := s.IPFSShell.DagGet(cidStr, &rootNode); err != nil {
-		return nil, err
-	}
-
-	return &rootNode, nil
-}
-
-// getLinks retrieves the DAG data for a given CID and unmarshals it into a slice of Link structs.
-func (s *Sampler) getLinks(cidStr string) ([]Link, error) {
-	var links []Link
-	if err := s.IPFSShell.DagGet(cidStr, &links); err != nil {
-		return nil, err
-	}
-
-	return links, nil
-}
-
-// getDataNode retrieves the DAG data for a given CID and unmarshals it into a DataMap struct.
-func (s *Sampler) getDataNode(cidStr string) (*DataMap, error) {
-	var data DataMap
-	if err := s.IPFSShell.DagGet(cidStr, &data); err != nil {
-		return nil, err
-	}
-
-	return &data, nil
-}
-
-// getRandomIndex returns a random index for a given length.
-func getRandomIndex(length int) int {
-	return rand.Intn(length)
 }
 
 // ensureBase64Padding ensures the base64 string has correct padding.
