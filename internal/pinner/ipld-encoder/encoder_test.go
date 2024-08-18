@@ -51,7 +51,7 @@ func readAndDecodeCbor(filePath string) (datamodel.Node, error) {
 // TestReadAndDecodeCbor tests the readAndDecodeCbor function.
 func TestReadAndDecodeCbor(t *testing.T) {
 	rootCid := "bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi"
-	root, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", rootCid))
+	root, err := readAndDecodeCbor(fmt.Sprintf("../../../test/data/%s.bin", rootCid))
 	if err != nil {
 		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
 	}
@@ -95,7 +95,7 @@ func processLinks(t *testing.T, linksNode datamodel.Node) {
 		t.Fatalf("Failed to extract CID: %v", err)
 	}
 
-	cols, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
+	cols, err := readAndDecodeCbor(fmt.Sprintf("../../../test/data/%s.bin", cid.String()))
 	if err != nil {
 		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
 	}
@@ -110,7 +110,7 @@ func processLinks(t *testing.T, linksNode datamodel.Node) {
 		t.Fatalf("Failed to extract CID: %v", err)
 	}
 
-	cell, err := readAndDecodeCbor(fmt.Sprintf("../../test/data/%s.bin", cid.String()))
+	cell, err := readAndDecodeCbor(fmt.Sprintf("../../../test/data/%s.bin", cid.String()))
 	if err != nil {
 		t.Fatalf("readAndDecodeCbor returned an error: %v", err)
 	}

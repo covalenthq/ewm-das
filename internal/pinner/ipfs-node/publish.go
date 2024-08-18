@@ -5,7 +5,7 @@ import (
 	"context"
 	"fmt"
 
-	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/ipld-encoder"
+	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 	"github.com/ipfs/boxo/blockstore"
 	blocks "github.com/ipfs/go-block-format"
 	cid "github.com/ipfs/go-cid"

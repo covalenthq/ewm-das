@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/ipfs-node"
+	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
 	logging "github.com/ipfs/go-log/v2"
 )
 

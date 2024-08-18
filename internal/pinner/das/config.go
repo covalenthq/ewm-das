@@ -1,7 +1,7 @@
 package das
 
 import (
-	ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/c-kzg-encoder"
+	ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/c-kzg-encoder"
 )
 
 // LoadConfig loads the configuration.

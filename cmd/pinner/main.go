@@ -8,7 +8,7 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/api"
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"github.com/covalenthq/das-ipfs-pinner/internal/das"
+	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 )
