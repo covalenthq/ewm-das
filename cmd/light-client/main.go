@@ -23,7 +23,7 @@ var (
 var log = logging.Logger("light-client")
 
 var rootCmd = &cobra.Command{
-	Use:     "my-client",
+	Use:     "light-client",
 	Short:   "A client to interact with blockchain events and IPFS",
 	Long:    `This client listens for events from a smart contract on a specified chain, retrieves data from IPFS, and sends it to another service.`,
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
