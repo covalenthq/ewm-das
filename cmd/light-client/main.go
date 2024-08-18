@@ -7,6 +7,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
+	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +29,13 @@ var rootCmd = &cobra.Command{
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		logging.SetLogLevel("light-client", loglevel)
+
+		// Load the configuration
+		config := das.LoadConfig()
+		// Initialize the KZG trusted setup
+		if err := das.InitializeTrustedSetup(config); err != nil {
+			log.Fatalf("Failed to initialize trusted setup: %v", err)
+		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Implement the main logic here

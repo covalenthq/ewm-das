@@ -7,6 +7,7 @@ import (
 	"math/rand"
 	"strings"
 
+	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
@@ -97,22 +98,30 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 			return
 		}
 
-		randomLinkIndex := getRandomIndex(len(rootNode.Links))
-		links, err := s.getLinks(rootNode.Links[randomLinkIndex].CID)
+		rowindex := getRandomIndex(len(rootNode.Links))
+		links, err := s.getLinks(rootNode.Links[rowindex].CID)
 		if err != nil {
 			log.Errorf("Failed to fetch link data: %v", err)
 			return
 		}
 
-		randomLinkIndex = getRandomIndex(len(links))
-		_, err = s.getDataNode(links[randomLinkIndex].CID)
+		colindex := getRandomIndex(len(links))
+		node, err := s.getDataNode(links[colindex].CID)
 		if err != nil {
 			log.Errorf("Failed to fetch data node: %v", err)
 			return
 		}
 
-		// Implement logic to send proof and cell to the service
-		// sendProofAndCell(proof, cell)
+		commitment := rootNode.Commitments[rowindex].Nested.Bytes
+		proof := node.Proof.Nested.Bytes
+		cell := node.Cell.Nested.Bytes
+		res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colindex)).Verify()
+		if err != nil {
+			log.Errorf("Failed to verify proof and cell: %v", err)
+			return
+		}
+
+		log.Infof("Verification result: %v", res)
 	}(cidStr)
 }
 
