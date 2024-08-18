@@ -35,32 +35,35 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 
 // ProcessEvent handles the event received from the EventListener
 func (s *Sampler) ProcessEvent(cidStr string) {
-	c, err := cid.Decode(cidStr)
-	if err != nil {
-		log.Errorf("Invalid CID: %v", err)
-		return
-	}
+	// Spawn a goroutine to handle the event processing asynchronously
+	go func(cidStr string) {
+		c, err := cid.Decode(cidStr)
+		if err != nil {
+			log.Errorf("Invalid CID: %v", err)
+			return
+		}
 
-	rootNodeData, err := s.fetchDagData(c.String())
-	if err != nil {
-		log.Errorf("Failed to fetch root DAG data: %v", err)
-		return
-	}
+		rootNodeData, err := s.fetchDagData(c.String())
+		if err != nil {
+			log.Errorf("Failed to fetch root DAG data: %v", err)
+			return
+		}
 
-	randomLinkData, err := s.fetchDataFromRandomLink(rootNodeData)
-	if err != nil {
-		log.Errorf("Failed to fetch data from random link: %v", err)
-		return
-	}
+		randomLinkData, err := s.fetchDataFromRandomLink(rootNodeData)
+		if err != nil {
+			log.Errorf("Failed to fetch data from random link: %v", err)
+			return
+		}
 
-	randomIndexData, err := s.fetchDataFromRandomIndex(randomLinkData)
-	if err != nil {
-		log.Errorf("Failed to fetch data from random index: %v", err)
-		return
-	}
+		randomIndexData, err := s.fetchDataFromRandomIndex(randomLinkData)
+		if err != nil {
+			log.Errorf("Failed to fetch data from random index: %v", err)
+			return
+		}
 
-	// Process commitments and then fetch "proof" and "cell"
-	s.handleCommitments(randomIndexData)
+		// Process commitments and then fetch "proof" and "cell"
+		s.handleCommitments(randomIndexData)
+	}(cidStr) // Pass cidStr to the anonymous function
 }
 
 // fetchDagData retrieves the DAG data for a given CID
