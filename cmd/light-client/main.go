@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 
+	"github.com/covalenthq/das-ipfs-pinner/common"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	logging "github.com/ipfs/go-log/v2"
@@ -20,9 +22,10 @@ var (
 var log = logging.Logger("light-client")
 
 var rootCmd = &cobra.Command{
-	Use:   "my-client",
-	Short: "A client to interact with blockchain events and IPFS",
-	Long:  `This client listens for events from a smart contract on a specified chain, retrieves data from IPFS, and sends it to another service.`,
+	Use:     "my-client",
+	Short:   "A client to interact with blockchain events and IPFS",
+	Long:    `This client listens for events from a smart contract on a specified chain, retrieves data from IPFS, and sends it to another service.`,
+	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		logging.SetLogLevel("light-client", loglevel)
 	},

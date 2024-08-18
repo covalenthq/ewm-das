@@ -55,14 +55,15 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 			return
 		}
 
-		randomIndexData, err := s.fetchDataFromRandomIndex(randomLinkData)
+		var randomIndex int
+		randomIndexData, err := s.fetchDataFromRandomIndex(randomLinkData, &randomIndex)
 		if err != nil {
 			log.Errorf("Failed to fetch data from random index: %v", err)
 			return
 		}
 
 		// Process commitments and then fetch "proof" and "cell"
-		s.handleCommitments(randomIndexData)
+		s.handleProofAndCell(randomIndexData)
 	}(cidStr) // Pass cidStr to the anonymous function
 }
 
@@ -104,7 +105,7 @@ func (s *Sampler) fetchDataFromRandomLink(data interface{}) (interface{}, error)
 }
 
 // fetchDataFromRandomIndex selects a random index and retrieves the DAG data
-func (s *Sampler) fetchDataFromRandomIndex(data interface{}) (interface{}, error) {
+func (s *Sampler) fetchDataFromRandomIndex(data interface{}, randomIndex *int) (interface{}, error) {
 	switch v := data.(type) {
 	case map[string]interface{}:
 		length, ok := v["length"].(float64)
@@ -117,13 +118,13 @@ func (s *Sampler) fetchDataFromRandomIndex(data interface{}) (interface{}, error
 			return nil, fmt.Errorf("links is not a valid []interface{} or is empty")
 		}
 
-		randomIndex := rand.Intn(int(length))
+		*randomIndex = rand.Intn(int(length))
 
-		if randomIndex >= len(links) {
+		if *randomIndex >= len(links) {
 			return nil, fmt.Errorf("random index is out of bounds")
 		}
 
-		selectedLink := links[randomIndex]
+		selectedLink := links[*randomIndex]
 
 		linkMap, ok := selectedLink.(map[string]interface{})
 		if !ok {
@@ -146,8 +147,7 @@ func (s *Sampler) fetchDataFromRandomIndex(data interface{}) (interface{}, error
 	}
 }
 
-// handleCommitments processes the commitments data and retrieves "proof" and "cell"
-func (s *Sampler) handleCommitments(data interface{}) {
+func (s *Sampler) handleProofAndCell(data interface{}) (proofBytes, cellBytes []byte, err error) {
 	dataCID, ok := data.(map[string]interface{})["/"].(string)
 	if !ok {
 		log.Error("Data is not a valid CID string")
@@ -160,11 +160,11 @@ func (s *Sampler) handleCommitments(data interface{}) {
 		return
 	}
 
-	s.processProofAndCell(commitmentData)
+	return s.processProofAndCell(commitmentData)
 }
 
 // processProofAndCell handles the "proof" and "cell" fields from the DAG data
-func (s *Sampler) processProofAndCell(data interface{}) {
+func (s *Sampler) processProofAndCell(data interface{}) (proofBytes, cellBytes []byte, err error) {
 	dataMap, ok := data.(map[string]interface{})
 	if !ok {
 		log.Error("Proof and cell data is not a map[string]interface{}")
@@ -178,7 +178,7 @@ func (s *Sampler) processProofAndCell(data interface{}) {
 		return
 	}
 
-	proofBytes, err := extractBytesFromNestedMap(proofData)
+	proofBytes, err = extractBytesFromNestedMap(proofData)
 	if err != nil {
 		log.Errorf("Failed to extract proof bytes: %v", err)
 		return
@@ -192,12 +192,14 @@ func (s *Sampler) processProofAndCell(data interface{}) {
 		return
 	}
 
-	cellBytes, err := extractBytesFromNestedMap(cellData)
+	cellBytes, err = extractBytesFromNestedMap(cellData)
 	if err != nil {
 		log.Errorf("Failed to extract cell bytes: %v", err)
 		return
 	}
 	log.Debugf("Cell (bytes): %x\n", cellBytes)
+
+	return proofBytes, cellBytes, nil
 }
 
 // addBase64Padding ensures the base64 string has correct padding
