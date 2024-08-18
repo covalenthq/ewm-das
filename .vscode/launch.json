@@ -47,6 +47,23 @@
       ]
     },
     {
+      "name": "Light Client",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/light-client/main.go",
+      "args": [
+        "--loglevel",
+        "debug",
+        "--rpc-url",
+        "wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e",
+        "--contract",
+        "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
+        "--service-url",
+        "TODO"
+      ]
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",
