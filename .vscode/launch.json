@@ -18,6 +18,25 @@
       }
     },
     {
+      "name": "Pinner taras+lc@covalenthq.com",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/pinner/main.go",
+      "args": [
+        "--addr",
+        "127.0.0.1:3001",
+        "--w3-agent-key",
+        "MgCaIjeDaA+yBMLBVUnm/DpIMq8hmJum2a6Y2v1N/I3XQI+0BFcKXrs8eKTT7Vx0MGYhaCfikcPwmdC6qEO5bjs5GG58=",
+        "--w3-delegation-proof-path",
+        "${workspaceFolder}/taras+lc@covalenthq.com.proof"
+      ],
+      "env": {
+        "PINNER_DIR": "${workspaceFolder}/test/data"
+      },
+      "comment": "# did:key:z6MkfvChtMB5d5WJRGinGBWV1uuVdD6VmefLKPRU8Yog79YS"
+    },
+    {
       "name": "Pinner-cli: upload",
       "type": "go",
       "request": "launch",
