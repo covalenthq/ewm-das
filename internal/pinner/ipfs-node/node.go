@@ -117,7 +117,7 @@ func initializeRepo() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err = os.MkdirAll(repoPath, fs.ModeDir); err != nil {
+	if err = os.MkdirAll(repoPath, fs.ModeDir|755); err != nil {
 		return "", err
 	}
 

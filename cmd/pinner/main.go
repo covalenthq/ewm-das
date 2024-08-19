@@ -17,7 +17,7 @@ var log = logging.Logger("das-pinner") // Initialize the logger
 
 var (
 	logLevel              string
-	debug                 bool
+	detached              bool
 	addr                  string
 	w3AgentKey            string
 	w3DelegationProofPath string
@@ -26,28 +26,25 @@ var (
 // rootCmd represents the base command
 var rootCmd = &cobra.Command{
 	Use:     common.BinaryName,
-	Short:   "A daemon for storing and retrieving data",
-	Long:    `Pinner is a daemon that handles storing binary data and extracting it via HTTP.`,
+	Short:   "A service for storing and retrieving DAS-data, backed by IPFS",
+	Long:    `Pinner is a service that handles storing binary data and extracting it via HTTP. It is backed by IPFS and uses KZG commitments for data integrity.`,
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		if debug {
-			logging.SetLogLevel("das-pinner", "debug")
-		} else {
-			logging.SetLogLevel("das-pinner", logLevel)
+		logging.SetLogLevel("das-pinner", logLevel)
+
+		// Handle the debug flag or daemonize if not in debug mode
+		if detached {
+			if os.Getenv("GO_DETACHED") != "1" {
+				daemonize()
+			}
 		}
 
 		// Load the configuration
 		config := das.LoadConfig()
 		// Initialize the KZG trusted setup
+		log.Info("Initializing trusted setup...")
 		if err := das.InitializeTrustedSetup(config); err != nil {
 			log.Fatalf("Failed to initialize trusted setup: %v", err)
-		}
-
-		// Handle the debug flag or daemonize if not in debug mode
-		if !debug {
-			if os.Getenv("GO_DAEMON") != "1" {
-				daemonize()
-			}
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
@@ -62,6 +59,8 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
+	log.Info("Initializing root command...", os.Args)
+
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("Error executing command: %v", err)
 		os.Exit(1)
@@ -70,12 +69,11 @@ func main() {
 
 func init() {
 	log.Infof("Version: %s, commit: %s", common.Version, common.GitCommit)
-	log.Info("Initializing root command...", os.Args)
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
-	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Run in debug mode")
-	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("DAEMON_ADDR", "localhost:5080"), "Address to run the daemon")
+	rootCmd.PersistentFlags().BoolVar(&detached, "detached", false, "Run in detached mode")
+	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", "localhost:5080"), "Address to run the pinner service on")
 
 	// W3 agent flags
 	rootCmd.PersistentFlags().StringVar(&w3AgentKey, "w3-agent-key", "", "Key for the W3 agent")
@@ -86,7 +84,7 @@ func init() {
 	rootCmd.MarkPersistentFlagRequired("w3-delegation-proof-path")
 
 	// Check if we're in the child process (daemon)
-	if os.Getenv("GO_DAEMON") == "1" {
+	if os.Getenv("GO_DETACHED") == "1" {
 		log.Info("Running in daemon mode.")
 		// Do not reinitialize flags or commands here
 		// Proceed directly to running the server or minimal initialization required
@@ -118,7 +116,7 @@ func daemonize() {
 	}
 
 	// Set up the environment with a specific variable to identify the forked process
-	env := append(os.Environ(), "GO_DAEMON=1")
+	env := append(os.Environ(), "GO_DETACHED=1")
 
 	// Get the PINNER_DIR environment variable
 	trustedDir := os.Getenv("PINNER_DIR")
