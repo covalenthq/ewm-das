@@ -8,14 +8,13 @@
       "mode": "auto",
       "program": "${workspaceFolder}/cmd/pinner/main.go",
       "args": [
-        "--debug",
         "--w3-agent-key",
         "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=",
         "--w3-delegation-proof-path",
         "${workspaceFolder}/delegation.proof"
       ],
       "env": {
-        "TRUSTED_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data"
       }
     },
     {
@@ -63,7 +62,7 @@
         "TODO"
       ],
       "env": {
-        "TRUSTED_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data"
       }
     },
     {
