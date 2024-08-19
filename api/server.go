@@ -1,75 +1,69 @@
 package api
 
 import (
-	"fmt"
-	"io"
-	"log"
+	"context"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
-	"github.com/covalenthq/das-ipfs-pinner/internal/kzg"
+	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
+	logging "github.com/ipfs/go-log/v2"
 )
 
+var log = logging.Logger("das-pinner") // Initialize the logger
+
+// MaxMultipartMemory is the maximum memory that the server will use to parse multipart form data.
+const MaxMultipartMemory = 10 << 20 // 10 MB
+
+// ServerConfig contains the configuration for the HTTP server.
+type ServerConfig struct {
+	Addr                  string
+	W3AgentKey            string
+	W3DelegationProofPath string
+}
+
 // StartServer initializes and starts the HTTP server.
-func StartServer(addr string) {
+func StartServer(config ServerConfig) {
+	ipfsNode, err := ipfsnode.NewIPFSNode(config.W3AgentKey, config.W3DelegationProofPath)
+	if err != nil {
+		log.Fatalf("Failed to initialize IPFS node: %v", err)
+	}
+
+	mux := http.NewServeMux()
+	mux.HandleFunc("/upload", createUploadHandler(ipfsNode))
+	mux.HandleFunc("/get", createDownloadHandler(ipfsNode))
+
+	server := &http.Server{
+		Addr:    config.Addr,
+		Handler: mux,
+	}
+
 	// Set up signal handling for graceful shutdown
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+
 	go func() {
 		<-sigs
-		log.Println("Shutting down daemon...")
-		// Perform cleanup here if needed
-		os.Exit(0)
+		log.Info("Shutting down server...")
+
+		// Create a context with timeout for the shutdown process
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+
+		if err := server.Shutdown(ctx); err != nil {
+			log.Fatalf("Server Shutdown Failed: %+v", err)
+		}
 	}()
 
-	// Set up HTTP handlers
-	http.HandleFunc("/store", storeHandler)
-	http.HandleFunc("/extract", extractHandler)
-
-	// Start the HTTP server
-	log.Printf("Starting daemon on %s...\n", addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatalf("Could not start server: %v\n", err)
+	log.Infof("Starting server on %s...", config.Addr)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("Could not start server: %v", err)
 	}
 }
 
-func storeHandler(w http.ResponseWriter, r *http.Request) {
-	// Ensure that the request is a POST method
-	if r.Method != http.MethodPost {
-		http.Error(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
-		return
-	}
-
-	// Read the binary data from the request body
-	data, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
-		return
-	}
-	defer r.Body.Close()
-
-	// Handle the binary data (e.g., save it to a file or a database)
-	// For demonstration purposes, we'll just print the data length
-	log.Printf("Received %d bytes of data\n", len(data))
-
-	_, err = kzg.Encode(data)
-	if err != nil {
-		http.Error(w, "Failed to store data", http.StatusInternalServerError)
-		return
-	}
-
-	// Respond to the client
-	fmt.Fprintln(w, "Data stored successfully")
-}
-
-func extractHandler(w http.ResponseWriter, r *http.Request) {
-	// Handle extracting data
-	cid := r.URL.Query().Get("cid")
-	if cid == "" {
-		http.Error(w, "CID is required", http.StatusBadRequest)
-		return
-	}
-	fmt.Fprintf(w, "Extracting data for CID: %s\n", cid)
+func handleError(w http.ResponseWriter, errMsg string, statusCode int) {
+	log.Infof("%s: %v", errMsg, statusCode)
+	http.Error(w, errMsg, statusCode)
 }

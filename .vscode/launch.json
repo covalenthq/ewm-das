@@ -1,28 +1,77 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "name": "Pinner",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/pinner/main.go",
-            "args": [
-                "--debug"
-            ]
-        },
-        {
-            "name": "Pinner CLI: STORE",
-            "type": "go",
-            "request": "launch",
-            "mode": "auto",
-            "program": "${workspaceFolder}/cmd/pinner-cli/main.go",
-            "args": [
-                "-mode", "store", "-data", "${workspaceFolder}/test/data/specimen.json"
-            ]
-        }
-    ]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Pinner",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/pinner/main.go",
+      "args": [
+        "--w3-agent-key",
+        "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=",
+        "--w3-delegation-proof-path",
+        "${workspaceFolder}/delegation.proof"
+      ],
+      "env": {
+        "PINNER_DIR": "${workspaceFolder}/test/data"
+      }
+    },
+    {
+      "name": "Pinner-cli: upload",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/pinner-cli/main.go",
+      "args": [
+        "upload",
+        "--data",
+        "${workspaceFolder}/test/data/specimen.json",
+        "--addr",
+        "http://127.0.0.1:3001"
+      ]
+    },
+    {
+      "name": "Pinner-cli: download",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/pinner-cli/main.go",
+      "args": [
+        "download",
+        "--data",
+        "bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi",
+        "--addr",
+        "http://127.0.0.1:3001"
+      ]
+    },
+    {
+      "name": "Light Client",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/light-client/main.go",
+      "args": [
+        "--loglevel",
+        "debug",
+        "--rpc-url",
+        "wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e",
+        "--contract",
+        "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
+        "--service-url",
+        "TODO"
+      ],
+      "env": {
+        "PINNER_DIR": "${workspaceFolder}/test/data"
+      }
+    },
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder}/c-kzg-4844",
+      "program": "${workspaceFolder}/c-kzg-4844/build/Debug/outDebug"
+    }
+  ]
 }

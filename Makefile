@@ -12,10 +12,12 @@ BIN_DIR := bin
 # Define the output binary names
 DAEMON_BINARY := $(BIN_DIR)/pinner
 CLI_BINARY := $(BIN_DIR)/pinner-cli
+LC_BINARY := $(BIN_DIR)/light-client
 
 # Define the source files
 DAEMON_SOURCE := cmd/pinner/main.go
 CLI_SOURCE := cmd/pinner-cli/main.go
+LC_SOURCE := cmd/light-client/main.go
 
 # Define the directories containing Go files
 GO_DIRS := api cmd/pinner cmd/pinner-cli common internal
@@ -26,7 +28,7 @@ GIT_COMMIT := $(shell git rev-parse HEAD)
 
 # Default target to build all binaries
 .PHONY: all
-all: fmt vet test build
+all: fmt vet staticcheck test build
 
 # Create the bin directory if it doesn't exist
 $(BIN_DIR):
@@ -34,7 +36,7 @@ $(BIN_DIR):
 
 # Build both the daemon and CLI tool
 .PHONY: build
-build: $(BIN_DIR) build-daemon build-cli
+build: $(BIN_DIR) build-daemon build-cli build-light
 
 # Build the daemon binary with a custom name
 .PHONY: build-daemon
@@ -45,6 +47,11 @@ build-daemon: $(BIN_DIR)
 .PHONY: build-cli
 build-cli: $(BIN_DIR)
 	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=pinner-cli -X $(COMMON_PACKAGE).Version=$(VERSION) -X $(COMMON_PACKAGE).GitCommit=$(GIT_COMMIT)" -o $(CLI_BINARY) $(CLI_SOURCE)
+
+# Build Light client
+.PHONY: build-light
+build-light: $(BIN_DIR)
+	go build -ldflags "-X $(COMMON_PACKAGE).BinaryName=light-client -X $(COMMON_PACKAGE).Version=$(VERSION) -X $(COMMON_PACKAGE).GitCommit=$(GIT_COMMIT)" -o $(LC_BINARY) $(LC_SOURCE)
 
 # Run tests
 .PHONY: test
@@ -59,12 +66,12 @@ test-cover:
 # Format the code
 .PHONY: fmt
 fmt:
-	for dir in $(GO_DIRS); do go fmt $$dir/...; done
+	go fmt ./...
 
 # Run static analysis (vet)
 .PHONY: vet
 vet:
-	for dir in $(GO_DIRS); do go vet $$dir/...; done
+	go vet ./...
 
 # Tidy up module dependencies
 .PHONY: tidy
@@ -82,12 +89,11 @@ clean:
 generate:
 	go generate ./...
 
-# Lint the code (requires golint to be installed)
-.PHONY: lint
-lint:
-	golint ./...
-
 # Install dependencies
 .PHONY: deps
 deps:
 	go mod download
+
+.PHONY: staticcheck
+staticcheck:
+	staticcheck ./...

@@ -24,3 +24,9 @@ bin/
 # Go workspace file
 go.work
 go.work.sum
+
+.env
+*.proof
+settings.json
+c_cpp_properties.json
+*.log

@@ -1,44 +1,68 @@
-// cli/cli.go
 package main
 
 import (
 	"bytes"
-	"flag"
 	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
+	"github.com/spf13/cobra"
 )
 
 func main() {
-	mode := flag.String("mode", "", "Mode of operation: store or extract")
-	data := flag.String("data", "", "Path to the binary file to send to the daemon or CID for extraction")
-	addr := flag.String("addr", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
-	flag.Parse()
+	var addr string
+	var data string
 
-	switch *mode {
-	case "store":
-		if *data == "" {
-			fmt.Println("File path is required for store mode")
-			os.Exit(1)
-		}
-		storeData(*addr, *data)
-	case "extract":
-		if *data == "" {
-			fmt.Println("CID is required for extract mode")
-			os.Exit(1)
-		}
-		extractData(*addr, *data)
-	default:
-		fmt.Printf("Invalid mode. Use %s -mode=store -data=path/to/file or %s -mode=extract -data=CID\n", common.BinaryName, common.BinaryName)
+	rootCmd := &cobra.Command{
+		Use:   common.BinaryName,
+		Short: "CLI for interacting with the DAS IPFS Pinner daemon",
+	}
+
+	// Set addr flag as a persistent flag so it can be used across all commands
+	rootCmd.PersistentFlags().StringVarP(&addr, "addr", "a", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
+
+	uploadCmd := &cobra.Command{
+		Use:   "upload",
+		Short: "Upload data request to the daemon",
+		Run: func(cmd *cobra.Command, args []string) {
+			if data == "" {
+				fmt.Println("File path is required for upload mode")
+				os.Exit(1)
+			}
+			uploadData(addr, data)
+		},
+	}
+
+	uploadCmd.Flags().StringVarP(&data, "data", "d", "", "Path to the binary file to send to the daemon")
+	rootCmd.AddCommand(uploadCmd)
+
+	downloadCmd := &cobra.Command{
+		Use:   "download",
+		Short: "Download data from the daemon using a CID",
+		Run: func(cmd *cobra.Command, args []string) {
+			if data == "" {
+				fmt.Println("CID is required for download mode")
+				os.Exit(1)
+			}
+			downloadData(addr, data)
+		},
+	}
+
+	downloadCmd.Flags().StringVarP(&data, "data", "d", "", "CID for download")
+	rootCmd.AddCommand(downloadCmd)
+
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
 
-func storeData(addr, filePath string) {
+func uploadData(addr, filePath string) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		fmt.Printf("Error opening file: %v\n", err)
@@ -67,7 +91,7 @@ func storeData(addr, filePath string) {
 		return
 	}
 
-	req, err := http.NewRequest("POST", addr+"/store", &buf)
+	req, err := http.NewRequest("POST", addr+"/upload", &buf)
 	if err != nil {
 		fmt.Printf("Error creating request: %v\n", err)
 		return
@@ -91,19 +115,27 @@ func storeData(addr, filePath string) {
 	fmt.Println("Response from server:", string(response))
 }
 
-func extractData(addr, cid string) {
-	resp, err := http.Get(fmt.Sprintf("%s/extract?cid=%s", addr, cid))
+func downloadData(addr, cid string) {
+	// Create a form with the CID
+	formData := url.Values{}
+	formData.Set("cid", cid)
+
+	// Create a POST request with the form data
+	resp, err := http.PostForm(fmt.Sprintf("%s/get", addr), formData)
 	if err != nil {
-		fmt.Printf("Error extracting data: %v\n", err)
+		fmt.Printf("Error downloading data: %v\n", err)
 		return
 	}
 	defer resp.Body.Close()
 
+	// Read the response
 	response, err := io.ReadAll(resp.Body)
 	if err != nil {
 		fmt.Printf("Error reading response: %v\n", err)
 		return
 	}
+
+	// Print the response
 	fmt.Println(string(response))
 }
 
