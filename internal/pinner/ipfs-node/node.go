@@ -2,7 +2,6 @@ package ipfsnode
 
 import (
 	"context"
-	"io/fs"
 	"os"
 	"path/filepath"
 
@@ -117,7 +116,7 @@ func initializeRepo() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err = os.MkdirAll(repoPath, fs.ModeDir|755); err != nil {
+	if err = os.MkdirAll(repoPath, 0755); err != nil {
 		return "", err
 	}
 

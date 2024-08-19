@@ -16,9 +16,9 @@ import (
 var log = logging.Logger("das-pinner") // Initialize the logger
 
 var (
-	logLevel              string
-	detached              bool
 	addr                  string
+	detached              bool
+	logLevel              string
 	w3AgentKey            string
 	w3DelegationProofPath string
 )
