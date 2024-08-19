@@ -1,6 +1,8 @@
 package ckzgencoder
 
 import (
+	"fmt"
+	"os"
 	"path/filepath"
 
 	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
@@ -22,6 +24,10 @@ func (t *TrustedSetup) GenerateTrustedSetup() error {
 // LoadTrustedSetup loads a trusted setup.
 func (t *TrustedSetup) LoadTrustedSetup(config Config) error {
 	trustedSetupFile := filepath.Join(config.TrustedDir, "trusted_setup.txt")
+	// check if the trusted setup file exists
+	if _, err := os.Stat(trustedSetupFile); os.IsNotExist(err) {
+		return fmt.Errorf("trusted setup file does not exist: %v", trustedSetupFile)
+	}
 	return ckzg4844.LoadTrustedSetupFile(trustedSetupFile, 0)
 }
 

@@ -16,6 +16,7 @@ import (
 var log = logging.Logger("das-pinner") // Initialize the logger
 
 var (
+	logLevel              string
 	debug                 bool
 	addr                  string
 	w3AgentKey            string
@@ -32,7 +33,7 @@ var rootCmd = &cobra.Command{
 		if debug {
 			logging.SetLogLevel("das-pinner", "debug")
 		} else {
-			logging.SetLogLevel("das-pinner", "info")
+			logging.SetLogLevel("das-pinner", logLevel)
 		}
 
 		// Load the configuration
@@ -81,6 +82,7 @@ func init() {
 	log.Info("Running in non-daemon mode.")
 
 	cobra.OnInitialize(initConfig)
+	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
 	rootCmd.PersistentFlags().BoolVar(&debug, "debug", false, "Run in debug mode")
 	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("DAEMON_ADDR", "localhost:5080"), "Address to run the daemon")
 
