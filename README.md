@@ -4,6 +4,10 @@
 
 DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS network and pins the data using **web3.storage**. It is designed to be used with the DAS Light-Client to retrieve data from the IPFS network and verify the data using the DAS protocol.
 
+## Current Iteration
+
+![DAS-Pinner + Light-Client](assets/iteration1.png)
+
 ## Table of Contents
 
 - [Installation](#installation)
