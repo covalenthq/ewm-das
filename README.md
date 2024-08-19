@@ -29,20 +29,20 @@ Before running the service, you need to install the following dependencies:
 
 #### Setting up web3.storage
 
-Create an account on [web3.storage](https://web3.storage/docs/how-to/create-account/#using-the-cli) and generate private key:
+Create an account on [web3.storage](https://web3.storage/docs/how-to/create-account/#using-the-cli) and generate a private key:
 
 ```sh
 w3 key create > private.key
 ```
 
-The contents of the private key should be like this:
+The contents of the private key should look like this:
 
 ```sh
 # did:key:z6MkhtbMWQq7dTrZXGuNMWQcFs3Wdr3E4esVbHFMX7GkiHmf
 MgCbd3MtiwMFne6Fx7ta22YhWzI+lXEa4KwBQrN1WE/9V9+0BMxBp5XL6JTyn3r1P+IpZTTWBfp+800KqlpkAtCykk1Y=
 ```
 
-Create permissions to add storage space (`store/add`) and to upload (`upload/add`) data:
+Create permissions to add storage space (store/add) and to upload (upload/add) data:
 
 ```sh
 w3 delegation create -c 'store/add' -c 'upload/add' -k <did-from-private.key> -o delegation.proof
