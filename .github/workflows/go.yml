@@ -34,11 +34,10 @@ jobs:
     - name: Run go vet
       run: make vet
 
-    - name: Run golint
+    - name: Run staticcheck
       run: |
-        go mod download golang.org/x/lint
-        go install golang.org/x/lint/golint
-        golint ./... | grep -v c-kzg-4844
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        staticcheck ./...
 
     - name: Run tests
       run: make test

@@ -28,7 +28,7 @@ GIT_COMMIT := $(shell git rev-parse HEAD)
 
 # Default target to build all binaries
 .PHONY: all
-all: fmt vet test build lint
+all: fmt vet staticcheck test build
 
 # Create the bin directory if it doesn't exist
 $(BIN_DIR):
@@ -94,11 +94,6 @@ generate:
 deps:
 	go mod download
 
-.PHONY: lint
-lint:
-	@OUTPUT=$(golint ./... | grep -v c-kzg-4844); \
-	echo "${OUTPUT}"; \
-	if [ -n "${OUTPUT}" ]; then \
-	  echo "Linting issues found"; \
-	  exit 1; \
-	fi
+.PHONY: staticcheck
+staticcheck:
+	staticcheck ./...
