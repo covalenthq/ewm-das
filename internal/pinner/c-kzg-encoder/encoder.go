@@ -8,10 +8,14 @@ import (
 )
 
 var (
+	// ErrCellsOrProofsMissing is returned when cells or proofs are missing.
 	ErrCellsOrProofsMissing = errors.New("cells or proofs missing")
-	ErrVerificationFailed   = errors.New("verification failed")
+
+	// ErrVerificationFailed is returned when verification fails.
+	ErrVerificationFailed = errors.New("verification failed")
 )
 
+// EncodeDatablock encodes the data block.
 func EncodeDatablock(data []byte) (internal.DataBlock, error) {
 	datablock := &DataBlockImpl{}
 

@@ -15,6 +15,7 @@ import (
 
 var log = logging.Logger("light-client")
 
+// Sampler is a struct that samples data from IPFS and verifies it.
 type Sampler struct {
 	IPFSShell *ipfs.Shell
 }

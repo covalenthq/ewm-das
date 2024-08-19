@@ -1,6 +1,6 @@
 package internal
 
-// DataBlock is an interface for encoding and decoding data.
+// DataBlock is an interface for data blocks.
 type DataBlock interface {
 	Describe() (size uint64, rows uint64, cols uint64)
 	Commitment(row uint64) ([]byte, error)
@@ -9,6 +9,7 @@ type DataBlock interface {
 	Verify() error
 }
 
+// DataBlockEncoder is an interface for encoding and decoding data blocks.
 type DataBlockEncoder interface {
 	Encode(data []byte) error
 	Decode() ([]byte, error)

@@ -16,6 +16,7 @@ import (
 
 var log = logging.Logger("light-client")
 
+// EventListener listens for events emitted by the contract
 type EventListener struct {
 	Client           *ethclient.Client
 	ContractAddress  common.Address
@@ -58,7 +59,7 @@ func loadContract(client *ethclient.Client, address common.Address) *contract.Co
 	return contractInstance
 }
 
-// Subscribe to logs for the specified contract address
+// SubscribeToLogs subscribes to logs emitted by the contract
 func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 	query := ethereum.FilterQuery{
 		Addresses: []common.Address{el.ContractAddress},
@@ -80,7 +81,7 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 	log.Infof("Subscribed to logs for contract: %v", el.ContractAddress.Hex())
 }
 
-// Process incoming logs and handle events
+// ProcessLogs processes the logs emitted by the contract
 func (el *EventListener) ProcessLogs() {
 	for vLog := range el.Logs {
 		log.Debugf("Log: %v\n", vLog)

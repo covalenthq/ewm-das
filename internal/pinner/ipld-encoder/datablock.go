@@ -2,6 +2,7 @@ package ipldencoder
 
 import "github.com/ipld/go-ipld-prime/datamodel"
 
+// IPLDDataBlock is the IPLD data block.
 type IPLDDataBlock struct {
 	Version   uint64
 	Codec     uint64

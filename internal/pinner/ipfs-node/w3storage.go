@@ -60,6 +60,7 @@ func (w3 *W3Storage) Close() {
 	_ = os.RemoveAll(w3.w3Temp) // Ignoring error as it's not critical
 }
 
+// Initialize initializes the W3Storage instance by adding the agent and space.
 func (w3 *W3Storage) Initialize() error {
 	i, err := w3.whoAmI()
 	if err != nil {

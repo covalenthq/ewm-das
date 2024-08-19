@@ -21,6 +21,7 @@ func (ds dagStore) Get(ctx context.Context, c cid.Cid) (blocks.Block, error) {
 	return ds.dag.Get(ctx, c)
 }
 
+// Pin pins the given CID from local blockstore to W3.
 func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error) {
 	carFile, err := os.CreateTemp(os.TempDir(), "*.car")
 	if err != nil {

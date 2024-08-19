@@ -7,6 +7,7 @@ import (
 )
 
 var (
+	// ErrOutOfRange is returned when the index is out of range.
 	ErrOutOfRange = errors.New("out of range")
 )
 

@@ -4,6 +4,8 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/ipfs/go-cid"
 	"github.com/ipld/go-ipld-prime"
+
+	// Import the DAG-CBOR codec
 	_ "github.com/ipld/go-ipld-prime/codec/dagcbor"
 	"github.com/ipld/go-ipld-prime/datamodel"
 	"github.com/ipld/go-ipld-prime/fluent/qp"
@@ -14,6 +16,7 @@ import (
 	mh "github.com/multiformats/go-multihash"
 )
 
+// EncodeDatablock encodes the given DataBlock into an IPLDDataBlock.
 func EncodeDatablock(block internal.DataBlock) (*IPLDDataBlock, error) {
 	datablock := &IPLDDataBlock{
 		Version: 1,

@@ -12,6 +12,7 @@ import (
 	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 )
 
+// ExtractBlock extracts the block from IPFS.
 func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*ipldencoder.IPLDDataBlock, error) {
 	// Parse the CID
 	cid, err := cid.Parse(cidStr)

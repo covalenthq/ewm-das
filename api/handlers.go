@@ -73,8 +73,8 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			}
 
 			log.Infof("Data upload successfully with CID: %s", cid)
-			succ_str := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
-			if _, err := w.Write([]byte(succ_str)); err != nil {
+			succStr := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
+			if _, err := w.Write([]byte(succStr)); err != nil {
 				log.Errorf("error writing data to connection: %w", err)
 			}
 		}
