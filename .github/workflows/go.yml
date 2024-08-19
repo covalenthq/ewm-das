@@ -36,6 +36,7 @@ jobs:
 
     - name: Run golint
       run: |
+        go mod download golang.org/x/lint
         go install golang.org/x/lint/golint
         golint ./... | grep -v c-kzg-4844
 
