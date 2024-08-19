@@ -101,6 +101,28 @@ To interact with the pinner service, use the CLI tool:
 ./bin/pinner-cli upload --data <path-to-data> --addr <pinner-address>
 ```
 
+### DAS Light-Client
+
+#### Prerequisites
+
+Before running the light-client, you need to install the following dependencies:
+
+- [ipfs](https://docs.ipfs.io/install/command-line/)
+
+#### Running the Light-Client
+
+To run the light-client, use the following command:
+
+```sh
+./bin/light-client --rpc-url <rpc-url> --contract <contract-address> --service-url TODO
+```
+
+**Note:** Light client is under active development and the service URL is not yet available. But you can run the light-client with the above command or even use next command to run the light-client with the default values.
+
+```sh
+./bin/light-client --rpc-url wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e --contract 0x4932bDc983e5146224b9C2e68cfFBFEb004A2824 --service-url TODO
+```
+
 ## Building from Source
 
 ### Prerequisites
