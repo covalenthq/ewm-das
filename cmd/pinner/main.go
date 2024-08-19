@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"path/filepath"
-	"syscall"
 
 	"github.com/covalenthq/das-ipfs-pinner/api"
 	"github.com/covalenthq/das-ipfs-pinner/common"
@@ -29,7 +27,6 @@ var log = logging.Logger("das-pinner") // Initialize the logger
 
 var (
 	addr                  string
-	detached              bool
 	logLevel              string
 	w3AgentKey            string
 	w3DelegationProofPath string
@@ -43,13 +40,6 @@ var rootCmd = &cobra.Command{
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		logging.SetLogLevel("das-pinner", logLevel)
-
-		// Handle the debug flag or daemonize if not in debug mode
-		if detached {
-			if os.Getenv("GO_DETACHED") != "1" {
-				daemonize()
-			}
-		}
 
 		// Load the configuration
 		config := das.LoadConfig()
@@ -82,10 +72,8 @@ func main() {
 }
 
 func init() {
-
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
-	rootCmd.PersistentFlags().BoolVar(&detached, "detached", false, "Run in detached mode")
 	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", "localhost:5080"), "Address to run the pinner service on")
 
 	// W3 agent flags
@@ -95,76 +83,10 @@ func init() {
 	// Mark the flags as required
 	rootCmd.MarkPersistentFlagRequired("w3-agent-key")
 	rootCmd.MarkPersistentFlagRequired("w3-delegation-proof-path")
-
-	// Check if we're in the child process (daemon)
-	if os.Getenv("GO_DETACHED") == "1" {
-		log.Info("Running in daemon mode.")
-		// Do not reinitialize flags or commands here
-		// Proceed directly to running the server or minimal initialization required
-		return
-	}
-
-	log.Info("Running in non-daemon mode.")
 }
 
 func initConfig() {
 	// Additional initialization if needed
-}
-
-func daemonize() {
-	// Get the executable path
-	executablePath, err := filepath.Abs(os.Args[0])
-	if err != nil {
-		log.Fatalf("Error getting absolute path: %v\n", err)
-	}
-
-	// Ensure arguments are correctly passed to the child process
-	var args []string
-
-	if len(os.Args) > 1 {
-		args = os.Args[1:]
-	} else {
-		// Log a message if there are no arguments
-		log.Warn("No arguments provided to the child process.")
-	}
-
-	// Set up the environment with a specific variable to identify the forked process
-	env := append(os.Environ(), "GO_DETACHED=1")
-
-	// Get the PINNER_DIR environment variable
-	trustedDir := os.Getenv("PINNER_DIR")
-	if trustedDir == "" {
-		log.Fatalf("PINNER_DIR environment variable not set")
-	}
-
-	// Construct the log file path
-	logFilePath := filepath.Join(trustedDir, "pinner.log")
-
-	// Open the log file
-	logFile, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("Error opening log file: %v\n", err)
-	}
-	defer logFile.Close()
-
-	// Set up process attributes
-	procAttr := &os.ProcAttr{
-		Dir:   filepath.Dir(executablePath),
-		Files: []*os.File{os.Stdin, logFile, logFile}, // Redirect stdout and stderr to log file
-		Env:   env,
-		Sys: &syscall.SysProcAttr{
-			Setsid: true,
-		},
-	}
-
-	// Start the new process
-	process, err := os.StartProcess(executablePath, args, procAttr)
-	if err != nil {
-		log.Fatalf("Error starting process: %v\n", err)
-	}
-	// Release the parent process
-	process.Release()
-	os.Exit(0)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
