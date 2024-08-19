@@ -29,3 +29,4 @@ go.work.sum
 *.proof
 settings.json
 c_cpp_properties.json
+*.log

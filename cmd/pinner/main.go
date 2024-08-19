@@ -69,17 +69,8 @@ func main() {
 }
 
 func init() {
+	log.Infof("Version: %s, commit: %s", common.Version, common.GitCommit)
 	log.Info("Initializing root command...", os.Args)
-
-	// Check if we're in the child process (daemon)
-	if os.Getenv("GO_DAEMON") == "1" {
-		log.Info("Running in daemon mode.")
-		// Do not reinitialize flags or commands here
-		// Proceed directly to running the server or minimal initialization required
-		return
-	}
-
-	log.Info("Running in non-daemon mode.")
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
@@ -93,6 +84,16 @@ func init() {
 	// Mark the flags as required
 	rootCmd.MarkPersistentFlagRequired("w3-agent-key")
 	rootCmd.MarkPersistentFlagRequired("w3-delegation-proof-path")
+
+	// Check if we're in the child process (daemon)
+	if os.Getenv("GO_DAEMON") == "1" {
+		log.Info("Running in daemon mode.")
+		// Do not reinitialize flags or commands here
+		// Proceed directly to running the server or minimal initialization required
+		return
+	}
+
+	log.Info("Running in non-daemon mode.")
 }
 
 func initConfig() {
@@ -119,10 +120,26 @@ func daemonize() {
 	// Set up the environment with a specific variable to identify the forked process
 	env := append(os.Environ(), "GO_DAEMON=1")
 
+	// Get the PINNER_DIR environment variable
+	trustedDir := os.Getenv("PINNER_DIR")
+	if trustedDir == "" {
+		log.Fatalf("PINNER_DIR environment variable not set")
+	}
+
+	// Construct the log file path
+	logFilePath := filepath.Join(trustedDir, "pinner.log")
+
+	// Open the log file
+	logFile, err := os.OpenFile(logFilePath, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("Error opening log file: %v\n", err)
+	}
+	defer logFile.Close()
+
 	// Set up process attributes
 	procAttr := &os.ProcAttr{
 		Dir:   filepath.Dir(executablePath),
-		Files: []*os.File{os.Stdin, os.Stdout, os.Stderr},
+		Files: []*os.File{os.Stdin, logFile, logFile}, // Redirect stdout and stderr to log file
 		Env:   env,
 		Sys: &syscall.SysProcAttr{
 			Setsid: true,

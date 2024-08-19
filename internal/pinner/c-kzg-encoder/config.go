@@ -19,7 +19,7 @@ var DefaultConfig = Config{
 func LoadConfig() Config {
 	config := DefaultConfig
 
-	if envTrustedDir := os.Getenv("TRUSTED_DIR"); envTrustedDir != "" {
+	if envTrustedDir := os.Getenv("PINNER_DIR"); envTrustedDir != "" {
 		config.TrustedDir = envTrustedDir
 	}
 
