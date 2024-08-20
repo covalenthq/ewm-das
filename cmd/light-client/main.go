@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
+	"time"
+
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
@@ -18,6 +20,9 @@ var (
 	contract   string
 	ipfsAddr   string
 	serviceURL string
+	projectId  string
+	topicId    string
+	timeBuffer int
 )
 
 var log = logging.Logger("light-client")
@@ -58,10 +63,15 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
 	rootCmd.PersistentFlags().StringVar(&serviceURL, "service-url", "", "URL of the service to send data to")
+	rootCmd.PersistentFlags().StringVar(&projectId, "project-id", "", "Gcp project name")
+	rootCmd.PersistentFlags().StringVar(&topicId, "topic-id", "", "Topic name of Pub Sub")
+	rootCmd.PersistentFlags().IntVar(&timeBuffer, "time-buffer", 5, "Cache Time for a url")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
 	rootCmd.MarkPersistentFlagRequired("service-url")
+	rootCmd.MarkPersistentFlagRequired("project-id")
+	rootCmd.MarkPersistentFlagRequired("topic-id")
 }
 
 func initConfig() {
@@ -76,7 +86,10 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler)
+	// Can be added in Flags after review
+	timeWindow := time.Duration(timeBuffer) * time.Minute
+
+	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler, timeWindow)
 	eventlistener.SubscribeToLogs(context.Background())
-	eventlistener.ProcessLogs()
+	eventlistener.ProcessLogs(projectId, topicId)
 }

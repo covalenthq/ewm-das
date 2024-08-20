@@ -6,11 +6,15 @@ import (
 	"fmt"
 	"math/rand"
 	"strings"
-
+	"context"
+	"time"
+	
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
+	"cloud.google.com/go/pubsub"
+
 )
 
 var log = logging.Logger("light-client")
@@ -85,7 +89,7 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string) {
+func (s *Sampler) ProcessEvent(cidStr string, projectId string, topicId string) {
 	go func(cidStr string) {
 		_, err := cid.Decode(cidStr)
 		if err != nil {
@@ -123,6 +127,10 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result: %v", res)
+
+		//publish message here
+		publishtocs(projectId, topicId, cidStr, rowindex, colindex, res)
+
 	}(cidStr)
 }
 
@@ -134,4 +142,54 @@ func ensureBase64Padding(encoded string) string {
 		encoded += strings.Repeat("=", padding)
 	}
 	return encoded
+}
+
+
+// Publish to Pubsub
+func publishtocs(projectId string, topicId string, cid string, rowindex int, colindex int, booldec bool) {
+	ctx := context.Background()
+
+	// Create a Pub/Sub client.
+	client, err := pubsub.NewClient(ctx, projectId)
+	if err != nil {
+		log.Fatalf("Failed to create Pub/Sub client: %v", err)
+	}
+	defer client.Close()
+
+	// Get a reference to the topic.
+	topic := client.Topic(topicId)
+
+	// Define the message payload with exported field names.
+	message := struct {
+		SignedAt  time.Time `json:"signed_at"`
+		CID       string    `json:"cid"`
+		RowIndex  int       `json:"rowindex"`
+		ColumnIndex int     `json:"columnindex"`
+		Status    bool      `json:"status"`
+	}{
+		SignedAt:  time.Now(), // Current timestamp
+		CID:       cid,
+		RowIndex:  rowindex,
+		ColumnIndex: colindex,
+		Status:    booldec,
+	}
+
+	// Marshal the message into JSON.
+	messageData, err := json.Marshal(message)
+	if err != nil {
+		log.Fatalf("Failed to marshal message: %v", err)
+	}
+
+	// Publish a message.
+	result := topic.Publish(ctx, &pubsub.Message{
+		Data: messageData,
+	})
+
+	// Block until the result is returned and a server-generated ID is returned for the published message.
+	id, err := result.Get(ctx)
+	if err != nil {
+		log.Fatalf("Failed to publish message: %v", err)
+	} else {
+		log.Infof("Published a message with a message ID: %s\n", id)
+	}
 }
