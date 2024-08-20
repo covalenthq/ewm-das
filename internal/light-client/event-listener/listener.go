@@ -84,16 +84,20 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 // ProcessLogs processes the logs emitted by the contract
 func (el *EventListener) ProcessLogs() {
 	for vLog := range el.Logs {
-		log.Debugf("Log: %v\n", vLog)
+		log.Debugf("Log: %v", vLog)
 
 		event, err := el.ContractInstance.ParseBlockResultProductionProofSubmitted(vLog)
 		if err != nil {
-			log.Warnf("Failed to parse log: %v", err)
-			continue
+			if err.Error() == "event signature mismatch" {
+				log.Warnf("Failed to parse log: %v", err)
+				continue
+			}
+
+			log.Fatalf("Failed to parse log: %v", err)
 		}
 
-		log.Debugf("Event ChainID: %v\n", event.ChainId)
-		log.Debugf("Event StorageURL: %v\n", event.StorageURL)
+		log.Debugf("Event ChainID: %v", event.ChainId)
+		log.Debugf("Event StorageURL: %v", event.StorageURL)
 
 		// el.Sampler.ProcessEvent(event.StorageURL)
 		el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi")
