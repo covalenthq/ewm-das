@@ -1,8 +1,6 @@
 package eventlistener
 
 import (
-	"time"
-	"sync"
 	"context"
 
 	logging "github.com/ipfs/go-log/v2"
@@ -26,13 +24,10 @@ type EventListener struct {
 	Logs             chan types.Log
 	Subscription     ethereum.Subscription
 	Sampler          *sampler.Sampler
-	RecentURLs       map[string]time.Time
-	mu               sync.Mutex
-	TimeWindow       time.Duration
 }
 
 // NewEventListener creates a new EventListener instance
-func NewEventListener(clientURL, contractAddressHex string, sampler *sampler.Sampler, timeWindow time.Duration) *EventListener {
+func NewEventListener(clientURL, contractAddressHex string, sampler *sampler.Sampler) *EventListener {
 	client := connectToEthereumClient(clientURL)
 	contractAddress := common.HexToAddress(contractAddressHex)
 	contractInstance := loadContract(client, contractAddress)
@@ -43,8 +38,6 @@ func NewEventListener(clientURL, contractAddressHex string, sampler *sampler.Sam
 		ContractInstance: contractInstance,
 		Logs:             make(chan types.Log),
 		Sampler:          sampler,
-		RecentURLs:       make(map[string]time.Time),
-		TimeWindow:       timeWindow,
 	}
 }
 
@@ -89,7 +82,7 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 }
 
 // ProcessLogs processes the logs emitted by the contract
-func (el *EventListener) ProcessLogs(projectId string, topicId string) {
+func (el *EventListener) ProcessLogs(projectId string, topicId string, gcpcreds string) {
 	for vLog := range el.Logs {
 		log.Debugf("Log: %v\n", vLog)
 
@@ -102,37 +95,8 @@ func (el *EventListener) ProcessLogs(projectId string, topicId string) {
 		log.Debugf("Event ChainID: %v\n", event.ChainId)
 		log.Debugf("Event StorageURL: %v\n", event.StorageURL)
 
-		url := event.StorageURL
-		el.mu.Lock()
-		isUnique := el.isUniqueURL(url)
-		el.mu.Unlock()
-
-		if isUnique {
-			el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi", projectId, topicId)
-		} else {
-			log.Debugf("Skipping duplicate URL: %v\n", url)
-		}
-	}
-	
-
 		// el.Sampler.ProcessEvent(event.StorageURL)
-		// el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi")
-	}
+		el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi", projectId, topicId, gcpcreds)
 
-	// Check if URL is unique within the time window
-func (el *EventListener) isUniqueURL(url string) bool {
-	now := time.Now()
-	// Remove expired URLs
-	for u, t := range el.RecentURLs {
-		if now.Sub(t) > el.TimeWindow {
-			delete(el.RecentURLs, u)
-		}
 	}
-	// Check if the URL is in the map
-	if _, exists := el.RecentURLs[url]; exists {
-		return false
-	}
-	// Add the new URL with the current timestamp
-	el.RecentURLs[url] = now
-	return true
 }

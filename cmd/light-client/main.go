@@ -3,9 +3,6 @@ package main
 import (
 	"context"
 	"fmt"
-	"time"
-
-
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
@@ -22,7 +19,8 @@ var (
 	serviceURL string
 	projectId  string
 	topicId    string
-	timeBuffer int
+	gcpCreds   string
+
 )
 
 var log = logging.Logger("light-client")
@@ -65,13 +63,16 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&serviceURL, "service-url", "", "URL of the service to send data to")
 	rootCmd.PersistentFlags().StringVar(&projectId, "project-id", "", "Gcp project name")
 	rootCmd.PersistentFlags().StringVar(&topicId, "topic-id", "", "Topic name of Pub Sub")
-	rootCmd.PersistentFlags().IntVar(&timeBuffer, "time-buffer", 5, "Cache Time for a url")
+	rootCmd.PersistentFlags().StringVar(&gcpCreds, "gcp-creds", "", "Path of Gcp creds json")
+
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
 	rootCmd.MarkPersistentFlagRequired("service-url")
 	rootCmd.MarkPersistentFlagRequired("project-id")
 	rootCmd.MarkPersistentFlagRequired("topic-id")
+	rootCmd.MarkPersistentFlagRequired("gcp-creds")
+
 }
 
 func initConfig() {
@@ -85,11 +86,7 @@ func startClient() {
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
-
-	// Can be added in Flags after review
-	timeWindow := time.Duration(timeBuffer) * time.Minute
-
-	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler, timeWindow)
+	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler)
 	eventlistener.SubscribeToLogs(context.Background())
-	eventlistener.ProcessLogs(projectId, topicId)
+	eventlistener.ProcessLogs(projectId, topicId, gcpCreds)
 }

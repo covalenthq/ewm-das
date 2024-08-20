@@ -63,9 +63,9 @@
         "--project-id",
         "covalent-network-team-sandbox",
         "--topic-id",
-        "das-lc-demo",
-        "time-buffer",
-        "5"
+        "DAS-TO-BQ",
+        "--gcp-creds",
+        "/Users/karthik/Downloads/covalent-network-team-sandbox-78c57ca75a6e.json"
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data"
