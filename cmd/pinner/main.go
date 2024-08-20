@@ -63,7 +63,6 @@ var rootCmd = &cobra.Command{
 func main() {
 	fmt.Print(greeting)
 	fmt.Printf("Version: %s, commit: %s\n", common.Version, common.GitCommit)
-	fmt.Print("Initializing root command...\n", os.Args)
 
 	if err := rootCmd.Execute(); err != nil {
 		log.Fatalf("Error executing command: %v", err)
