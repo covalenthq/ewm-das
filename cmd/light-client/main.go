@@ -18,6 +18,9 @@ var (
 	contract   string
 	ipfsAddr   string
 	serviceURL string
+	projectId  string
+	topicId    string
+	gcpCreds   string
 )
 
 var greeting = `
@@ -70,10 +73,17 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
 	rootCmd.PersistentFlags().StringVar(&serviceURL, "service-url", "", "URL of the service to send data to")
+	rootCmd.PersistentFlags().StringVar(&projectId, "project-id", "", "Gcp project name")
+	rootCmd.PersistentFlags().StringVar(&topicId, "topic-id", "", "Topic name of Pub Sub")
+	rootCmd.PersistentFlags().StringVar(&gcpCreds, "gcp-creds", "", "Path of Gcp creds json")
+
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
 	rootCmd.MarkPersistentFlagRequired("service-url")
+	rootCmd.MarkPersistentFlagRequired("project-id")
+	rootCmd.MarkPersistentFlagRequired("topic-id")
+	rootCmd.MarkPersistentFlagRequired("gcp-creds")
 }
 
 func initConfig() {
@@ -92,5 +102,5 @@ func startClient() {
 
 	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler)
 	eventlistener.SubscribeToLogs(context.Background())
-	eventlistener.ProcessLogs()
+	eventlistener.ProcessLogs(projectId, topicId, gcpCreds)
 }

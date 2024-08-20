@@ -82,7 +82,7 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 }
 
 // ProcessLogs processes the logs emitted by the contract
-func (el *EventListener) ProcessLogs() {
+func (el *EventListener) ProcessLogs(projectId string, topicId string, gcpcreds string) {
 	for vLog := range el.Logs {
 		log.Debugf("Log: %v", vLog)
 
@@ -100,6 +100,6 @@ func (el *EventListener) ProcessLogs() {
 		log.Debugf("Event StorageURL: %v", event.StorageURL)
 
 		// el.Sampler.ProcessEvent(event.StorageURL)
-		el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi")
+		el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi", projectId, topicId, gcpcreds)
 	}
 }

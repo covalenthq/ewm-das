@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -99,7 +100,7 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string) {
+func (s *Sampler) ProcessEvent(cidStr string, projectId string, topicId string, gcpcreds string) {
 	go func(cidStr string) {
 		_, err := cid.Decode(cidStr)
 		if err != nil {
@@ -137,6 +138,10 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
+
+		//publish message here
+		publisher.Publishtocs(projectId, topicId, gcpcreds, cidStr, rowindex, colindex, res)
+
 	}(cidStr)
 }
 
