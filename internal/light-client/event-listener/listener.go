@@ -89,7 +89,7 @@ func (el *EventListener) ProcessLogs() {
 		event, err := el.ContractInstance.ParseBlockResultProductionProofSubmitted(vLog)
 		if err != nil {
 			if err.Error() == "event signature mismatch" {
-				log.Warnf("Failed to parse log: %v", err)
+				log.Debug("Event signature mismatch")
 				continue
 			}
 

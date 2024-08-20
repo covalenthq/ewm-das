@@ -136,11 +136,16 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 			return
 		}
 
-		log.Infof("Verification result: %v", res)
+		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
 	}(cidStr)
 }
 
-func (s *Sampler) GetData(cid string, data interface{}) error {
+func (s *Sampler) GetData(cidStr string, data interface{}) error {
+	cid, err := cid.Decode(cidStr)
+	if err != nil {
+		return err
+	}
+
 	resultChan := make(chan interface{})
 	errorChan := make(chan error)
 
@@ -150,7 +155,7 @@ func (s *Sampler) GetData(cid string, data interface{}) error {
 
 	// Start a goroutine to get data from the IPFS node
 	go func() {
-		if err := s.IPFSShell.DagGet(cid, &data); err != nil {
+		if err := s.IPFSShell.DagGet(cid.String(), &data); err != nil {
 			errorChan <- err
 			return
 		}
@@ -163,7 +168,7 @@ func (s *Sampler) GetData(cid string, data interface{}) error {
 	// Start goroutines to get data from each public gateway
 	for _, gateway := range s.Gateways {
 		go func(gateway string) {
-			gatewayData, err := s.getDataFromGateway(gateway, cid)
+			gatewayData, err := s.getDataFromGateway(gateway, cid.String())
 			if err != nil {
 				errorChan <- err
 				return
@@ -178,6 +183,16 @@ func (s *Sampler) GetData(cid string, data interface{}) error {
 			select {
 			case resultChan <- data:
 			case <-ctx.Done():
+			}
+
+			// populate ipfs node with data
+			storedCid, err := s.IPFSShell.DagPut(data, "dag-cbor", "dag-cbor")
+			if err != nil {
+				errorChan <- err
+			}
+
+			if storedCid != cid.String() {
+				errorChan <- fmt.Errorf("IPFS node returned different CID: %s", storedCid)
 			}
 		}(gateway)
 	}
