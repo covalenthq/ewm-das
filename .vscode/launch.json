@@ -58,8 +58,6 @@
         "wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e",
         "--contract",
         "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
-        "--service-url",
-        "TODO",
         "--project-id",
         "covalent-network-team-sandbox",
         "--topic-id",

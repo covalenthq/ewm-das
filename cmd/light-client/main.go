@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	logging "github.com/ipfs/go-log/v2"
@@ -14,15 +14,14 @@ import (
 )
 
 var (
-	loglevel   string
-	rpcURL     string
-	contract   string
-	ipfsAddr   string
-	serviceURL string
-	projectId  string
-	topicId    string
-	gcpCreds   string
-	email      string
+	loglevel  string
+	rpcURL    string
+	contract  string
+	ipfsAddr  string
+	projectId string
+	topicId   string
+	gcpCreds  string
+	email     string
 )
 
 var greeting = `
@@ -74,7 +73,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
-	rootCmd.PersistentFlags().StringVar(&serviceURL, "service-url", "", "URL of the service to send data to")
 	rootCmd.PersistentFlags().StringVar(&projectId, "project-id", "", "Gcp project name")
 	rootCmd.PersistentFlags().StringVar(&topicId, "topic-id", "", "Topic name of Pub Sub")
 	rootCmd.PersistentFlags().StringVar(&gcpCreds, "gcp-creds", "", "Path of Gcp creds json")
@@ -82,7 +80,6 @@ func init() {
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
-	rootCmd.MarkPersistentFlagRequired("service-url")
 	rootCmd.MarkPersistentFlagRequired("project-id")
 	rootCmd.MarkPersistentFlagRequired("topic-id")
 	rootCmd.MarkPersistentFlagRequired("gcp-creds")

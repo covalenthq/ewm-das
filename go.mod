@@ -3,6 +3,7 @@ module github.com/covalenthq/das-ipfs-pinner
 go 1.22.3
 
 require (
+	cloud.google.com/go/pubsub v1.42.0
 	github.com/ethereum/c-kzg-4844 v1.0.3
 	github.com/ethereum/go-ethereum v1.14.8
 	github.com/ipfs/boxo v0.20.0
@@ -19,6 +20,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/web3-storage/go-ucanto v0.1.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+	google.golang.org/api v0.193.0
 )
 
 require (
@@ -28,7 +30,6 @@ require (
 	cloud.google.com/go/auth/oauth2adapt v0.2.4 // indirect
 	cloud.google.com/go/compute/metadata v0.5.0 // indirect
 	cloud.google.com/go/iam v1.1.12 // indirect
-	cloud.google.com/go/pubsub v1.42.0 // indirect
 	github.com/AndreasBriese/bbloom v0.0.0-20190825152654-46b345b51c96 // indirect
 	github.com/Jorropo/jsync v1.0.1 // indirect
 	github.com/Microsoft/go-winio v0.6.2 // indirect
@@ -246,7 +247,6 @@ require (
 	golang.org/x/tools v0.23.0 // indirect
 	golang.org/x/xerrors v0.0.0-20231012003039-104605ab7028 // indirect
 	gonum.org/v1/gonum v0.15.0 // indirect
-	google.golang.org/api v0.193.0 // indirect
 	google.golang.org/genproto v0.0.0-20240814211410-ddb44dafa142 // indirect
 	google.golang.org/genproto/googleapis/api v0.0.0-20240730163845-b1a4ccb954bf // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240814211410-ddb44dafa142 // indirect

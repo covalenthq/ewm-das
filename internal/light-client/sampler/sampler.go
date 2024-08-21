@@ -13,8 +13,8 @@ import (
 	"strings"
 	"time"
 
-	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
@@ -32,8 +32,7 @@ var DefaultGateways = []string{
 type Sampler struct {
 	IPFSShell *ipfs.Shell
 	Gateways  []string
-	pub *publisher.Publisher
-
+	pub       *publisher.Publisher
 }
 
 // Link represents a link to another CID in IPFS.
@@ -140,7 +139,7 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
-		s.pub.Publishtocs(cidStr, rowindex, colindex, res, commitment, proof, cell)
+		s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell)
 
 	}(cidStr)
 }
