@@ -107,7 +107,7 @@ To interact with the pinner service, use the CLI tool:
 
 ### DAS Light-Client
 
-#### Prerequisites
+#### LC: Prerequisites
 
 Before running the light-client, you need to install the following dependencies:
 
@@ -118,13 +118,17 @@ Before running the light-client, you need to install the following dependencies:
 To run the light-client, use the following command:
 
 ```sh
-./bin/light-client --rpc-url <rpc-url> --contract <contract-address> --service-url TODO
+./bin/light-client --rpc-url <rpc-url> \
+    --contract <contract-address> \
+    --topic-id <topic-id> \
+    --gcp-creds-file <gcp-creds-file> \
+    --client-id <client-id> 
 ```
 
-**Note:** Light client is under active development and the service URL is not yet available. But you can run the light-client with the above command or even use next command to run the light-client with the default values.
+Note: Client ID is the unique identifier for the client. It can be any string, just make sure it is unique.
 
 ```sh
-./bin/light-client --rpc-url wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e --contract 0x4932bDc983e5146224b9C2e68cfFBFEb004A2824 --service-url TODO
+./bin/light-client --rpc-url wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e --contract 0x4932bDc983e5146224b9C2e68cfFBFEb004A2824 --topic-id DAS-TO-BQ --gcp-creds-file gcp-creds.json --client-id ${CLIENT_ID}
 ```
 
 ## Building from Source
