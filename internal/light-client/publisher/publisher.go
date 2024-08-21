@@ -42,13 +42,13 @@ func NewPublisher(projectID, topicID, creds, email string) (*Publisher, error) {
 }
 
 // Publish to Pubsub
-func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec bool, commitment []byte, proof []byte, cell []byte) {
+func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec bool, commitment []byte, proof []byte, cell []byte) error {
 	ctx := context.Background()
 
 	// Create a Pub/Sub client using the credentials
 	client, err := pubsub.NewClient(ctx, p.ProjectID, option.WithCredentialsFile(p.Credentials))
 	if err != nil {
-		log.Errorf("Failed to create Pub/Sub client: %v", err)
+		return err
 	}
 	defer client.Close()
 
@@ -70,7 +70,7 @@ func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec 
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
 	if err != nil {
-		log.Errorf("Failed to marshal message: %v", err)
+		return err
 	}
 
 	// Publish a message.
@@ -81,9 +81,10 @@ func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec 
 	// Block until the result is returned and a server-generated ID is returned for the published message.
 	id, err := result.Get(ctx)
 	if err != nil {
-		log.Errorf("Failed to publish message: %v", err)
+		return err
 	} else {
 		log.Infof("Published a message with a message ID: %s\n", id)
+		return nil
 	}
 
 }

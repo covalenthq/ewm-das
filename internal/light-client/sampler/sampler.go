@@ -139,7 +139,11 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
-		s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell)
+		err = s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell)
+		if err != nil {
+			log.Errorf("Publisher module error: %v", err)
+			return
+		}
 
 	}(cidStr)
 }
