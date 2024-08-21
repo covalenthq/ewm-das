@@ -2,7 +2,7 @@ package publisher
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"encoding/base64"
 	"context"
 	"time"
 	logging "github.com/ipfs/go-log/v2"
@@ -13,54 +13,60 @@ import (
 
 var log = logging.Logger("light-client")
 
-type Credentials struct {
-    ClientEmail string `json:"client_email"`
+
+type Publisher struct {
+	ProjectID   string
+	TopicID     string
+	Credentials string
+	Email 		string
+}
+
+// NewPublisher creates a new Publisher instance
+func NewPublisher(projectID, topicID, creds, email string) (*Publisher, error) {
+	return &Publisher{
+		ProjectID:   projectID,
+		TopicID:     topicID,
+		Credentials: creds,
+		Email:       email,
+	}, nil
 }
 
 
 // Publish to Pubsub
-func Publishtocs(projectId string, topicId string, gcpcreds string, cid string, rowindex int, colindex int, booldec bool) {
+func (p *Publisher) Publishtocs(cid string, rowindex int, colindex int, booldec bool, commitment []byte, proof []byte, cell []byte) {
 	ctx := context.Background()
 
-	// Read and parse the JSON file to get client_email
-	data, err := ioutil.ReadFile(gcpcreds)
-	if err != nil {
-		log.Fatalf("Failed to read the credentials file: %v", err)
-	}
-
-	var creds Credentials
-	if err := json.Unmarshal(data, &creds); err != nil {
-		log.Fatalf("Failed to unmarshal the credentials JSON: %v", err)
-	}
-
-	// Print the client email
-	log.Infof("Client Email: %s\n", creds.ClientEmail)
-
-	// Create a Pub/Sub client.
-	client, err := pubsub.NewClient(ctx, projectId, option.WithCredentialsFile(gcpcreds))
+	// Create a Pub/Sub client using the credentials
+	client, err := pubsub.NewClient(ctx, p.ProjectID, option.WithCredentialsFile(p.Credentials))
 	if err != nil {
 		log.Fatalf("Failed to create Pub/Sub client: %v", err)
 	}
 	defer client.Close()
 
 	// Get a reference to the topic.
-	topic := client.Topic(topicId)
+	topic := client.Topic(p.TopicID)
 
 	// Define the message payload with exported field names.
 	message := struct {
-		Email     string    `json:"email"`
-		SignedAt  time.Time `json:"signed_at"`
-		CID       string    `json:"cid"`
-		RowIndex  int       `json:"rowindex"`
-		ColumnIndex int     `json:"columnindex"`
-		Status    bool      `json:"status"`
+		Email     	string    `json:"email"`
+		SignedAt  	time.Time `json:"signed_at"`
+		CID       	string    `json:"cid"`
+		RowIndex  	int       `json:"rowindex"`
+		ColumnIndex int       `json:"columnindex"`
+		Status    	bool      `json:"status"`
+		Commitment 	string    `json:"commitment"`
+		Proof 		string    `json:"proof"`
+		Cell 		string    `json:"cell"`
 	}{
-		Email:     creds.ClientEmail,
-		SignedAt:  time.Now(), // Current timestamp
-		CID:       cid,
-		RowIndex:  rowindex,
+		Email:       p.Email,
+		SignedAt:    time.Now(),
+		CID:         cid,
+		RowIndex:  	 rowindex,
 		ColumnIndex: colindex,
-		Status:    booldec,
+		Status:      booldec,
+		Commitment:  base64.StdEncoding.EncodeToString(commitment),
+		Proof:       base64.StdEncoding.EncodeToString(proof),
+		Cell:        base64.StdEncoding.EncodeToString(cell),
 	}
 
 	// Marshal the message into JSON.
@@ -81,4 +87,5 @@ func Publishtocs(projectId string, topicId string, gcpcreds string, cid string, 
 	} else {
 		log.Infof("Published a message with a message ID: %s\n", id)
 	}
+
 }

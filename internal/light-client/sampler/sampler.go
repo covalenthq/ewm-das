@@ -32,6 +32,7 @@ var DefaultGateways = []string{
 type Sampler struct {
 	IPFSShell *ipfs.Shell
 	Gateways  []string
+	pub *publisher.Publisher
 }
 
 // Link represents a link to another CID in IPFS.
@@ -86,7 +87,7 @@ func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
-func NewSampler(ipfsAddr string) (*Sampler, error) {
+func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
 
 	if _, _, err := shell.Version(); err != nil {
@@ -96,11 +97,12 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 	return &Sampler{
 		IPFSShell: shell,
 		Gateways:  DefaultGateways,
+		pub: pub,
 	}, nil
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string, projectId string, topicId string, gcpcreds string) {
+func (s *Sampler) ProcessEvent(cidStr string) {
 	go func(cidStr string) {
 		_, err := cid.Decode(cidStr)
 		if err != nil {
@@ -140,7 +142,13 @@ func (s *Sampler) ProcessEvent(cidStr string, projectId string, topicId string, 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
 
 		//publish message here
-		publisher.Publishtocs(projectId, topicId, gcpcreds, cidStr, rowindex, colindex, res)
+
+		log.Infof("string(commitment[0]): %v", commitment)
+		log.Infof("string(proof[0]): %v", proof)
+		log.Infof("string(cell[0]): %v", cell)
+
+
+		s.pub.Publishtocs(cidStr, rowindex, colindex, res, commitment, proof, cell)
 
 	}(cidStr)
 }
