@@ -6,6 +6,7 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	logging "github.com/ipfs/go-log/v2"
@@ -13,11 +14,13 @@ import (
 )
 
 var (
-	loglevel   string
-	rpcURL     string
-	contract   string
-	ipfsAddr   string
-	serviceURL string
+	loglevel     string
+	rpcURL       string
+	contract     string
+	ipfsAddr     string
+	gcpTopicId   string
+	gcpCredsFile string
+	clientId     string
 )
 
 var greeting = `
@@ -69,11 +72,16 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
-	rootCmd.PersistentFlags().StringVar(&serviceURL, "service-url", "", "URL of the service to send data to")
+	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
+	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
+	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
-	rootCmd.MarkPersistentFlagRequired("service-url")
+	rootCmd.MarkPersistentFlagRequired("project-id")
+	rootCmd.MarkPersistentFlagRequired("topic-id")
+	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
+	rootCmd.MarkPersistentFlagRequired("client-id")
 }
 
 func initConfig() {
@@ -85,7 +93,12 @@ func startClient() {
 	fmt.Printf("Version: %s, commit: %s\n", common.Version, common.GitCommit)
 	log.Info("Starting client...")
 
-	sampler, err := sampler.NewSampler(ipfsAddr)
+	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, clientId)
+	if err != nil {
+		log.Fatalf("Failed to create publisher: %v", err)
+	}
+
+	sampler, err := sampler.NewSampler(ipfsAddr, pub)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}

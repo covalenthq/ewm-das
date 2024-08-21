@@ -14,6 +14,7 @@ import (
 	"time"
 
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
@@ -31,6 +32,7 @@ var DefaultGateways = []string{
 type Sampler struct {
 	IPFSShell *ipfs.Shell
 	Gateways  []string
+	pub       *publisher.Publisher
 }
 
 // Link represents a link to another CID in IPFS.
@@ -85,7 +87,7 @@ func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
-func NewSampler(ipfsAddr string) (*Sampler, error) {
+func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
 
 	if _, _, err := shell.Version(); err != nil {
@@ -95,6 +97,7 @@ func NewSampler(ipfsAddr string) (*Sampler, error) {
 	return &Sampler{
 		IPFSShell: shell,
 		Gateways:  DefaultGateways,
+		pub:       pub,
 	}, nil
 }
 
@@ -137,6 +140,11 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
+
+		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell); err != nil {
+			log.Errorf("Failed to publish to Cloud Storage: %v", err)
+			return
+		}
 	}(cidStr)
 }
 
@@ -186,6 +194,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 			}
 
 			// populate ipfs node with data
+			// TODO: deduce the correct format from the CID
 			storedCid, err := s.IPFSShell.DagPut(data, "dag-cbor", "dag-cbor")
 			if err != nil {
 				errorChan <- err

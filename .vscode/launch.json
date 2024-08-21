@@ -58,8 +58,12 @@
         "wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e",
         "--contract",
         "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
-        "--service-url",
-        "TODO"
+        "--topic-id",
+        "DAS-TO-BQ",
+        "--gcp-creds-file",
+        "${workspaceFolder}/gcp-credentials.json",
+        "--client-id",
+        "4e440d76-4a26-4117-b317-b5b407b0cd54"
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data"
