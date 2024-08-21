@@ -1,26 +1,26 @@
 package publisher
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/base64"
 	"encoding/json"
-	logging "github.com/ipfs/go-log/v2"
-	"google.golang.org/api/option"
+	"io"
+	"os"
 	"time"
+
+	"cloud.google.com/go/pubsub"
+	"google.golang.org/api/option"
 )
 
-var log = logging.Logger("light-client")
-
 type Publisher struct {
-	ProjectID   string
-	TopicID     string
-	Credentials string
-	Email       string
+	projectID       string
+	topicID         string
+	credentialsFile string
+	clientId        string
 }
 
-type Message struct {
-	Email       string    `json:"email"`
+type message struct {
+	ClientId    string    `json:"client_id"`
 	SignedAt    time.Time `json:"signed_at"`
 	CID         string    `json:"cid"`
 	RowIndex    int       `json:"rowindex"`
@@ -31,37 +31,61 @@ type Message struct {
 	Cell        string    `json:"cell"`
 }
 
+// Define a struct with only the `project_id` field
+type serviceAccount struct {
+	ProjectID string `json:"project_id"`
+}
+
 // NewPublisher creates a new Publisher instance
-func NewPublisher(projectID, topicID, creds, email string) (*Publisher, error) {
+func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
+	file, err := os.Open(credsFile)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	// Read the file contents into a byte slice
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return nil, err
+	}
+
+	// Unmarshal only the project_id field
+	var account serviceAccount
+	err = json.Unmarshal(data, &account)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Publisher{
-		ProjectID:   projectID,
-		TopicID:     topicID,
-		Credentials: creds,
-		Email:       email,
+		projectID:       account.ProjectID,
+		topicID:         topicID,
+		credentialsFile: credsFile,
+		clientId:        clientId,
 	}, nil
 }
 
 // Publish to Pubsub
-func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec bool, commitment []byte, proof []byte, cell []byte) error {
+func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte) error {
 	ctx := context.Background()
 
 	// Create a Pub/Sub client using the credentials
-	client, err := pubsub.NewClient(ctx, p.ProjectID, option.WithCredentialsFile(p.Credentials))
+	client, err := pubsub.NewClient(ctx, p.projectID, option.WithCredentialsFile(p.credentialsFile))
 	if err != nil {
 		return err
 	}
 	defer client.Close()
 
 	// Get a reference to the topic.
-	topic := client.Topic(p.TopicID)
+	topic := client.Topic(p.topicID)
 
-	message := Message{
-		Email:       p.Email,
+	message := message{
+		ClientId:    p.clientId,
 		SignedAt:    time.Now(),
 		CID:         cid,
-		RowIndex:    rowindex,
-		ColumnIndex: colindex,
-		Status:      booldec,
+		RowIndex:    rowIndex,
+		ColumnIndex: colIndex,
+		Status:      status,
 		Commitment:  base64.StdEncoding.EncodeToString(commitment),
 		Proof:       base64.StdEncoding.EncodeToString(proof),
 		Cell:        base64.StdEncoding.EncodeToString(cell),
@@ -79,12 +103,9 @@ func (p *Publisher) PublishToCS(cid string, rowindex int, colindex int, booldec 
 	})
 
 	// Block until the result is returned and a server-generated ID is returned for the published message.
-	id, err := result.Get(ctx)
-	if err != nil {
+	if _, err = result.Get(ctx); err != nil {
 		return err
-	} else {
-		log.Infof("Published a message with a message ID: %s\n", id)
-		return nil
 	}
 
+	return nil
 }

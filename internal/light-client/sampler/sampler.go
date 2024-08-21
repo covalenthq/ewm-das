@@ -97,6 +97,7 @@ func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 	return &Sampler{
 		IPFSShell: shell,
 		Gateways:  DefaultGateways,
+		pub:       pub,
 	}, nil
 }
 
@@ -139,12 +140,11 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
-		err = s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell)
-		if err != nil {
-			log.Errorf("Publisher module error: %v", err)
+
+		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell); err != nil {
+			log.Errorf("Failed to publish to Cloud Storage: %v", err)
 			return
 		}
-
 	}(cidStr)
 }
 
@@ -194,6 +194,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 			}
 
 			// populate ipfs node with data
+			// TODO: deduce the correct format from the CID
 			storedCid, err := s.IPFSShell.DagPut(data, "dag-cbor", "dag-cbor")
 			if err != nil {
 				errorChan <- err

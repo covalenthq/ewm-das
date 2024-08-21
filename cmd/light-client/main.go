@@ -14,14 +14,13 @@ import (
 )
 
 var (
-	loglevel  string
-	rpcURL    string
-	contract  string
-	ipfsAddr  string
-	projectId string
-	topicId   string
-	gcpCreds  string
-	email     string
+	loglevel     string
+	rpcURL       string
+	contract     string
+	ipfsAddr     string
+	gcpTopicId   string
+	gcpCredsFile string
+	clientId     string
 )
 
 var greeting = `
@@ -73,17 +72,16 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
-	rootCmd.PersistentFlags().StringVar(&projectId, "project-id", "", "Gcp project name")
-	rootCmd.PersistentFlags().StringVar(&topicId, "topic-id", "", "Topic name of Pub Sub")
-	rootCmd.PersistentFlags().StringVar(&gcpCreds, "gcp-creds", "", "Path of Gcp creds json")
-	rootCmd.PersistentFlags().StringVar(&email, "email", "", "Your email address")
+	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
+	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
+	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
 	rootCmd.MarkPersistentFlagRequired("project-id")
 	rootCmd.MarkPersistentFlagRequired("topic-id")
-	rootCmd.MarkPersistentFlagRequired("gcp-creds")
-	rootCmd.MarkPersistentFlagRequired("email")
+	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
+	rootCmd.MarkPersistentFlagRequired("client-id")
 }
 
 func initConfig() {
@@ -95,7 +93,7 @@ func startClient() {
 	fmt.Printf("Version: %s, commit: %s\n", common.Version, common.GitCommit)
 	log.Info("Starting client...")
 
-	pub, err := publisher.NewPublisher(projectId, topicId, gcpCreds, email)
+	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, clientId)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}
