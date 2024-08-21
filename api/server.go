@@ -32,8 +32,12 @@ func StartServer(config ServerConfig) {
 	}
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/upload", createUploadHandler(ipfsNode))
-	mux.HandleFunc("/get", createDownloadHandler(ipfsNode))
+	mux.HandleFunc("/api/v1/upload", createUploadHandler(ipfsNode))
+	mux.HandleFunc("/api/v1/download", createDownloadHandler(ipfsNode))
+
+	// Deprecated endpoints - same behavior, with deprecation notice in headers
+	mux.HandleFunc("/upload", deprecatedHandler(createUploadHandler(ipfsNode), "/api/v1/upload"))
+	mux.HandleFunc("/get", deprecatedHandler(createDownloadHandler(ipfsNode), "/api/v1/download"))
 
 	server := &http.Server{
 		Addr:    config.Addr,

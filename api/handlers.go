@@ -123,3 +123,16 @@ func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 	}
 }
+
+func deprecatedHandler(originalHandler http.HandlerFunc, newEndpoint string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Log the use of a deprecated endpoint
+		log.Warnf("Deprecated endpoint accessed: %s", r.URL.Path)
+
+		// Add a deprecation notice to the headers
+		w.Header().Set("Warning", `199 - "Deprecated API: Please use `+newEndpoint+` instead"`)
+
+		// Call the original handler to preserve the original response body
+		originalHandler(w, r)
+	}
+}
