@@ -59,7 +59,15 @@
         "--contract",
         "0x4932bDc983e5146224b9C2e68cfFBFEb004A2824",
         "--service-url",
-        "TODO"
+        "TODO",
+        "--project-id",
+        "covalent-network-team-sandbox",
+        "--topic-id",
+        "DAS-TO-BQ",
+        "--gcp-creds",
+        "$var",
+        "--email",
+        "network-team@covalenthq.com"
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data"

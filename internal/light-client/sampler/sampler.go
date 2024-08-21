@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -31,6 +32,8 @@ var DefaultGateways = []string{
 type Sampler struct {
 	IPFSShell *ipfs.Shell
 	Gateways  []string
+	pub *publisher.Publisher
+
 }
 
 // Link represents a link to another CID in IPFS.
@@ -85,7 +88,7 @@ func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
-func NewSampler(ipfsAddr string) (*Sampler, error) {
+func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
 
 	if _, _, err := shell.Version(); err != nil {
@@ -137,6 +140,8 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 		}
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
+		s.pub.Publishtocs(cidStr, rowindex, colindex, res, commitment, proof, cell)
+
 	}(cidStr)
 }
 
