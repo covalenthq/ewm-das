@@ -59,11 +59,34 @@ jobs:
         name: das-${{ matrix.os }}
         path: das-${{ matrix.os }}.tar.gz
 
+  release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    needs: build
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Download binaries
+      uses: actions/download-artifact@v3
+      with:
+        name: das-ubuntu-latest
+        path: .
+    - name: Download binaries
+      uses: actions/download-artifact@v3
+      with:
+        name: das-macos-latest
+        path: .
+
     - name: Upload release asset
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
       uses: marvinpinto/action-automatic-releases@latest
       with:
         repo_token: "${{ secrets.GITHUB_TOKEN }}"
         draft: false
         prerelease: false
-        files: das-${{ matrix.os }}.tar.gz
+        files: |
+          das-ubuntu-latest.tar.gz
+          das-macos-latest.tar.gz
