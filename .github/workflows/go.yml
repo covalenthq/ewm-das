@@ -1,4 +1,4 @@
-name: Go CI on Ubuntu
+name: Go CI
 
 on:
   push:
