@@ -51,13 +51,13 @@ jobs:
       run: make build
 
     - name: Create tarball
-      run: tar -czvf das-${{ matrix.os }}.tar.gz bin
+      run: tar -czvf das-${{ matrix.os }}-${{ github.ref_name }}.tar.gz bin
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
       with:
-        name: das-${{ matrix.os }}
-        path: das-${{ matrix.os }}.tar.gz
+        name: das-${{ matrix.os }}-${{ github.ref_name }}
+        path: das-${{ matrix.os }}-${{ github.ref_name }}.tar.gz
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
@@ -70,15 +70,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Download binaries
+    - name: Download binaries for Ubuntu
       uses: actions/download-artifact@v3
       with:
-        name: das-ubuntu-latest
+        name: das-ubuntu-${{ github.ref_name }}
         path: .
-    - name: Download binaries
+
+    - name: Download binaries for macOS
       uses: actions/download-artifact@v3
       with:
-        name: das-macos-latest
+        name: das-macos-${{ github.ref_name }}
         path: .
 
     - name: Upload release asset
@@ -88,5 +89,5 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          das-ubuntu-latest.tar.gz
-          das-macos-latest.tar.gz
+          das-ubuntu-${{ github.ref_name }}.tar.gz
+          das-macos-${{ github.ref_name }}.tar.gz
