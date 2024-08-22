@@ -51,7 +51,7 @@ jobs:
       run: make build
 
     - name: Create tarball
-      run: tar -czvf das-${{ matrix.os }}-${{ github.ref_name }}.tar.gz bin
+      run: tar -czvf das-${{ matrix.os }}.tar.gz bin
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
@@ -70,16 +70,15 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Download binaries for Ubuntu
+    - name: Download binaries
       uses: actions/download-artifact@v3
       with:
-        name: das-ubuntu-${{ github.ref_name }}
+        name: das-ubuntu-latest
         path: .
-
-    - name: Download binaries for macOS
+    - name: Download binaries
       uses: actions/download-artifact@v3
       with:
-        name: das-macos-${{ github.ref_name }}
+        name: das-macos-latest
         path: .
 
     - name: Upload release asset
