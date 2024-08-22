@@ -16,7 +16,7 @@ import (
 var log = logging.Logger("das-pinner") // Initialize the logger
 
 // MaxMultipartMemory is the maximum memory that the server will use to parse multipart form data.
-const MaxMultipartMemory = 10 << 20 // 10 MB
+const MaxMultipartMemory = 100 << 20 // 100 MB
 
 // ServerConfig contains the configuration for the HTTP server.
 type ServerConfig struct {
