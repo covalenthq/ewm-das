@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
@@ -15,7 +16,7 @@ import (
 var log = logging.Logger("das-pinner") // Initialize the logger
 
 // MaxMultipartMemory is the maximum memory that the server will use to parse multipart form data.
-const MaxMultipartMemory = 10 << 20 // 10 MB
+const MaxMultipartMemory = 100 << 20 // 100 MB
 
 // ServerConfig contains the configuration for the HTTP server.
 type ServerConfig struct {
@@ -34,10 +35,12 @@ func StartServer(config ServerConfig) {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/upload", createUploadHandler(ipfsNode))
 	mux.HandleFunc("/api/v1/download", createDownloadHandler(ipfsNode))
+	mux.HandleFunc("/api/v1/cid", createCalculateCIDHandler(ipfsNode))
 
 	// Deprecated endpoints - same behavior, with deprecation notice in headers
 	mux.HandleFunc("/upload", deprecatedHandler(createUploadHandler(ipfsNode), "/api/v1/upload"))
 	mux.HandleFunc("/get", deprecatedHandler(createDownloadHandler(ipfsNode), "/api/v1/download"))
+	mux.HandleFunc("/cid", deprecatedHandler(createCalculateCIDHandler(ipfsNode), "/api/v1/cid"))
 
 	server := &http.Server{
 		Addr:    config.Addr,
@@ -69,5 +72,6 @@ func StartServer(config ServerConfig) {
 
 func handleError(w http.ResponseWriter, errMsg string, statusCode int) {
 	log.Infof("%s: %v", errMsg, statusCode)
-	http.Error(w, errMsg, statusCode)
+	errStr := fmt.Sprintf("{\"error\": \"%s\"}", errMsg)
+	http.Error(w, errStr, statusCode)
 }
