@@ -2,6 +2,7 @@ package eventlistener
 
 import (
 	"context"
+	"net/url"
 
 	logging "github.com/ipfs/go-log/v2"
 
@@ -86,20 +87,26 @@ func (el *EventListener) ProcessLogs() {
 	for vLog := range el.Logs {
 		log.Debugf("Log: %v", vLog)
 
-		event, err := el.ContractInstance.ParseBlockResultProductionProofSubmitted(vLog)
+		event, err := el.ContractInstance.ParseBlockSpecimenProductionProofSubmitted(vLog)
 		if err != nil {
 			if err.Error() == "event signature mismatch" {
 				log.Debug("Event signature mismatch")
 				continue
 			}
 
-			log.Fatalf("Failed to parse log: %v", err)
+			log.Errorf("Failed to parse log: %v", err)
 		}
 
 		log.Debugf("Event ChainID: %v", event.ChainId)
 		log.Debugf("Event StorageURL: %v", event.StorageURL)
 
-		// el.Sampler.ProcessEvent(event.StorageURL)
-		el.Sampler.ProcessEvent("bafyreiahay5quioczvzk5tdr7muuiyozmtsq6yizncwi6r6bst42v5jnqi")
+		// strip the ipfs://
+		parsedURL, err := url.Parse(event.StorageURL)
+		if err != nil {
+			log.Errorf("Failed to parse URL: %v", err)
+			continue
+		}
+
+		el.Sampler.ProcessEvent(parsedURL.Host)
 	}
 }

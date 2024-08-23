@@ -31,7 +31,7 @@ var (
 
 // ContractMetaData contains all meta data concerning the Contract contract.
 var ContractMetaData = &bind.MetaData{
-	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"threshold\",\"type\":\"uint64\"}],\"name\":\"BlockHeightSubmissionThresholdChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockSpecimenHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"resultHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"storageURL\",\"type\":\"string\"}],\"name\":\"BlockResultProductionProofSubmitted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"validatorBitMap\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"blockSpecimenHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"resulthash\",\"type\":\"bytes32\"}],\"name\":\"BlockResultQuorum\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"newBlockResultRewardAllocation\",\"type\":\"uint128\"}],\"name\":\"BlockResultRewardChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"}],\"name\":\"ChainSyncDataChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maxSubmissions\",\"type\":\"uint256\"}],\"name\":\"MaxSubmissionsPerBlockHeightChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"newStakeRequirement\",\"type\":\"uint128\"}],\"name\":\"MinimumRequiredStakeChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nthBlock\",\"type\":\"uint64\"}],\"name\":\"NthBlockChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"OperatorAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"activeOperatorCount\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"OperatorRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"}],\"name\":\"QuorumNotReached\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"newSessionDuration\",\"type\":\"uint64\"}],\"name\":\"ResultSessionDurationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"minSubmissions\",\"type\":\"uint64\"}],\"name\":\"ResultSessionMinSubmissionChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newQuorumThreshold\",\"type\":\"uint256\"}],\"name\":\"ResultSessionQuorumChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint64\"}],\"name\":\"SecondsPerBlockCurrentChainChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"deadline\",\"type\":\"uint64\"}],\"name\":\"SessionStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newStakingManager\",\"type\":\"address\"}],\"name\":\"StakingManagerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"ValidatorDisabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"ValidatorEnabled\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"AUDITOR_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BLOCK_RESULT_PRODUCER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GOVERNANCE_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"auditor\",\"type\":\"address\"}],\"name\":\"addAuditor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"addBRPOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"governor\",\"type\":\"address\"}],\"name\":\"addGovernor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"disableValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"enableValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"}],\"name\":\"finalizeResultSession\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllOperators\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"_brps\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"__governors\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"__auditors\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBRPRoleData\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"requiredStake\",\"type\":\"uint128\"},{\"internalType\":\"address[]\",\"name\":\"activeMembers\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"}],\"name\":\"getChainData\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint128\",\"name\":\"allowedThreshold\",\"type\":\"uint128\"},{\"internalType\":\"uint128\",\"name\":\"maxSubmissionsPerBlockHeight\",\"type\":\"uint128\"},{\"internalType\":\"uint64\",\"name\":\"nthBlock\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"getEnabledOperatorCount\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMetadata\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"stakingManager\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"blockResultRewardAllocation\",\"type\":\"uint128\"},{\"internalType\":\"uint64\",\"name\":\"blockResultSessionDuration\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"minSubmissionsRequired\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"blockResultQuorum\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"getOperators\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"resulthash\",\"type\":\"bytes32\"}],\"name\":\"getURLS\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"initialGovernor\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"stakingManager\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isEnabled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isSessionOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"isValidatorEnabled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"operatorRoles\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"auditor\",\"type\":\"address\"}],\"name\":\"removeAuditor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"removeBRPOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"governor\",\"type\":\"address\"}],\"name\":\"removeGovernor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"threshold\",\"type\":\"uint64\"}],\"name\":\"setBlockHeightSubmissionsThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"newBlockResultReward\",\"type\":\"uint128\"}],\"name\":\"setBlockResultReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"newSessionDuration\",\"type\":\"uint64\"}],\"name\":\"setBlockResultSessionDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"}],\"name\":\"setChainSyncData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"maxSubmissions\",\"type\":\"uint64\"}],\"name\":\"setMaxSubmissionsPerBlockHeight\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"minSubmissions\",\"type\":\"uint64\"}],\"name\":\"setMinSubmissionsRequired\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"n\",\"type\":\"uint64\"}],\"name\":\"setNthBlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"quorum\",\"type\":\"uint256\"}],\"name\":\"setQuorumThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint64\"}],\"name\":\"setSecondsPerBlockCurrentChain\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"stakingManagerAddress\",\"type\":\"address\"}],\"name\":\"setStakingManagerAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"blockSpecimenHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"resultHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"storageURL\",\"type\":\"string\"}],\"name\":\"submitBlockResultProof\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validatorIDs\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
+	ABI: "[{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"threshold\",\"type\":\"uint64\"}],\"name\":\"BlockHeightSubmissionThresholdChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"specimenHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"string\",\"name\":\"storageURL\",\"type\":\"string\"}],\"name\":\"BlockSpecimenProductionProofSubmitted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"validatorBitMap\",\"type\":\"uint256\"},{\"indexed\":true,\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"specimenHash\",\"type\":\"bytes32\"}],\"name\":\"BlockSpecimenQuorum\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"newBlockSpecimenRewardAllocation\",\"type\":\"uint128\"}],\"name\":\"BlockSpecimenRewardChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"}],\"name\":\"ChainSyncDataChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint8\",\"name\":\"version\",\"type\":\"uint8\"}],\"name\":\"Initialized\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"maxSubmissions\",\"type\":\"uint256\"}],\"name\":\"MaxSubmissionsPerBlockHeightChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"newStakeRequirement\",\"type\":\"uint128\"}],\"name\":\"MinimumRequiredStakeChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"nthBlock\",\"type\":\"uint64\"}],\"name\":\"NthBlockChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"OperatorAdded\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"activeOperatorCount\",\"type\":\"uint128\"},{\"indexed\":false,\"internalType\":\"bytes32\",\"name\":\"role\",\"type\":\"bytes32\"}],\"name\":\"OperatorRemoved\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"address\",\"name\":\"previousOwner\",\"type\":\"address\"},{\"indexed\":true,\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"OwnershipTransferred\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"}],\"name\":\"QuorumNotReached\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint64\"}],\"name\":\"SecondsPerBlockCurrentChainChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"indexed\":true,\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"deadline\",\"type\":\"uint64\"}],\"name\":\"SessionStarted\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"newSessionDuration\",\"type\":\"uint64\"}],\"name\":\"SpecimenSessionDurationChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint64\",\"name\":\"minSubmissions\",\"type\":\"uint64\"}],\"name\":\"SpecimenSessionMinSubmissionChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint256\",\"name\":\"newQuorumThreshold\",\"type\":\"uint256\"}],\"name\":\"SpecimenSessionQuorumChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"address\",\"name\":\"newStakingManager\",\"type\":\"address\"}],\"name\":\"StakingManagerChanged\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"ValidatorDisabled\",\"type\":\"event\"},{\"anonymous\":false,\"inputs\":[{\"indexed\":false,\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"ValidatorEnabled\",\"type\":\"event\"},{\"inputs\":[],\"name\":\"AUDITOR_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"BLOCK_SPECIMEN_PRODUCER_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"GOVERNANCE_ROLE\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"auditor\",\"type\":\"address\"}],\"name\":\"addAuditor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"addBSPOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"governor\",\"type\":\"address\"}],\"name\":\"addGovernor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"disableValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"enableValidator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"}],\"name\":\"finalizeSpecimenSession\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getAllOperators\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"_bsps\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"__governors\",\"type\":\"address[]\"},{\"internalType\":\"address[]\",\"name\":\"__auditors\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getBSPRoleData\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"requiredStake\",\"type\":\"uint128\"},{\"internalType\":\"address[]\",\"name\":\"activeMembers\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"}],\"name\":\"getChainData\",\"outputs\":[{\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint128\",\"name\":\"allowedThreshold\",\"type\":\"uint128\"},{\"internalType\":\"uint128\",\"name\":\"maxSubmissionsPerBlockHeight\",\"type\":\"uint128\"},{\"internalType\":\"uint64\",\"name\":\"nthBlock\",\"type\":\"uint64\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"getEnabledOperatorCount\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"getMetadata\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"stakingManager\",\"type\":\"address\"},{\"internalType\":\"uint128\",\"name\":\"blockSpecimenRewardAllocation\",\"type\":\"uint128\"},{\"internalType\":\"uint64\",\"name\":\"blockSpecimenSessionDuration\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"minSubmissionsRequired\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"blockSpecimenQuorum\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint256\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"getOperators\",\"outputs\":[{\"internalType\":\"address[]\",\"name\":\"\",\"type\":\"address[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"bytes32\",\"name\":\"specimenhash\",\"type\":\"bytes32\"}],\"name\":\"getURLS\",\"outputs\":[{\"internalType\":\"string[]\",\"name\":\"\",\"type\":\"string[]\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"initialGovernor\",\"type\":\"address\"},{\"internalType\":\"address\",\"name\":\"stakingManager\",\"type\":\"address\"}],\"name\":\"initialize\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isEnabled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"isSessionOpen\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"validatorId\",\"type\":\"uint128\"}],\"name\":\"isValidatorEnabled\",\"outputs\":[{\"internalType\":\"bool\",\"name\":\"\",\"type\":\"bool\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"operatorRoles\",\"outputs\":[{\"internalType\":\"bytes32\",\"name\":\"\",\"type\":\"bytes32\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"owner\",\"outputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"stateMutability\":\"view\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"auditor\",\"type\":\"address\"}],\"name\":\"removeAuditor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"operator\",\"type\":\"address\"}],\"name\":\"removeBSPOperator\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"governor\",\"type\":\"address\"}],\"name\":\"removeGovernor\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[],\"name\":\"renounceOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"threshold\",\"type\":\"uint64\"}],\"name\":\"setBlockHeightSubmissionsThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint128\",\"name\":\"newBlockSpecimenReward\",\"type\":\"uint128\"}],\"name\":\"setBlockSpecimenReward\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"newSessionDuration\",\"type\":\"uint64\"}],\"name\":\"setBlockSpecimenSessionDuration\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint256\",\"name\":\"blockOnTargetChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"blockOnCurrentChain\",\"type\":\"uint256\"},{\"internalType\":\"uint256\",\"name\":\"secondsPerBlockTargetChain\",\"type\":\"uint256\"}],\"name\":\"setChainSyncData\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"maxSubmissions\",\"type\":\"uint64\"}],\"name\":\"setMaxSubmissionsPerBlockHeight\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"minSubmissions\",\"type\":\"uint64\"}],\"name\":\"setMinSubmissionsRequired\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"n\",\"type\":\"uint64\"}],\"name\":\"setNthBlock\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint256\",\"name\":\"quorum\",\"type\":\"uint256\"}],\"name\":\"setQuorumThreshold\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"secondsPerBlockCurrentChain\",\"type\":\"uint64\"}],\"name\":\"setSecondsPerBlockCurrentChain\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"stakingManagerAddress\",\"type\":\"address\"}],\"name\":\"setStakingManagerAddress\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"uint64\",\"name\":\"chainId\",\"type\":\"uint64\"},{\"internalType\":\"uint64\",\"name\":\"blockHeight\",\"type\":\"uint64\"},{\"internalType\":\"bytes32\",\"name\":\"blockHash\",\"type\":\"bytes32\"},{\"internalType\":\"bytes32\",\"name\":\"specimenHash\",\"type\":\"bytes32\"},{\"internalType\":\"string\",\"name\":\"storageURL\",\"type\":\"string\"}],\"name\":\"submitBlockSpecimenProof\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"newOwner\",\"type\":\"address\"}],\"name\":\"transferOwnership\",\"outputs\":[],\"stateMutability\":\"nonpayable\",\"type\":\"function\"},{\"inputs\":[{\"internalType\":\"address\",\"name\":\"\",\"type\":\"address\"}],\"name\":\"validatorIDs\",\"outputs\":[{\"internalType\":\"uint128\",\"name\":\"\",\"type\":\"uint128\"}],\"stateMutability\":\"view\",\"type\":\"function\"}]",
 }
 
 // ContractABI is the input ABI used to generate the binding from.
@@ -211,12 +211,12 @@ func (_Contract *ContractCallerSession) AUDITORROLE() ([32]byte, error) {
 	return _Contract.Contract.AUDITORROLE(&_Contract.CallOpts)
 }
 
-// BLOCKRESULTPRODUCERROLE is a free data retrieval call binding the contract method 0x41c1278d.
+// BLOCKSPECIMENPRODUCERROLE is a free data retrieval call binding the contract method 0x9c49d8ee.
 //
-// Solidity: function BLOCK_RESULT_PRODUCER_ROLE() view returns(bytes32)
-func (_Contract *ContractCaller) BLOCKRESULTPRODUCERROLE(opts *bind.CallOpts) ([32]byte, error) {
+// Solidity: function BLOCK_SPECIMEN_PRODUCER_ROLE() view returns(bytes32)
+func (_Contract *ContractCaller) BLOCKSPECIMENPRODUCERROLE(opts *bind.CallOpts) ([32]byte, error) {
 	var out []interface{}
-	err := _Contract.contract.Call(opts, &out, "BLOCK_RESULT_PRODUCER_ROLE")
+	err := _Contract.contract.Call(opts, &out, "BLOCK_SPECIMEN_PRODUCER_ROLE")
 
 	if err != nil {
 		return *new([32]byte), err
@@ -228,18 +228,18 @@ func (_Contract *ContractCaller) BLOCKRESULTPRODUCERROLE(opts *bind.CallOpts) ([
 
 }
 
-// BLOCKRESULTPRODUCERROLE is a free data retrieval call binding the contract method 0x41c1278d.
+// BLOCKSPECIMENPRODUCERROLE is a free data retrieval call binding the contract method 0x9c49d8ee.
 //
-// Solidity: function BLOCK_RESULT_PRODUCER_ROLE() view returns(bytes32)
-func (_Contract *ContractSession) BLOCKRESULTPRODUCERROLE() ([32]byte, error) {
-	return _Contract.Contract.BLOCKRESULTPRODUCERROLE(&_Contract.CallOpts)
+// Solidity: function BLOCK_SPECIMEN_PRODUCER_ROLE() view returns(bytes32)
+func (_Contract *ContractSession) BLOCKSPECIMENPRODUCERROLE() ([32]byte, error) {
+	return _Contract.Contract.BLOCKSPECIMENPRODUCERROLE(&_Contract.CallOpts)
 }
 
-// BLOCKRESULTPRODUCERROLE is a free data retrieval call binding the contract method 0x41c1278d.
+// BLOCKSPECIMENPRODUCERROLE is a free data retrieval call binding the contract method 0x9c49d8ee.
 //
-// Solidity: function BLOCK_RESULT_PRODUCER_ROLE() view returns(bytes32)
-func (_Contract *ContractCallerSession) BLOCKRESULTPRODUCERROLE() ([32]byte, error) {
-	return _Contract.Contract.BLOCKRESULTPRODUCERROLE(&_Contract.CallOpts)
+// Solidity: function BLOCK_SPECIMEN_PRODUCER_ROLE() view returns(bytes32)
+func (_Contract *ContractCallerSession) BLOCKSPECIMENPRODUCERROLE() ([32]byte, error) {
+	return _Contract.Contract.BLOCKSPECIMENPRODUCERROLE(&_Contract.CallOpts)
 }
 
 // GOVERNANCEROLE is a free data retrieval call binding the contract method 0xf36c8f5c.
@@ -275,9 +275,9 @@ func (_Contract *ContractCallerSession) GOVERNANCEROLE() ([32]byte, error) {
 
 // GetAllOperators is a free data retrieval call binding the contract method 0xd911c632.
 //
-// Solidity: function getAllOperators() view returns(address[] _brps, address[] __governors, address[] __auditors)
+// Solidity: function getAllOperators() view returns(address[] _bsps, address[] __governors, address[] __auditors)
 func (_Contract *ContractCaller) GetAllOperators(opts *bind.CallOpts) (struct {
-	Brps      []common.Address
+	Bsps      []common.Address
 	Governors []common.Address
 	Auditors  []common.Address
 }, error) {
@@ -285,7 +285,7 @@ func (_Contract *ContractCaller) GetAllOperators(opts *bind.CallOpts) (struct {
 	err := _Contract.contract.Call(opts, &out, "getAllOperators")
 
 	outstruct := new(struct {
-		Brps      []common.Address
+		Bsps      []common.Address
 		Governors []common.Address
 		Auditors  []common.Address
 	})
@@ -293,7 +293,7 @@ func (_Contract *ContractCaller) GetAllOperators(opts *bind.CallOpts) (struct {
 		return *outstruct, err
 	}
 
-	outstruct.Brps = *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
+	outstruct.Bsps = *abi.ConvertType(out[0], new([]common.Address)).(*[]common.Address)
 	outstruct.Governors = *abi.ConvertType(out[1], new([]common.Address)).(*[]common.Address)
 	outstruct.Auditors = *abi.ConvertType(out[2], new([]common.Address)).(*[]common.Address)
 
@@ -303,9 +303,9 @@ func (_Contract *ContractCaller) GetAllOperators(opts *bind.CallOpts) (struct {
 
 // GetAllOperators is a free data retrieval call binding the contract method 0xd911c632.
 //
-// Solidity: function getAllOperators() view returns(address[] _brps, address[] __governors, address[] __auditors)
+// Solidity: function getAllOperators() view returns(address[] _bsps, address[] __governors, address[] __auditors)
 func (_Contract *ContractSession) GetAllOperators() (struct {
-	Brps      []common.Address
+	Bsps      []common.Address
 	Governors []common.Address
 	Auditors  []common.Address
 }, error) {
@@ -314,24 +314,24 @@ func (_Contract *ContractSession) GetAllOperators() (struct {
 
 // GetAllOperators is a free data retrieval call binding the contract method 0xd911c632.
 //
-// Solidity: function getAllOperators() view returns(address[] _brps, address[] __governors, address[] __auditors)
+// Solidity: function getAllOperators() view returns(address[] _bsps, address[] __governors, address[] __auditors)
 func (_Contract *ContractCallerSession) GetAllOperators() (struct {
-	Brps      []common.Address
+	Bsps      []common.Address
 	Governors []common.Address
 	Auditors  []common.Address
 }, error) {
 	return _Contract.Contract.GetAllOperators(&_Contract.CallOpts)
 }
 
-// GetBRPRoleData is a free data retrieval call binding the contract method 0x920036b7.
+// GetBSPRoleData is a free data retrieval call binding the contract method 0x1fd55ae9.
 //
-// Solidity: function getBRPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
-func (_Contract *ContractCaller) GetBRPRoleData(opts *bind.CallOpts) (struct {
+// Solidity: function getBSPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
+func (_Contract *ContractCaller) GetBSPRoleData(opts *bind.CallOpts) (struct {
 	RequiredStake *big.Int
 	ActiveMembers []common.Address
 }, error) {
 	var out []interface{}
-	err := _Contract.contract.Call(opts, &out, "getBRPRoleData")
+	err := _Contract.contract.Call(opts, &out, "getBSPRoleData")
 
 	outstruct := new(struct {
 		RequiredStake *big.Int
@@ -348,24 +348,24 @@ func (_Contract *ContractCaller) GetBRPRoleData(opts *bind.CallOpts) (struct {
 
 }
 
-// GetBRPRoleData is a free data retrieval call binding the contract method 0x920036b7.
+// GetBSPRoleData is a free data retrieval call binding the contract method 0x1fd55ae9.
 //
-// Solidity: function getBRPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
-func (_Contract *ContractSession) GetBRPRoleData() (struct {
+// Solidity: function getBSPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
+func (_Contract *ContractSession) GetBSPRoleData() (struct {
 	RequiredStake *big.Int
 	ActiveMembers []common.Address
 }, error) {
-	return _Contract.Contract.GetBRPRoleData(&_Contract.CallOpts)
+	return _Contract.Contract.GetBSPRoleData(&_Contract.CallOpts)
 }
 
-// GetBRPRoleData is a free data retrieval call binding the contract method 0x920036b7.
+// GetBSPRoleData is a free data retrieval call binding the contract method 0x1fd55ae9.
 //
-// Solidity: function getBRPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
-func (_Contract *ContractCallerSession) GetBRPRoleData() (struct {
+// Solidity: function getBSPRoleData() view returns(uint128 requiredStake, address[] activeMembers)
+func (_Contract *ContractCallerSession) GetBSPRoleData() (struct {
 	RequiredStake *big.Int
 	ActiveMembers []common.Address
 }, error) {
-	return _Contract.Contract.GetBRPRoleData(&_Contract.CallOpts)
+	return _Contract.Contract.GetBSPRoleData(&_Contract.CallOpts)
 }
 
 // GetChainData is a free data retrieval call binding the contract method 0x54cfa69f.
@@ -466,35 +466,35 @@ func (_Contract *ContractCallerSession) GetEnabledOperatorCount(validatorId *big
 
 // GetMetadata is a free data retrieval call binding the contract method 0x7a5b4f59.
 //
-// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockResultRewardAllocation, uint64 blockResultSessionDuration, uint64 minSubmissionsRequired, uint256 blockResultQuorum, uint256 secondsPerBlockCurrentChain)
+// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockSpecimenRewardAllocation, uint64 blockSpecimenSessionDuration, uint64 minSubmissionsRequired, uint256 blockSpecimenQuorum, uint256 secondsPerBlockCurrentChain)
 func (_Contract *ContractCaller) GetMetadata(opts *bind.CallOpts) (struct {
-	StakingManager              common.Address
-	BlockResultRewardAllocation *big.Int
-	BlockResultSessionDuration  uint64
-	MinSubmissionsRequired      uint64
-	BlockResultQuorum           *big.Int
-	SecondsPerBlockCurrentChain *big.Int
+	StakingManager                common.Address
+	BlockSpecimenRewardAllocation *big.Int
+	BlockSpecimenSessionDuration  uint64
+	MinSubmissionsRequired        uint64
+	BlockSpecimenQuorum           *big.Int
+	SecondsPerBlockCurrentChain   *big.Int
 }, error) {
 	var out []interface{}
 	err := _Contract.contract.Call(opts, &out, "getMetadata")
 
 	outstruct := new(struct {
-		StakingManager              common.Address
-		BlockResultRewardAllocation *big.Int
-		BlockResultSessionDuration  uint64
-		MinSubmissionsRequired      uint64
-		BlockResultQuorum           *big.Int
-		SecondsPerBlockCurrentChain *big.Int
+		StakingManager                common.Address
+		BlockSpecimenRewardAllocation *big.Int
+		BlockSpecimenSessionDuration  uint64
+		MinSubmissionsRequired        uint64
+		BlockSpecimenQuorum           *big.Int
+		SecondsPerBlockCurrentChain   *big.Int
 	})
 	if err != nil {
 		return *outstruct, err
 	}
 
 	outstruct.StakingManager = *abi.ConvertType(out[0], new(common.Address)).(*common.Address)
-	outstruct.BlockResultRewardAllocation = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
-	outstruct.BlockResultSessionDuration = *abi.ConvertType(out[2], new(uint64)).(*uint64)
+	outstruct.BlockSpecimenRewardAllocation = *abi.ConvertType(out[1], new(*big.Int)).(**big.Int)
+	outstruct.BlockSpecimenSessionDuration = *abi.ConvertType(out[2], new(uint64)).(*uint64)
 	outstruct.MinSubmissionsRequired = *abi.ConvertType(out[3], new(uint64)).(*uint64)
-	outstruct.BlockResultQuorum = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
+	outstruct.BlockSpecimenQuorum = *abi.ConvertType(out[4], new(*big.Int)).(**big.Int)
 	outstruct.SecondsPerBlockCurrentChain = *abi.ConvertType(out[5], new(*big.Int)).(**big.Int)
 
 	return *outstruct, err
@@ -503,28 +503,28 @@ func (_Contract *ContractCaller) GetMetadata(opts *bind.CallOpts) (struct {
 
 // GetMetadata is a free data retrieval call binding the contract method 0x7a5b4f59.
 //
-// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockResultRewardAllocation, uint64 blockResultSessionDuration, uint64 minSubmissionsRequired, uint256 blockResultQuorum, uint256 secondsPerBlockCurrentChain)
+// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockSpecimenRewardAllocation, uint64 blockSpecimenSessionDuration, uint64 minSubmissionsRequired, uint256 blockSpecimenQuorum, uint256 secondsPerBlockCurrentChain)
 func (_Contract *ContractSession) GetMetadata() (struct {
-	StakingManager              common.Address
-	BlockResultRewardAllocation *big.Int
-	BlockResultSessionDuration  uint64
-	MinSubmissionsRequired      uint64
-	BlockResultQuorum           *big.Int
-	SecondsPerBlockCurrentChain *big.Int
+	StakingManager                common.Address
+	BlockSpecimenRewardAllocation *big.Int
+	BlockSpecimenSessionDuration  uint64
+	MinSubmissionsRequired        uint64
+	BlockSpecimenQuorum           *big.Int
+	SecondsPerBlockCurrentChain   *big.Int
 }, error) {
 	return _Contract.Contract.GetMetadata(&_Contract.CallOpts)
 }
 
 // GetMetadata is a free data retrieval call binding the contract method 0x7a5b4f59.
 //
-// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockResultRewardAllocation, uint64 blockResultSessionDuration, uint64 minSubmissionsRequired, uint256 blockResultQuorum, uint256 secondsPerBlockCurrentChain)
+// Solidity: function getMetadata() view returns(address stakingManager, uint128 blockSpecimenRewardAllocation, uint64 blockSpecimenSessionDuration, uint64 minSubmissionsRequired, uint256 blockSpecimenQuorum, uint256 secondsPerBlockCurrentChain)
 func (_Contract *ContractCallerSession) GetMetadata() (struct {
-	StakingManager              common.Address
-	BlockResultRewardAllocation *big.Int
-	BlockResultSessionDuration  uint64
-	MinSubmissionsRequired      uint64
-	BlockResultQuorum           *big.Int
-	SecondsPerBlockCurrentChain *big.Int
+	StakingManager                common.Address
+	BlockSpecimenRewardAllocation *big.Int
+	BlockSpecimenSessionDuration  uint64
+	MinSubmissionsRequired        uint64
+	BlockSpecimenQuorum           *big.Int
+	SecondsPerBlockCurrentChain   *big.Int
 }, error) {
 	return _Contract.Contract.GetMetadata(&_Contract.CallOpts)
 }
@@ -562,10 +562,10 @@ func (_Contract *ContractCallerSession) GetOperators(validatorId *big.Int) ([]co
 
 // GetURLS is a free data retrieval call binding the contract method 0xd5839da9.
 //
-// Solidity: function getURLS(bytes32 resulthash) view returns(string[])
-func (_Contract *ContractCaller) GetURLS(opts *bind.CallOpts, resulthash [32]byte) ([]string, error) {
+// Solidity: function getURLS(bytes32 specimenhash) view returns(string[])
+func (_Contract *ContractCaller) GetURLS(opts *bind.CallOpts, specimenhash [32]byte) ([]string, error) {
 	var out []interface{}
-	err := _Contract.contract.Call(opts, &out, "getURLS", resulthash)
+	err := _Contract.contract.Call(opts, &out, "getURLS", specimenhash)
 
 	if err != nil {
 		return *new([]string), err
@@ -579,16 +579,16 @@ func (_Contract *ContractCaller) GetURLS(opts *bind.CallOpts, resulthash [32]byt
 
 // GetURLS is a free data retrieval call binding the contract method 0xd5839da9.
 //
-// Solidity: function getURLS(bytes32 resulthash) view returns(string[])
-func (_Contract *ContractSession) GetURLS(resulthash [32]byte) ([]string, error) {
-	return _Contract.Contract.GetURLS(&_Contract.CallOpts, resulthash)
+// Solidity: function getURLS(bytes32 specimenhash) view returns(string[])
+func (_Contract *ContractSession) GetURLS(specimenhash [32]byte) ([]string, error) {
+	return _Contract.Contract.GetURLS(&_Contract.CallOpts, specimenhash)
 }
 
 // GetURLS is a free data retrieval call binding the contract method 0xd5839da9.
 //
-// Solidity: function getURLS(bytes32 resulthash) view returns(string[])
-func (_Contract *ContractCallerSession) GetURLS(resulthash [32]byte) ([]string, error) {
-	return _Contract.Contract.GetURLS(&_Contract.CallOpts, resulthash)
+// Solidity: function getURLS(bytes32 specimenhash) view returns(string[])
+func (_Contract *ContractCallerSession) GetURLS(specimenhash [32]byte) ([]string, error) {
+	return _Contract.Contract.GetURLS(&_Contract.CallOpts, specimenhash)
 }
 
 // IsEnabled is a free data retrieval call binding the contract method 0x9015d371.
@@ -798,25 +798,25 @@ func (_Contract *ContractTransactorSession) AddAuditor(auditor common.Address) (
 	return _Contract.Contract.AddAuditor(&_Contract.TransactOpts, auditor)
 }
 
-// AddBRPOperator is a paid mutator transaction binding the contract method 0x222388c2.
+// AddBSPOperator is a paid mutator transaction binding the contract method 0xcc96e413.
 //
-// Solidity: function addBRPOperator(address operator, uint128 validatorId) returns()
-func (_Contract *ContractTransactor) AddBRPOperator(opts *bind.TransactOpts, operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "addBRPOperator", operator, validatorId)
+// Solidity: function addBSPOperator(address operator, uint128 validatorId) returns()
+func (_Contract *ContractTransactor) AddBSPOperator(opts *bind.TransactOpts, operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "addBSPOperator", operator, validatorId)
 }
 
-// AddBRPOperator is a paid mutator transaction binding the contract method 0x222388c2.
+// AddBSPOperator is a paid mutator transaction binding the contract method 0xcc96e413.
 //
-// Solidity: function addBRPOperator(address operator, uint128 validatorId) returns()
-func (_Contract *ContractSession) AddBRPOperator(operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
-	return _Contract.Contract.AddBRPOperator(&_Contract.TransactOpts, operator, validatorId)
+// Solidity: function addBSPOperator(address operator, uint128 validatorId) returns()
+func (_Contract *ContractSession) AddBSPOperator(operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
+	return _Contract.Contract.AddBSPOperator(&_Contract.TransactOpts, operator, validatorId)
 }
 
-// AddBRPOperator is a paid mutator transaction binding the contract method 0x222388c2.
+// AddBSPOperator is a paid mutator transaction binding the contract method 0xcc96e413.
 //
-// Solidity: function addBRPOperator(address operator, uint128 validatorId) returns()
-func (_Contract *ContractTransactorSession) AddBRPOperator(operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
-	return _Contract.Contract.AddBRPOperator(&_Contract.TransactOpts, operator, validatorId)
+// Solidity: function addBSPOperator(address operator, uint128 validatorId) returns()
+func (_Contract *ContractTransactorSession) AddBSPOperator(operator common.Address, validatorId *big.Int) (*types.Transaction, error) {
+	return _Contract.Contract.AddBSPOperator(&_Contract.TransactOpts, operator, validatorId)
 }
 
 // AddGovernor is a paid mutator transaction binding the contract method 0x3c4a25d0.
@@ -882,25 +882,25 @@ func (_Contract *ContractTransactorSession) EnableValidator(validatorId *big.Int
 	return _Contract.Contract.EnableValidator(&_Contract.TransactOpts, validatorId)
 }
 
-// FinalizeResultSession is a paid mutator transaction binding the contract method 0xd09796bd.
+// FinalizeSpecimenSession is a paid mutator transaction binding the contract method 0xd269550a.
 //
-// Solidity: function finalizeResultSession(uint64 chainId, uint64 blockHeight) returns()
-func (_Contract *ContractTransactor) FinalizeResultSession(opts *bind.TransactOpts, chainId uint64, blockHeight uint64) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "finalizeResultSession", chainId, blockHeight)
+// Solidity: function finalizeSpecimenSession(uint64 chainId, uint64 blockHeight) returns()
+func (_Contract *ContractTransactor) FinalizeSpecimenSession(opts *bind.TransactOpts, chainId uint64, blockHeight uint64) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "finalizeSpecimenSession", chainId, blockHeight)
 }
 
-// FinalizeResultSession is a paid mutator transaction binding the contract method 0xd09796bd.
+// FinalizeSpecimenSession is a paid mutator transaction binding the contract method 0xd269550a.
 //
-// Solidity: function finalizeResultSession(uint64 chainId, uint64 blockHeight) returns()
-func (_Contract *ContractSession) FinalizeResultSession(chainId uint64, blockHeight uint64) (*types.Transaction, error) {
-	return _Contract.Contract.FinalizeResultSession(&_Contract.TransactOpts, chainId, blockHeight)
+// Solidity: function finalizeSpecimenSession(uint64 chainId, uint64 blockHeight) returns()
+func (_Contract *ContractSession) FinalizeSpecimenSession(chainId uint64, blockHeight uint64) (*types.Transaction, error) {
+	return _Contract.Contract.FinalizeSpecimenSession(&_Contract.TransactOpts, chainId, blockHeight)
 }
 
-// FinalizeResultSession is a paid mutator transaction binding the contract method 0xd09796bd.
+// FinalizeSpecimenSession is a paid mutator transaction binding the contract method 0xd269550a.
 //
-// Solidity: function finalizeResultSession(uint64 chainId, uint64 blockHeight) returns()
-func (_Contract *ContractTransactorSession) FinalizeResultSession(chainId uint64, blockHeight uint64) (*types.Transaction, error) {
-	return _Contract.Contract.FinalizeResultSession(&_Contract.TransactOpts, chainId, blockHeight)
+// Solidity: function finalizeSpecimenSession(uint64 chainId, uint64 blockHeight) returns()
+func (_Contract *ContractTransactorSession) FinalizeSpecimenSession(chainId uint64, blockHeight uint64) (*types.Transaction, error) {
+	return _Contract.Contract.FinalizeSpecimenSession(&_Contract.TransactOpts, chainId, blockHeight)
 }
 
 // Initialize is a paid mutator transaction binding the contract method 0x485cc955.
@@ -945,25 +945,25 @@ func (_Contract *ContractTransactorSession) RemoveAuditor(auditor common.Address
 	return _Contract.Contract.RemoveAuditor(&_Contract.TransactOpts, auditor)
 }
 
-// RemoveBRPOperator is a paid mutator transaction binding the contract method 0x6b7511cb.
+// RemoveBSPOperator is a paid mutator transaction binding the contract method 0xcf64a01d.
 //
-// Solidity: function removeBRPOperator(address operator) returns()
-func (_Contract *ContractTransactor) RemoveBRPOperator(opts *bind.TransactOpts, operator common.Address) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "removeBRPOperator", operator)
+// Solidity: function removeBSPOperator(address operator) returns()
+func (_Contract *ContractTransactor) RemoveBSPOperator(opts *bind.TransactOpts, operator common.Address) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "removeBSPOperator", operator)
 }
 
-// RemoveBRPOperator is a paid mutator transaction binding the contract method 0x6b7511cb.
+// RemoveBSPOperator is a paid mutator transaction binding the contract method 0xcf64a01d.
 //
-// Solidity: function removeBRPOperator(address operator) returns()
-func (_Contract *ContractSession) RemoveBRPOperator(operator common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.RemoveBRPOperator(&_Contract.TransactOpts, operator)
+// Solidity: function removeBSPOperator(address operator) returns()
+func (_Contract *ContractSession) RemoveBSPOperator(operator common.Address) (*types.Transaction, error) {
+	return _Contract.Contract.RemoveBSPOperator(&_Contract.TransactOpts, operator)
 }
 
-// RemoveBRPOperator is a paid mutator transaction binding the contract method 0x6b7511cb.
+// RemoveBSPOperator is a paid mutator transaction binding the contract method 0xcf64a01d.
 //
-// Solidity: function removeBRPOperator(address operator) returns()
-func (_Contract *ContractTransactorSession) RemoveBRPOperator(operator common.Address) (*types.Transaction, error) {
-	return _Contract.Contract.RemoveBRPOperator(&_Contract.TransactOpts, operator)
+// Solidity: function removeBSPOperator(address operator) returns()
+func (_Contract *ContractTransactorSession) RemoveBSPOperator(operator common.Address) (*types.Transaction, error) {
+	return _Contract.Contract.RemoveBSPOperator(&_Contract.TransactOpts, operator)
 }
 
 // RemoveGovernor is a paid mutator transaction binding the contract method 0xeecdac88.
@@ -1029,46 +1029,46 @@ func (_Contract *ContractTransactorSession) SetBlockHeightSubmissionsThreshold(c
 	return _Contract.Contract.SetBlockHeightSubmissionsThreshold(&_Contract.TransactOpts, chainId, threshold)
 }
 
-// SetBlockResultReward is a paid mutator transaction binding the contract method 0x5a5e84f2.
+// SetBlockSpecimenReward is a paid mutator transaction binding the contract method 0x89587f05.
 //
-// Solidity: function setBlockResultReward(uint128 newBlockResultReward) returns()
-func (_Contract *ContractTransactor) SetBlockResultReward(opts *bind.TransactOpts, newBlockResultReward *big.Int) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "setBlockResultReward", newBlockResultReward)
+// Solidity: function setBlockSpecimenReward(uint128 newBlockSpecimenReward) returns()
+func (_Contract *ContractTransactor) SetBlockSpecimenReward(opts *bind.TransactOpts, newBlockSpecimenReward *big.Int) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "setBlockSpecimenReward", newBlockSpecimenReward)
 }
 
-// SetBlockResultReward is a paid mutator transaction binding the contract method 0x5a5e84f2.
+// SetBlockSpecimenReward is a paid mutator transaction binding the contract method 0x89587f05.
 //
-// Solidity: function setBlockResultReward(uint128 newBlockResultReward) returns()
-func (_Contract *ContractSession) SetBlockResultReward(newBlockResultReward *big.Int) (*types.Transaction, error) {
-	return _Contract.Contract.SetBlockResultReward(&_Contract.TransactOpts, newBlockResultReward)
+// Solidity: function setBlockSpecimenReward(uint128 newBlockSpecimenReward) returns()
+func (_Contract *ContractSession) SetBlockSpecimenReward(newBlockSpecimenReward *big.Int) (*types.Transaction, error) {
+	return _Contract.Contract.SetBlockSpecimenReward(&_Contract.TransactOpts, newBlockSpecimenReward)
 }
 
-// SetBlockResultReward is a paid mutator transaction binding the contract method 0x5a5e84f2.
+// SetBlockSpecimenReward is a paid mutator transaction binding the contract method 0x89587f05.
 //
-// Solidity: function setBlockResultReward(uint128 newBlockResultReward) returns()
-func (_Contract *ContractTransactorSession) SetBlockResultReward(newBlockResultReward *big.Int) (*types.Transaction, error) {
-	return _Contract.Contract.SetBlockResultReward(&_Contract.TransactOpts, newBlockResultReward)
+// Solidity: function setBlockSpecimenReward(uint128 newBlockSpecimenReward) returns()
+func (_Contract *ContractTransactorSession) SetBlockSpecimenReward(newBlockSpecimenReward *big.Int) (*types.Transaction, error) {
+	return _Contract.Contract.SetBlockSpecimenReward(&_Contract.TransactOpts, newBlockSpecimenReward)
 }
 
-// SetBlockResultSessionDuration is a paid mutator transaction binding the contract method 0x55791fea.
+// SetBlockSpecimenSessionDuration is a paid mutator transaction binding the contract method 0x67d07ad7.
 //
-// Solidity: function setBlockResultSessionDuration(uint64 newSessionDuration) returns()
-func (_Contract *ContractTransactor) SetBlockResultSessionDuration(opts *bind.TransactOpts, newSessionDuration uint64) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "setBlockResultSessionDuration", newSessionDuration)
+// Solidity: function setBlockSpecimenSessionDuration(uint64 newSessionDuration) returns()
+func (_Contract *ContractTransactor) SetBlockSpecimenSessionDuration(opts *bind.TransactOpts, newSessionDuration uint64) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "setBlockSpecimenSessionDuration", newSessionDuration)
 }
 
-// SetBlockResultSessionDuration is a paid mutator transaction binding the contract method 0x55791fea.
+// SetBlockSpecimenSessionDuration is a paid mutator transaction binding the contract method 0x67d07ad7.
 //
-// Solidity: function setBlockResultSessionDuration(uint64 newSessionDuration) returns()
-func (_Contract *ContractSession) SetBlockResultSessionDuration(newSessionDuration uint64) (*types.Transaction, error) {
-	return _Contract.Contract.SetBlockResultSessionDuration(&_Contract.TransactOpts, newSessionDuration)
+// Solidity: function setBlockSpecimenSessionDuration(uint64 newSessionDuration) returns()
+func (_Contract *ContractSession) SetBlockSpecimenSessionDuration(newSessionDuration uint64) (*types.Transaction, error) {
+	return _Contract.Contract.SetBlockSpecimenSessionDuration(&_Contract.TransactOpts, newSessionDuration)
 }
 
-// SetBlockResultSessionDuration is a paid mutator transaction binding the contract method 0x55791fea.
+// SetBlockSpecimenSessionDuration is a paid mutator transaction binding the contract method 0x67d07ad7.
 //
-// Solidity: function setBlockResultSessionDuration(uint64 newSessionDuration) returns()
-func (_Contract *ContractTransactorSession) SetBlockResultSessionDuration(newSessionDuration uint64) (*types.Transaction, error) {
-	return _Contract.Contract.SetBlockResultSessionDuration(&_Contract.TransactOpts, newSessionDuration)
+// Solidity: function setBlockSpecimenSessionDuration(uint64 newSessionDuration) returns()
+func (_Contract *ContractTransactorSession) SetBlockSpecimenSessionDuration(newSessionDuration uint64) (*types.Transaction, error) {
+	return _Contract.Contract.SetBlockSpecimenSessionDuration(&_Contract.TransactOpts, newSessionDuration)
 }
 
 // SetChainSyncData is a paid mutator transaction binding the contract method 0x99146284.
@@ -1218,25 +1218,25 @@ func (_Contract *ContractTransactorSession) SetStakingManagerAddress(stakingMana
 	return _Contract.Contract.SetStakingManagerAddress(&_Contract.TransactOpts, stakingManagerAddress)
 }
 
-// SubmitBlockResultProof is a paid mutator transaction binding the contract method 0x6543413a.
+// SubmitBlockSpecimenProof is a paid mutator transaction binding the contract method 0x151fd8f3.
 //
-// Solidity: function submitBlockResultProof(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL) returns()
-func (_Contract *ContractTransactor) SubmitBlockResultProof(opts *bind.TransactOpts, chainId uint64, blockHeight uint64, blockSpecimenHash [32]byte, resultHash [32]byte, storageURL string) (*types.Transaction, error) {
-	return _Contract.contract.Transact(opts, "submitBlockResultProof", chainId, blockHeight, blockSpecimenHash, resultHash, storageURL)
+// Solidity: function submitBlockSpecimenProof(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL) returns()
+func (_Contract *ContractTransactor) SubmitBlockSpecimenProof(opts *bind.TransactOpts, chainId uint64, blockHeight uint64, blockHash [32]byte, specimenHash [32]byte, storageURL string) (*types.Transaction, error) {
+	return _Contract.contract.Transact(opts, "submitBlockSpecimenProof", chainId, blockHeight, blockHash, specimenHash, storageURL)
 }
 
-// SubmitBlockResultProof is a paid mutator transaction binding the contract method 0x6543413a.
+// SubmitBlockSpecimenProof is a paid mutator transaction binding the contract method 0x151fd8f3.
 //
-// Solidity: function submitBlockResultProof(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL) returns()
-func (_Contract *ContractSession) SubmitBlockResultProof(chainId uint64, blockHeight uint64, blockSpecimenHash [32]byte, resultHash [32]byte, storageURL string) (*types.Transaction, error) {
-	return _Contract.Contract.SubmitBlockResultProof(&_Contract.TransactOpts, chainId, blockHeight, blockSpecimenHash, resultHash, storageURL)
+// Solidity: function submitBlockSpecimenProof(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL) returns()
+func (_Contract *ContractSession) SubmitBlockSpecimenProof(chainId uint64, blockHeight uint64, blockHash [32]byte, specimenHash [32]byte, storageURL string) (*types.Transaction, error) {
+	return _Contract.Contract.SubmitBlockSpecimenProof(&_Contract.TransactOpts, chainId, blockHeight, blockHash, specimenHash, storageURL)
 }
 
-// SubmitBlockResultProof is a paid mutator transaction binding the contract method 0x6543413a.
+// SubmitBlockSpecimenProof is a paid mutator transaction binding the contract method 0x151fd8f3.
 //
-// Solidity: function submitBlockResultProof(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL) returns()
-func (_Contract *ContractTransactorSession) SubmitBlockResultProof(chainId uint64, blockHeight uint64, blockSpecimenHash [32]byte, resultHash [32]byte, storageURL string) (*types.Transaction, error) {
-	return _Contract.Contract.SubmitBlockResultProof(&_Contract.TransactOpts, chainId, blockHeight, blockSpecimenHash, resultHash, storageURL)
+// Solidity: function submitBlockSpecimenProof(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL) returns()
+func (_Contract *ContractTransactorSession) SubmitBlockSpecimenProof(chainId uint64, blockHeight uint64, blockHash [32]byte, specimenHash [32]byte, storageURL string) (*types.Transaction, error) {
+	return _Contract.Contract.SubmitBlockSpecimenProof(&_Contract.TransactOpts, chainId, blockHeight, blockHash, specimenHash, storageURL)
 }
 
 // TransferOwnership is a paid mutator transaction binding the contract method 0xf2fde38b.
@@ -1405,9 +1405,9 @@ func (_Contract *ContractFilterer) ParseBlockHeightSubmissionThresholdChanged(lo
 	return event, nil
 }
 
-// ContractBlockResultProductionProofSubmittedIterator is returned from FilterBlockResultProductionProofSubmitted and is used to iterate over the raw logs and unpacked data for BlockResultProductionProofSubmitted events raised by the Contract contract.
-type ContractBlockResultProductionProofSubmittedIterator struct {
-	Event *ContractBlockResultProductionProofSubmitted // Event containing the contract specifics and raw log
+// ContractBlockSpecimenProductionProofSubmittedIterator is returned from FilterBlockSpecimenProductionProofSubmitted and is used to iterate over the raw logs and unpacked data for BlockSpecimenProductionProofSubmitted events raised by the Contract contract.
+type ContractBlockSpecimenProductionProofSubmittedIterator struct {
+	Event *ContractBlockSpecimenProductionProofSubmitted // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1421,7 +1421,7 @@ type ContractBlockResultProductionProofSubmittedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ContractBlockResultProductionProofSubmittedIterator) Next() bool {
+func (it *ContractBlockSpecimenProductionProofSubmittedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1430,7 +1430,7 @@ func (it *ContractBlockResultProductionProofSubmittedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ContractBlockResultProductionProofSubmitted)
+			it.Event = new(ContractBlockSpecimenProductionProofSubmitted)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1445,7 +1445,7 @@ func (it *ContractBlockResultProductionProofSubmittedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ContractBlockResultProductionProofSubmitted)
+		it.Event = new(ContractBlockSpecimenProductionProofSubmitted)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1461,45 +1461,45 @@ func (it *ContractBlockResultProductionProofSubmittedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractBlockResultProductionProofSubmittedIterator) Error() error {
+func (it *ContractBlockSpecimenProductionProofSubmittedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ContractBlockResultProductionProofSubmittedIterator) Close() error {
+func (it *ContractBlockSpecimenProductionProofSubmittedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ContractBlockResultProductionProofSubmitted represents a BlockResultProductionProofSubmitted event raised by the Contract contract.
-type ContractBlockResultProductionProofSubmitted struct {
-	ChainId           uint64
-	BlockHeight       uint64
-	BlockSpecimenHash [32]byte
-	ResultHash        [32]byte
-	StorageURL        string
-	Raw               types.Log // Blockchain specific contextual infos
+// ContractBlockSpecimenProductionProofSubmitted represents a BlockSpecimenProductionProofSubmitted event raised by the Contract contract.
+type ContractBlockSpecimenProductionProofSubmitted struct {
+	ChainId      uint64
+	BlockHeight  uint64
+	BlockHash    [32]byte
+	SpecimenHash [32]byte
+	StorageURL   string
+	Raw          types.Log // Blockchain specific contextual infos
 }
 
-// FilterBlockResultProductionProofSubmitted is a free log retrieval operation binding the contract event 0x508f479d80dbbd88c8372648a5a1cf88212d9a3e8aa0f7f516c32c6ae970ebbc.
+// FilterBlockSpecimenProductionProofSubmitted is a free log retrieval operation binding the contract event 0xd79027d5232050798063d67d05f9e1545ea5b954e2334b09db548e63823fa1b1.
 //
-// Solidity: event BlockResultProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL)
-func (_Contract *ContractFilterer) FilterBlockResultProductionProofSubmitted(opts *bind.FilterOpts) (*ContractBlockResultProductionProofSubmittedIterator, error) {
+// Solidity: event BlockSpecimenProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL)
+func (_Contract *ContractFilterer) FilterBlockSpecimenProductionProofSubmitted(opts *bind.FilterOpts) (*ContractBlockSpecimenProductionProofSubmittedIterator, error) {
 
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockResultProductionProofSubmitted")
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockSpecimenProductionProofSubmitted")
 	if err != nil {
 		return nil, err
 	}
-	return &ContractBlockResultProductionProofSubmittedIterator{contract: _Contract.contract, event: "BlockResultProductionProofSubmitted", logs: logs, sub: sub}, nil
+	return &ContractBlockSpecimenProductionProofSubmittedIterator{contract: _Contract.contract, event: "BlockSpecimenProductionProofSubmitted", logs: logs, sub: sub}, nil
 }
 
-// WatchBlockResultProductionProofSubmitted is a free log subscription operation binding the contract event 0x508f479d80dbbd88c8372648a5a1cf88212d9a3e8aa0f7f516c32c6ae970ebbc.
+// WatchBlockSpecimenProductionProofSubmitted is a free log subscription operation binding the contract event 0xd79027d5232050798063d67d05f9e1545ea5b954e2334b09db548e63823fa1b1.
 //
-// Solidity: event BlockResultProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL)
-func (_Contract *ContractFilterer) WatchBlockResultProductionProofSubmitted(opts *bind.WatchOpts, sink chan<- *ContractBlockResultProductionProofSubmitted) (event.Subscription, error) {
+// Solidity: event BlockSpecimenProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL)
+func (_Contract *ContractFilterer) WatchBlockSpecimenProductionProofSubmitted(opts *bind.WatchOpts, sink chan<- *ContractBlockSpecimenProductionProofSubmitted) (event.Subscription, error) {
 
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockResultProductionProofSubmitted")
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockSpecimenProductionProofSubmitted")
 	if err != nil {
 		return nil, err
 	}
@@ -1509,8 +1509,8 @@ func (_Contract *ContractFilterer) WatchBlockResultProductionProofSubmitted(opts
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ContractBlockResultProductionProofSubmitted)
-				if err := _Contract.contract.UnpackLog(event, "BlockResultProductionProofSubmitted", log); err != nil {
+				event := new(ContractBlockSpecimenProductionProofSubmitted)
+				if err := _Contract.contract.UnpackLog(event, "BlockSpecimenProductionProofSubmitted", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1531,21 +1531,21 @@ func (_Contract *ContractFilterer) WatchBlockResultProductionProofSubmitted(opts
 	}), nil
 }
 
-// ParseBlockResultProductionProofSubmitted is a log parse operation binding the contract event 0x508f479d80dbbd88c8372648a5a1cf88212d9a3e8aa0f7f516c32c6ae970ebbc.
+// ParseBlockSpecimenProductionProofSubmitted is a log parse operation binding the contract event 0xd79027d5232050798063d67d05f9e1545ea5b954e2334b09db548e63823fa1b1.
 //
-// Solidity: event BlockResultProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockSpecimenHash, bytes32 resultHash, string storageURL)
-func (_Contract *ContractFilterer) ParseBlockResultProductionProofSubmitted(log types.Log) (*ContractBlockResultProductionProofSubmitted, error) {
-	event := new(ContractBlockResultProductionProofSubmitted)
-	if err := _Contract.contract.UnpackLog(event, "BlockResultProductionProofSubmitted", log); err != nil {
+// Solidity: event BlockSpecimenProductionProofSubmitted(uint64 chainId, uint64 blockHeight, bytes32 blockHash, bytes32 specimenHash, string storageURL)
+func (_Contract *ContractFilterer) ParseBlockSpecimenProductionProofSubmitted(log types.Log) (*ContractBlockSpecimenProductionProofSubmitted, error) {
+	event := new(ContractBlockSpecimenProductionProofSubmitted)
+	if err := _Contract.contract.UnpackLog(event, "BlockSpecimenProductionProofSubmitted", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// ContractBlockResultQuorumIterator is returned from FilterBlockResultQuorum and is used to iterate over the raw logs and unpacked data for BlockResultQuorum events raised by the Contract contract.
-type ContractBlockResultQuorumIterator struct {
-	Event *ContractBlockResultQuorum // Event containing the contract specifics and raw log
+// ContractBlockSpecimenQuorumIterator is returned from FilterBlockSpecimenQuorum and is used to iterate over the raw logs and unpacked data for BlockSpecimenQuorum events raised by the Contract contract.
+type ContractBlockSpecimenQuorumIterator struct {
+	Event *ContractBlockSpecimenQuorum // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1559,7 +1559,7 @@ type ContractBlockResultQuorumIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ContractBlockResultQuorumIterator) Next() bool {
+func (it *ContractBlockSpecimenQuorumIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1568,7 +1568,7 @@ func (it *ContractBlockResultQuorumIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ContractBlockResultQuorum)
+			it.Event = new(ContractBlockSpecimenQuorum)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1583,7 +1583,7 @@ func (it *ContractBlockResultQuorumIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ContractBlockResultQuorum)
+		it.Event = new(ContractBlockSpecimenQuorum)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1599,31 +1599,31 @@ func (it *ContractBlockResultQuorumIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractBlockResultQuorumIterator) Error() error {
+func (it *ContractBlockSpecimenQuorumIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ContractBlockResultQuorumIterator) Close() error {
+func (it *ContractBlockSpecimenQuorumIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ContractBlockResultQuorum represents a BlockResultQuorum event raised by the Contract contract.
-type ContractBlockResultQuorum struct {
-	ChainId           uint64
-	BlockHeight       uint64
-	ValidatorBitMap   *big.Int
-	BlockSpecimenHash [32]byte
-	Resulthash        [32]byte
-	Raw               types.Log // Blockchain specific contextual infos
+// ContractBlockSpecimenQuorum represents a BlockSpecimenQuorum event raised by the Contract contract.
+type ContractBlockSpecimenQuorum struct {
+	ChainId         uint64
+	BlockHeight     uint64
+	ValidatorBitMap *big.Int
+	BlockHash       [32]byte
+	SpecimenHash    [32]byte
+	Raw             types.Log // Blockchain specific contextual infos
 }
 
-// FilterBlockResultQuorum is a free log retrieval operation binding the contract event 0xab2d4a77e5823abb8d239b8a7c25c6f53f7239af1ccdb18dfd27c7da0db24a22.
+// FilterBlockSpecimenQuorum is a free log retrieval operation binding the contract event 0x858deae9d885ee978c04934ceabf15ebe77ae274f3af6a05ecf3bd9880b08e1e.
 //
-// Solidity: event BlockResultQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockSpecimenHash, bytes32 resulthash)
-func (_Contract *ContractFilterer) FilterBlockResultQuorum(opts *bind.FilterOpts, chainId []uint64, blockHeight []uint64, blockSpecimenHash [][32]byte) (*ContractBlockResultQuorumIterator, error) {
+// Solidity: event BlockSpecimenQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockHash, bytes32 specimenHash)
+func (_Contract *ContractFilterer) FilterBlockSpecimenQuorum(opts *bind.FilterOpts, chainId []uint64, blockHeight []uint64, blockHash [][32]byte) (*ContractBlockSpecimenQuorumIterator, error) {
 
 	var chainIdRule []interface{}
 	for _, chainIdItem := range chainId {
@@ -1634,22 +1634,22 @@ func (_Contract *ContractFilterer) FilterBlockResultQuorum(opts *bind.FilterOpts
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	var blockSpecimenHashRule []interface{}
-	for _, blockSpecimenHashItem := range blockSpecimenHash {
-		blockSpecimenHashRule = append(blockSpecimenHashRule, blockSpecimenHashItem)
+	var blockHashRule []interface{}
+	for _, blockHashItem := range blockHash {
+		blockHashRule = append(blockHashRule, blockHashItem)
 	}
 
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockResultQuorum", chainIdRule, blockHeightRule, blockSpecimenHashRule)
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockSpecimenQuorum", chainIdRule, blockHeightRule, blockHashRule)
 	if err != nil {
 		return nil, err
 	}
-	return &ContractBlockResultQuorumIterator{contract: _Contract.contract, event: "BlockResultQuorum", logs: logs, sub: sub}, nil
+	return &ContractBlockSpecimenQuorumIterator{contract: _Contract.contract, event: "BlockSpecimenQuorum", logs: logs, sub: sub}, nil
 }
 
-// WatchBlockResultQuorum is a free log subscription operation binding the contract event 0xab2d4a77e5823abb8d239b8a7c25c6f53f7239af1ccdb18dfd27c7da0db24a22.
+// WatchBlockSpecimenQuorum is a free log subscription operation binding the contract event 0x858deae9d885ee978c04934ceabf15ebe77ae274f3af6a05ecf3bd9880b08e1e.
 //
-// Solidity: event BlockResultQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockSpecimenHash, bytes32 resulthash)
-func (_Contract *ContractFilterer) WatchBlockResultQuorum(opts *bind.WatchOpts, sink chan<- *ContractBlockResultQuorum, chainId []uint64, blockHeight []uint64, blockSpecimenHash [][32]byte) (event.Subscription, error) {
+// Solidity: event BlockSpecimenQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockHash, bytes32 specimenHash)
+func (_Contract *ContractFilterer) WatchBlockSpecimenQuorum(opts *bind.WatchOpts, sink chan<- *ContractBlockSpecimenQuorum, chainId []uint64, blockHeight []uint64, blockHash [][32]byte) (event.Subscription, error) {
 
 	var chainIdRule []interface{}
 	for _, chainIdItem := range chainId {
@@ -1660,12 +1660,12 @@ func (_Contract *ContractFilterer) WatchBlockResultQuorum(opts *bind.WatchOpts, 
 		blockHeightRule = append(blockHeightRule, blockHeightItem)
 	}
 
-	var blockSpecimenHashRule []interface{}
-	for _, blockSpecimenHashItem := range blockSpecimenHash {
-		blockSpecimenHashRule = append(blockSpecimenHashRule, blockSpecimenHashItem)
+	var blockHashRule []interface{}
+	for _, blockHashItem := range blockHash {
+		blockHashRule = append(blockHashRule, blockHashItem)
 	}
 
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockResultQuorum", chainIdRule, blockHeightRule, blockSpecimenHashRule)
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockSpecimenQuorum", chainIdRule, blockHeightRule, blockHashRule)
 	if err != nil {
 		return nil, err
 	}
@@ -1675,8 +1675,8 @@ func (_Contract *ContractFilterer) WatchBlockResultQuorum(opts *bind.WatchOpts, 
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ContractBlockResultQuorum)
-				if err := _Contract.contract.UnpackLog(event, "BlockResultQuorum", log); err != nil {
+				event := new(ContractBlockSpecimenQuorum)
+				if err := _Contract.contract.UnpackLog(event, "BlockSpecimenQuorum", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1697,21 +1697,21 @@ func (_Contract *ContractFilterer) WatchBlockResultQuorum(opts *bind.WatchOpts, 
 	}), nil
 }
 
-// ParseBlockResultQuorum is a log parse operation binding the contract event 0xab2d4a77e5823abb8d239b8a7c25c6f53f7239af1ccdb18dfd27c7da0db24a22.
+// ParseBlockSpecimenQuorum is a log parse operation binding the contract event 0x858deae9d885ee978c04934ceabf15ebe77ae274f3af6a05ecf3bd9880b08e1e.
 //
-// Solidity: event BlockResultQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockSpecimenHash, bytes32 resulthash)
-func (_Contract *ContractFilterer) ParseBlockResultQuorum(log types.Log) (*ContractBlockResultQuorum, error) {
-	event := new(ContractBlockResultQuorum)
-	if err := _Contract.contract.UnpackLog(event, "BlockResultQuorum", log); err != nil {
+// Solidity: event BlockSpecimenQuorum(uint64 indexed chainId, uint64 indexed blockHeight, uint256 validatorBitMap, bytes32 indexed blockHash, bytes32 specimenHash)
+func (_Contract *ContractFilterer) ParseBlockSpecimenQuorum(log types.Log) (*ContractBlockSpecimenQuorum, error) {
+	event := new(ContractBlockSpecimenQuorum)
+	if err := _Contract.contract.UnpackLog(event, "BlockSpecimenQuorum", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
 	return event, nil
 }
 
-// ContractBlockResultRewardChangedIterator is returned from FilterBlockResultRewardChanged and is used to iterate over the raw logs and unpacked data for BlockResultRewardChanged events raised by the Contract contract.
-type ContractBlockResultRewardChangedIterator struct {
-	Event *ContractBlockResultRewardChanged // Event containing the contract specifics and raw log
+// ContractBlockSpecimenRewardChangedIterator is returned from FilterBlockSpecimenRewardChanged and is used to iterate over the raw logs and unpacked data for BlockSpecimenRewardChanged events raised by the Contract contract.
+type ContractBlockSpecimenRewardChangedIterator struct {
+	Event *ContractBlockSpecimenRewardChanged // Event containing the contract specifics and raw log
 
 	contract *bind.BoundContract // Generic contract to use for unpacking event data
 	event    string              // Event name to use for unpacking event data
@@ -1725,7 +1725,7 @@ type ContractBlockResultRewardChangedIterator struct {
 // Next advances the iterator to the subsequent event, returning whether there
 // are any more events found. In case of a retrieval or parsing error, false is
 // returned and Error() can be queried for the exact failure.
-func (it *ContractBlockResultRewardChangedIterator) Next() bool {
+func (it *ContractBlockSpecimenRewardChangedIterator) Next() bool {
 	// If the iterator failed, stop iterating
 	if it.fail != nil {
 		return false
@@ -1734,7 +1734,7 @@ func (it *ContractBlockResultRewardChangedIterator) Next() bool {
 	if it.done {
 		select {
 		case log := <-it.logs:
-			it.Event = new(ContractBlockResultRewardChanged)
+			it.Event = new(ContractBlockSpecimenRewardChanged)
 			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 				it.fail = err
 				return false
@@ -1749,7 +1749,7 @@ func (it *ContractBlockResultRewardChangedIterator) Next() bool {
 	// Iterator still in progress, wait for either a data or an error event
 	select {
 	case log := <-it.logs:
-		it.Event = new(ContractBlockResultRewardChanged)
+		it.Event = new(ContractBlockSpecimenRewardChanged)
 		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
 			it.fail = err
 			return false
@@ -1765,41 +1765,41 @@ func (it *ContractBlockResultRewardChangedIterator) Next() bool {
 }
 
 // Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractBlockResultRewardChangedIterator) Error() error {
+func (it *ContractBlockSpecimenRewardChangedIterator) Error() error {
 	return it.fail
 }
 
 // Close terminates the iteration process, releasing any pending underlying
 // resources.
-func (it *ContractBlockResultRewardChangedIterator) Close() error {
+func (it *ContractBlockSpecimenRewardChangedIterator) Close() error {
 	it.sub.Unsubscribe()
 	return nil
 }
 
-// ContractBlockResultRewardChanged represents a BlockResultRewardChanged event raised by the Contract contract.
-type ContractBlockResultRewardChanged struct {
-	NewBlockResultRewardAllocation *big.Int
-	Raw                            types.Log // Blockchain specific contextual infos
+// ContractBlockSpecimenRewardChanged represents a BlockSpecimenRewardChanged event raised by the Contract contract.
+type ContractBlockSpecimenRewardChanged struct {
+	NewBlockSpecimenRewardAllocation *big.Int
+	Raw                              types.Log // Blockchain specific contextual infos
 }
 
-// FilterBlockResultRewardChanged is a free log retrieval operation binding the contract event 0xa425d7d9b858a4250625446e4504257053202ae93ba0d1dea68dce7ec87a05c5.
+// FilterBlockSpecimenRewardChanged is a free log retrieval operation binding the contract event 0x01eb821dd596243f2f8c5f6c7478e281b855ac12a9f4be2c486cb2778a0bb81e.
 //
-// Solidity: event BlockResultRewardChanged(uint128 newBlockResultRewardAllocation)
-func (_Contract *ContractFilterer) FilterBlockResultRewardChanged(opts *bind.FilterOpts) (*ContractBlockResultRewardChangedIterator, error) {
+// Solidity: event BlockSpecimenRewardChanged(uint128 newBlockSpecimenRewardAllocation)
+func (_Contract *ContractFilterer) FilterBlockSpecimenRewardChanged(opts *bind.FilterOpts) (*ContractBlockSpecimenRewardChangedIterator, error) {
 
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockResultRewardChanged")
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "BlockSpecimenRewardChanged")
 	if err != nil {
 		return nil, err
 	}
-	return &ContractBlockResultRewardChangedIterator{contract: _Contract.contract, event: "BlockResultRewardChanged", logs: logs, sub: sub}, nil
+	return &ContractBlockSpecimenRewardChangedIterator{contract: _Contract.contract, event: "BlockSpecimenRewardChanged", logs: logs, sub: sub}, nil
 }
 
-// WatchBlockResultRewardChanged is a free log subscription operation binding the contract event 0xa425d7d9b858a4250625446e4504257053202ae93ba0d1dea68dce7ec87a05c5.
+// WatchBlockSpecimenRewardChanged is a free log subscription operation binding the contract event 0x01eb821dd596243f2f8c5f6c7478e281b855ac12a9f4be2c486cb2778a0bb81e.
 //
-// Solidity: event BlockResultRewardChanged(uint128 newBlockResultRewardAllocation)
-func (_Contract *ContractFilterer) WatchBlockResultRewardChanged(opts *bind.WatchOpts, sink chan<- *ContractBlockResultRewardChanged) (event.Subscription, error) {
+// Solidity: event BlockSpecimenRewardChanged(uint128 newBlockSpecimenRewardAllocation)
+func (_Contract *ContractFilterer) WatchBlockSpecimenRewardChanged(opts *bind.WatchOpts, sink chan<- *ContractBlockSpecimenRewardChanged) (event.Subscription, error) {
 
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockResultRewardChanged")
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "BlockSpecimenRewardChanged")
 	if err != nil {
 		return nil, err
 	}
@@ -1809,8 +1809,8 @@ func (_Contract *ContractFilterer) WatchBlockResultRewardChanged(opts *bind.Watc
 			select {
 			case log := <-logs:
 				// New log arrived, parse the event and forward to the user
-				event := new(ContractBlockResultRewardChanged)
-				if err := _Contract.contract.UnpackLog(event, "BlockResultRewardChanged", log); err != nil {
+				event := new(ContractBlockSpecimenRewardChanged)
+				if err := _Contract.contract.UnpackLog(event, "BlockSpecimenRewardChanged", log); err != nil {
 					return err
 				}
 				event.Raw = log
@@ -1831,12 +1831,12 @@ func (_Contract *ContractFilterer) WatchBlockResultRewardChanged(opts *bind.Watc
 	}), nil
 }
 
-// ParseBlockResultRewardChanged is a log parse operation binding the contract event 0xa425d7d9b858a4250625446e4504257053202ae93ba0d1dea68dce7ec87a05c5.
+// ParseBlockSpecimenRewardChanged is a log parse operation binding the contract event 0x01eb821dd596243f2f8c5f6c7478e281b855ac12a9f4be2c486cb2778a0bb81e.
 //
-// Solidity: event BlockResultRewardChanged(uint128 newBlockResultRewardAllocation)
-func (_Contract *ContractFilterer) ParseBlockResultRewardChanged(log types.Log) (*ContractBlockResultRewardChanged, error) {
-	event := new(ContractBlockResultRewardChanged)
-	if err := _Contract.contract.UnpackLog(event, "BlockResultRewardChanged", log); err != nil {
+// Solidity: event BlockSpecimenRewardChanged(uint128 newBlockSpecimenRewardAllocation)
+func (_Contract *ContractFilterer) ParseBlockSpecimenRewardChanged(log types.Log) (*ContractBlockSpecimenRewardChanged, error) {
+	event := new(ContractBlockSpecimenRewardChanged)
+	if err := _Contract.contract.UnpackLog(event, "BlockSpecimenRewardChanged", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
@@ -3116,408 +3116,6 @@ func (_Contract *ContractFilterer) ParseQuorumNotReached(log types.Log) (*Contra
 	return event, nil
 }
 
-// ContractResultSessionDurationChangedIterator is returned from FilterResultSessionDurationChanged and is used to iterate over the raw logs and unpacked data for ResultSessionDurationChanged events raised by the Contract contract.
-type ContractResultSessionDurationChangedIterator struct {
-	Event *ContractResultSessionDurationChanged // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *ContractResultSessionDurationChangedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(ContractResultSessionDurationChanged)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(ContractResultSessionDurationChanged)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractResultSessionDurationChangedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *ContractResultSessionDurationChangedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// ContractResultSessionDurationChanged represents a ResultSessionDurationChanged event raised by the Contract contract.
-type ContractResultSessionDurationChanged struct {
-	NewSessionDuration uint64
-	Raw                types.Log // Blockchain specific contextual infos
-}
-
-// FilterResultSessionDurationChanged is a free log retrieval operation binding the contract event 0x80972f2be3a50171fc4fb48963f365cbd47dc216ace7f3628a584503a80a9f97.
-//
-// Solidity: event ResultSessionDurationChanged(uint64 newSessionDuration)
-func (_Contract *ContractFilterer) FilterResultSessionDurationChanged(opts *bind.FilterOpts) (*ContractResultSessionDurationChangedIterator, error) {
-
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "ResultSessionDurationChanged")
-	if err != nil {
-		return nil, err
-	}
-	return &ContractResultSessionDurationChangedIterator{contract: _Contract.contract, event: "ResultSessionDurationChanged", logs: logs, sub: sub}, nil
-}
-
-// WatchResultSessionDurationChanged is a free log subscription operation binding the contract event 0x80972f2be3a50171fc4fb48963f365cbd47dc216ace7f3628a584503a80a9f97.
-//
-// Solidity: event ResultSessionDurationChanged(uint64 newSessionDuration)
-func (_Contract *ContractFilterer) WatchResultSessionDurationChanged(opts *bind.WatchOpts, sink chan<- *ContractResultSessionDurationChanged) (event.Subscription, error) {
-
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "ResultSessionDurationChanged")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(ContractResultSessionDurationChanged)
-				if err := _Contract.contract.UnpackLog(event, "ResultSessionDurationChanged", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseResultSessionDurationChanged is a log parse operation binding the contract event 0x80972f2be3a50171fc4fb48963f365cbd47dc216ace7f3628a584503a80a9f97.
-//
-// Solidity: event ResultSessionDurationChanged(uint64 newSessionDuration)
-func (_Contract *ContractFilterer) ParseResultSessionDurationChanged(log types.Log) (*ContractResultSessionDurationChanged, error) {
-	event := new(ContractResultSessionDurationChanged)
-	if err := _Contract.contract.UnpackLog(event, "ResultSessionDurationChanged", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// ContractResultSessionMinSubmissionChangedIterator is returned from FilterResultSessionMinSubmissionChanged and is used to iterate over the raw logs and unpacked data for ResultSessionMinSubmissionChanged events raised by the Contract contract.
-type ContractResultSessionMinSubmissionChangedIterator struct {
-	Event *ContractResultSessionMinSubmissionChanged // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *ContractResultSessionMinSubmissionChangedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(ContractResultSessionMinSubmissionChanged)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(ContractResultSessionMinSubmissionChanged)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractResultSessionMinSubmissionChangedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *ContractResultSessionMinSubmissionChangedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// ContractResultSessionMinSubmissionChanged represents a ResultSessionMinSubmissionChanged event raised by the Contract contract.
-type ContractResultSessionMinSubmissionChanged struct {
-	MinSubmissions uint64
-	Raw            types.Log // Blockchain specific contextual infos
-}
-
-// FilterResultSessionMinSubmissionChanged is a free log retrieval operation binding the contract event 0xebd426f3d605bdf7e97ba7cd4a971371661140ad0acc8e0081f067d2004a7176.
-//
-// Solidity: event ResultSessionMinSubmissionChanged(uint64 minSubmissions)
-func (_Contract *ContractFilterer) FilterResultSessionMinSubmissionChanged(opts *bind.FilterOpts) (*ContractResultSessionMinSubmissionChangedIterator, error) {
-
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "ResultSessionMinSubmissionChanged")
-	if err != nil {
-		return nil, err
-	}
-	return &ContractResultSessionMinSubmissionChangedIterator{contract: _Contract.contract, event: "ResultSessionMinSubmissionChanged", logs: logs, sub: sub}, nil
-}
-
-// WatchResultSessionMinSubmissionChanged is a free log subscription operation binding the contract event 0xebd426f3d605bdf7e97ba7cd4a971371661140ad0acc8e0081f067d2004a7176.
-//
-// Solidity: event ResultSessionMinSubmissionChanged(uint64 minSubmissions)
-func (_Contract *ContractFilterer) WatchResultSessionMinSubmissionChanged(opts *bind.WatchOpts, sink chan<- *ContractResultSessionMinSubmissionChanged) (event.Subscription, error) {
-
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "ResultSessionMinSubmissionChanged")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(ContractResultSessionMinSubmissionChanged)
-				if err := _Contract.contract.UnpackLog(event, "ResultSessionMinSubmissionChanged", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseResultSessionMinSubmissionChanged is a log parse operation binding the contract event 0xebd426f3d605bdf7e97ba7cd4a971371661140ad0acc8e0081f067d2004a7176.
-//
-// Solidity: event ResultSessionMinSubmissionChanged(uint64 minSubmissions)
-func (_Contract *ContractFilterer) ParseResultSessionMinSubmissionChanged(log types.Log) (*ContractResultSessionMinSubmissionChanged, error) {
-	event := new(ContractResultSessionMinSubmissionChanged)
-	if err := _Contract.contract.UnpackLog(event, "ResultSessionMinSubmissionChanged", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
-// ContractResultSessionQuorumChangedIterator is returned from FilterResultSessionQuorumChanged and is used to iterate over the raw logs and unpacked data for ResultSessionQuorumChanged events raised by the Contract contract.
-type ContractResultSessionQuorumChangedIterator struct {
-	Event *ContractResultSessionQuorumChanged // Event containing the contract specifics and raw log
-
-	contract *bind.BoundContract // Generic contract to use for unpacking event data
-	event    string              // Event name to use for unpacking event data
-
-	logs chan types.Log        // Log channel receiving the found contract events
-	sub  ethereum.Subscription // Subscription for errors, completion and termination
-	done bool                  // Whether the subscription completed delivering logs
-	fail error                 // Occurred error to stop iteration
-}
-
-// Next advances the iterator to the subsequent event, returning whether there
-// are any more events found. In case of a retrieval or parsing error, false is
-// returned and Error() can be queried for the exact failure.
-func (it *ContractResultSessionQuorumChangedIterator) Next() bool {
-	// If the iterator failed, stop iterating
-	if it.fail != nil {
-		return false
-	}
-	// If the iterator completed, deliver directly whatever's available
-	if it.done {
-		select {
-		case log := <-it.logs:
-			it.Event = new(ContractResultSessionQuorumChanged)
-			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-				it.fail = err
-				return false
-			}
-			it.Event.Raw = log
-			return true
-
-		default:
-			return false
-		}
-	}
-	// Iterator still in progress, wait for either a data or an error event
-	select {
-	case log := <-it.logs:
-		it.Event = new(ContractResultSessionQuorumChanged)
-		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
-			it.fail = err
-			return false
-		}
-		it.Event.Raw = log
-		return true
-
-	case err := <-it.sub.Err():
-		it.done = true
-		it.fail = err
-		return it.Next()
-	}
-}
-
-// Error returns any retrieval or parsing error occurred during filtering.
-func (it *ContractResultSessionQuorumChangedIterator) Error() error {
-	return it.fail
-}
-
-// Close terminates the iteration process, releasing any pending underlying
-// resources.
-func (it *ContractResultSessionQuorumChangedIterator) Close() error {
-	it.sub.Unsubscribe()
-	return nil
-}
-
-// ContractResultSessionQuorumChanged represents a ResultSessionQuorumChanged event raised by the Contract contract.
-type ContractResultSessionQuorumChanged struct {
-	NewQuorumThreshold *big.Int
-	Raw                types.Log // Blockchain specific contextual infos
-}
-
-// FilterResultSessionQuorumChanged is a free log retrieval operation binding the contract event 0xe8c66e2621de650a92131e007d8bbc4cbf3bb8d4df7471d1f93eb20d70039a7c.
-//
-// Solidity: event ResultSessionQuorumChanged(uint256 newQuorumThreshold)
-func (_Contract *ContractFilterer) FilterResultSessionQuorumChanged(opts *bind.FilterOpts) (*ContractResultSessionQuorumChangedIterator, error) {
-
-	logs, sub, err := _Contract.contract.FilterLogs(opts, "ResultSessionQuorumChanged")
-	if err != nil {
-		return nil, err
-	}
-	return &ContractResultSessionQuorumChangedIterator{contract: _Contract.contract, event: "ResultSessionQuorumChanged", logs: logs, sub: sub}, nil
-}
-
-// WatchResultSessionQuorumChanged is a free log subscription operation binding the contract event 0xe8c66e2621de650a92131e007d8bbc4cbf3bb8d4df7471d1f93eb20d70039a7c.
-//
-// Solidity: event ResultSessionQuorumChanged(uint256 newQuorumThreshold)
-func (_Contract *ContractFilterer) WatchResultSessionQuorumChanged(opts *bind.WatchOpts, sink chan<- *ContractResultSessionQuorumChanged) (event.Subscription, error) {
-
-	logs, sub, err := _Contract.contract.WatchLogs(opts, "ResultSessionQuorumChanged")
-	if err != nil {
-		return nil, err
-	}
-	return event.NewSubscription(func(quit <-chan struct{}) error {
-		defer sub.Unsubscribe()
-		for {
-			select {
-			case log := <-logs:
-				// New log arrived, parse the event and forward to the user
-				event := new(ContractResultSessionQuorumChanged)
-				if err := _Contract.contract.UnpackLog(event, "ResultSessionQuorumChanged", log); err != nil {
-					return err
-				}
-				event.Raw = log
-
-				select {
-				case sink <- event:
-				case err := <-sub.Err():
-					return err
-				case <-quit:
-					return nil
-				}
-			case err := <-sub.Err():
-				return err
-			case <-quit:
-				return nil
-			}
-		}
-	}), nil
-}
-
-// ParseResultSessionQuorumChanged is a log parse operation binding the contract event 0xe8c66e2621de650a92131e007d8bbc4cbf3bb8d4df7471d1f93eb20d70039a7c.
-//
-// Solidity: event ResultSessionQuorumChanged(uint256 newQuorumThreshold)
-func (_Contract *ContractFilterer) ParseResultSessionQuorumChanged(log types.Log) (*ContractResultSessionQuorumChanged, error) {
-	event := new(ContractResultSessionQuorumChanged)
-	if err := _Contract.contract.UnpackLog(event, "ResultSessionQuorumChanged", log); err != nil {
-		return nil, err
-	}
-	event.Raw = log
-	return event, nil
-}
-
 // ContractSecondsPerBlockCurrentChainChangedIterator is returned from FilterSecondsPerBlockCurrentChainChanged and is used to iterate over the raw logs and unpacked data for SecondsPerBlockCurrentChainChanged events raised by the Contract contract.
 type ContractSecondsPerBlockCurrentChainChangedIterator struct {
 	Event *ContractSecondsPerBlockCurrentChainChanged // Event containing the contract specifics and raw log
@@ -3810,6 +3408,408 @@ func (_Contract *ContractFilterer) WatchSessionStarted(opts *bind.WatchOpts, sin
 func (_Contract *ContractFilterer) ParseSessionStarted(log types.Log) (*ContractSessionStarted, error) {
 	event := new(ContractSessionStarted)
 	if err := _Contract.contract.UnpackLog(event, "SessionStarted", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ContractSpecimenSessionDurationChangedIterator is returned from FilterSpecimenSessionDurationChanged and is used to iterate over the raw logs and unpacked data for SpecimenSessionDurationChanged events raised by the Contract contract.
+type ContractSpecimenSessionDurationChangedIterator struct {
+	Event *ContractSpecimenSessionDurationChanged // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContractSpecimenSessionDurationChangedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContractSpecimenSessionDurationChanged)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContractSpecimenSessionDurationChanged)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContractSpecimenSessionDurationChangedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContractSpecimenSessionDurationChangedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContractSpecimenSessionDurationChanged represents a SpecimenSessionDurationChanged event raised by the Contract contract.
+type ContractSpecimenSessionDurationChanged struct {
+	NewSessionDuration uint64
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterSpecimenSessionDurationChanged is a free log retrieval operation binding the contract event 0x94bc488f4d9a985dd5f9d11e8f0a614a62828888eb65b704a90fa852be937549.
+//
+// Solidity: event SpecimenSessionDurationChanged(uint64 newSessionDuration)
+func (_Contract *ContractFilterer) FilterSpecimenSessionDurationChanged(opts *bind.FilterOpts) (*ContractSpecimenSessionDurationChangedIterator, error) {
+
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "SpecimenSessionDurationChanged")
+	if err != nil {
+		return nil, err
+	}
+	return &ContractSpecimenSessionDurationChangedIterator{contract: _Contract.contract, event: "SpecimenSessionDurationChanged", logs: logs, sub: sub}, nil
+}
+
+// WatchSpecimenSessionDurationChanged is a free log subscription operation binding the contract event 0x94bc488f4d9a985dd5f9d11e8f0a614a62828888eb65b704a90fa852be937549.
+//
+// Solidity: event SpecimenSessionDurationChanged(uint64 newSessionDuration)
+func (_Contract *ContractFilterer) WatchSpecimenSessionDurationChanged(opts *bind.WatchOpts, sink chan<- *ContractSpecimenSessionDurationChanged) (event.Subscription, error) {
+
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "SpecimenSessionDurationChanged")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContractSpecimenSessionDurationChanged)
+				if err := _Contract.contract.UnpackLog(event, "SpecimenSessionDurationChanged", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSpecimenSessionDurationChanged is a log parse operation binding the contract event 0x94bc488f4d9a985dd5f9d11e8f0a614a62828888eb65b704a90fa852be937549.
+//
+// Solidity: event SpecimenSessionDurationChanged(uint64 newSessionDuration)
+func (_Contract *ContractFilterer) ParseSpecimenSessionDurationChanged(log types.Log) (*ContractSpecimenSessionDurationChanged, error) {
+	event := new(ContractSpecimenSessionDurationChanged)
+	if err := _Contract.contract.UnpackLog(event, "SpecimenSessionDurationChanged", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ContractSpecimenSessionMinSubmissionChangedIterator is returned from FilterSpecimenSessionMinSubmissionChanged and is used to iterate over the raw logs and unpacked data for SpecimenSessionMinSubmissionChanged events raised by the Contract contract.
+type ContractSpecimenSessionMinSubmissionChangedIterator struct {
+	Event *ContractSpecimenSessionMinSubmissionChanged // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContractSpecimenSessionMinSubmissionChangedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContractSpecimenSessionMinSubmissionChanged)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContractSpecimenSessionMinSubmissionChanged)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContractSpecimenSessionMinSubmissionChangedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContractSpecimenSessionMinSubmissionChangedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContractSpecimenSessionMinSubmissionChanged represents a SpecimenSessionMinSubmissionChanged event raised by the Contract contract.
+type ContractSpecimenSessionMinSubmissionChanged struct {
+	MinSubmissions uint64
+	Raw            types.Log // Blockchain specific contextual infos
+}
+
+// FilterSpecimenSessionMinSubmissionChanged is a free log retrieval operation binding the contract event 0x28312bbddd51eea4439db773218c441a4057f6ed285c642a569f1dcdba1cc047.
+//
+// Solidity: event SpecimenSessionMinSubmissionChanged(uint64 minSubmissions)
+func (_Contract *ContractFilterer) FilterSpecimenSessionMinSubmissionChanged(opts *bind.FilterOpts) (*ContractSpecimenSessionMinSubmissionChangedIterator, error) {
+
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "SpecimenSessionMinSubmissionChanged")
+	if err != nil {
+		return nil, err
+	}
+	return &ContractSpecimenSessionMinSubmissionChangedIterator{contract: _Contract.contract, event: "SpecimenSessionMinSubmissionChanged", logs: logs, sub: sub}, nil
+}
+
+// WatchSpecimenSessionMinSubmissionChanged is a free log subscription operation binding the contract event 0x28312bbddd51eea4439db773218c441a4057f6ed285c642a569f1dcdba1cc047.
+//
+// Solidity: event SpecimenSessionMinSubmissionChanged(uint64 minSubmissions)
+func (_Contract *ContractFilterer) WatchSpecimenSessionMinSubmissionChanged(opts *bind.WatchOpts, sink chan<- *ContractSpecimenSessionMinSubmissionChanged) (event.Subscription, error) {
+
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "SpecimenSessionMinSubmissionChanged")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContractSpecimenSessionMinSubmissionChanged)
+				if err := _Contract.contract.UnpackLog(event, "SpecimenSessionMinSubmissionChanged", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSpecimenSessionMinSubmissionChanged is a log parse operation binding the contract event 0x28312bbddd51eea4439db773218c441a4057f6ed285c642a569f1dcdba1cc047.
+//
+// Solidity: event SpecimenSessionMinSubmissionChanged(uint64 minSubmissions)
+func (_Contract *ContractFilterer) ParseSpecimenSessionMinSubmissionChanged(log types.Log) (*ContractSpecimenSessionMinSubmissionChanged, error) {
+	event := new(ContractSpecimenSessionMinSubmissionChanged)
+	if err := _Contract.contract.UnpackLog(event, "SpecimenSessionMinSubmissionChanged", log); err != nil {
+		return nil, err
+	}
+	event.Raw = log
+	return event, nil
+}
+
+// ContractSpecimenSessionQuorumChangedIterator is returned from FilterSpecimenSessionQuorumChanged and is used to iterate over the raw logs and unpacked data for SpecimenSessionQuorumChanged events raised by the Contract contract.
+type ContractSpecimenSessionQuorumChangedIterator struct {
+	Event *ContractSpecimenSessionQuorumChanged // Event containing the contract specifics and raw log
+
+	contract *bind.BoundContract // Generic contract to use for unpacking event data
+	event    string              // Event name to use for unpacking event data
+
+	logs chan types.Log        // Log channel receiving the found contract events
+	sub  ethereum.Subscription // Subscription for errors, completion and termination
+	done bool                  // Whether the subscription completed delivering logs
+	fail error                 // Occurred error to stop iteration
+}
+
+// Next advances the iterator to the subsequent event, returning whether there
+// are any more events found. In case of a retrieval or parsing error, false is
+// returned and Error() can be queried for the exact failure.
+func (it *ContractSpecimenSessionQuorumChangedIterator) Next() bool {
+	// If the iterator failed, stop iterating
+	if it.fail != nil {
+		return false
+	}
+	// If the iterator completed, deliver directly whatever's available
+	if it.done {
+		select {
+		case log := <-it.logs:
+			it.Event = new(ContractSpecimenSessionQuorumChanged)
+			if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+				it.fail = err
+				return false
+			}
+			it.Event.Raw = log
+			return true
+
+		default:
+			return false
+		}
+	}
+	// Iterator still in progress, wait for either a data or an error event
+	select {
+	case log := <-it.logs:
+		it.Event = new(ContractSpecimenSessionQuorumChanged)
+		if err := it.contract.UnpackLog(it.Event, it.event, log); err != nil {
+			it.fail = err
+			return false
+		}
+		it.Event.Raw = log
+		return true
+
+	case err := <-it.sub.Err():
+		it.done = true
+		it.fail = err
+		return it.Next()
+	}
+}
+
+// Error returns any retrieval or parsing error occurred during filtering.
+func (it *ContractSpecimenSessionQuorumChangedIterator) Error() error {
+	return it.fail
+}
+
+// Close terminates the iteration process, releasing any pending underlying
+// resources.
+func (it *ContractSpecimenSessionQuorumChangedIterator) Close() error {
+	it.sub.Unsubscribe()
+	return nil
+}
+
+// ContractSpecimenSessionQuorumChanged represents a SpecimenSessionQuorumChanged event raised by the Contract contract.
+type ContractSpecimenSessionQuorumChanged struct {
+	NewQuorumThreshold *big.Int
+	Raw                types.Log // Blockchain specific contextual infos
+}
+
+// FilterSpecimenSessionQuorumChanged is a free log retrieval operation binding the contract event 0x00ec8eefea39d742ff523b872c1931ff4d509ab873041c5d6e237d5f0fc053f8.
+//
+// Solidity: event SpecimenSessionQuorumChanged(uint256 newQuorumThreshold)
+func (_Contract *ContractFilterer) FilterSpecimenSessionQuorumChanged(opts *bind.FilterOpts) (*ContractSpecimenSessionQuorumChangedIterator, error) {
+
+	logs, sub, err := _Contract.contract.FilterLogs(opts, "SpecimenSessionQuorumChanged")
+	if err != nil {
+		return nil, err
+	}
+	return &ContractSpecimenSessionQuorumChangedIterator{contract: _Contract.contract, event: "SpecimenSessionQuorumChanged", logs: logs, sub: sub}, nil
+}
+
+// WatchSpecimenSessionQuorumChanged is a free log subscription operation binding the contract event 0x00ec8eefea39d742ff523b872c1931ff4d509ab873041c5d6e237d5f0fc053f8.
+//
+// Solidity: event SpecimenSessionQuorumChanged(uint256 newQuorumThreshold)
+func (_Contract *ContractFilterer) WatchSpecimenSessionQuorumChanged(opts *bind.WatchOpts, sink chan<- *ContractSpecimenSessionQuorumChanged) (event.Subscription, error) {
+
+	logs, sub, err := _Contract.contract.WatchLogs(opts, "SpecimenSessionQuorumChanged")
+	if err != nil {
+		return nil, err
+	}
+	return event.NewSubscription(func(quit <-chan struct{}) error {
+		defer sub.Unsubscribe()
+		for {
+			select {
+			case log := <-logs:
+				// New log arrived, parse the event and forward to the user
+				event := new(ContractSpecimenSessionQuorumChanged)
+				if err := _Contract.contract.UnpackLog(event, "SpecimenSessionQuorumChanged", log); err != nil {
+					return err
+				}
+				event.Raw = log
+
+				select {
+				case sink <- event:
+				case err := <-sub.Err():
+					return err
+				case <-quit:
+					return nil
+				}
+			case err := <-sub.Err():
+				return err
+			case <-quit:
+				return nil
+			}
+		}
+	}), nil
+}
+
+// ParseSpecimenSessionQuorumChanged is a log parse operation binding the contract event 0x00ec8eefea39d742ff523b872c1931ff4d509ab873041c5d6e237d5f0fc053f8.
+//
+// Solidity: event SpecimenSessionQuorumChanged(uint256 newQuorumThreshold)
+func (_Contract *ContractFilterer) ParseSpecimenSessionQuorumChanged(log types.Log) (*ContractSpecimenSessionQuorumChanged, error) {
+	event := new(ContractSpecimenSessionQuorumChanged)
+	if err := _Contract.contract.UnpackLog(event, "SpecimenSessionQuorumChanged", log); err != nil {
 		return nil, err
 	}
 	event.Raw = log
