@@ -65,6 +65,11 @@ type DataMap struct {
 	Proof InnerMap `json:"proof"`
 }
 
+type errorContext struct {
+	Err     error
+	Context string
+}
+
 // UnmarshalJSON handles base64 decoding directly into the Bytes field.
 func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 	var aux struct {
@@ -104,6 +109,10 @@ func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 // ProcessEvent handles events asynchronously by processing the provided CID.
 func (s *Sampler) ProcessEvent(cidStr string) {
 	go func(cidStr string) {
+		log.Debugf("Processing event for CID [%s] is defered for 2 min", cidStr)
+		time.Sleep(120 * time.Second)
+		log.Debugf("Processing event for CID [%s] ...", cidStr)
+
 		_, err := cid.Decode(cidStr)
 		if err != nil {
 			log.Errorf("Invalid CID: %v", err)
@@ -155,16 +164,17 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	}
 
 	resultChan := make(chan interface{})
-	errorChan := make(chan error)
+	errorChan := make(chan errorContext)
 
 	// Define a context with timeout to prevent hanging
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
 	// Start a goroutine to get data from the IPFS node
 	go func() {
+		log.Debugf("Getting data from IPFS node: %s", cid.String())
 		if err := s.IPFSShell.DagGet(cid.String(), &data); err != nil {
-			errorChan <- err
+			errorChan <- errorContext{Err: err, Context: "IPFS node"}
 			return
 		}
 		select {
@@ -178,13 +188,13 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 		go func(gateway string) {
 			gatewayData, err := s.getDataFromGateway(gateway, cid.String())
 			if err != nil {
-				errorChan <- err
+				errorChan <- errorContext{Err: err, Context: gateway}
 				return
 			}
 
 			// Unmarshal JSON data into the provided data interface
 			if err := json.Unmarshal(gatewayData, &data); err != nil {
-				errorChan <- err
+				errorChan <- errorContext{Err: err, Context: gateway}
 				return
 			}
 
@@ -197,11 +207,11 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 			// TODO: deduce the correct format from the CID
 			storedCid, err := s.IPFSShell.DagPut(data, "dag-cbor", "dag-cbor")
 			if err != nil {
-				errorChan <- err
+				errorChan <- errorContext{Err: err, Context: "IPFS node"}
 			}
 
 			if storedCid != cid.String() {
-				errorChan <- fmt.Errorf("IPFS node returned different CID: %s", storedCid)
+				errorChan <- errorContext{Err: fmt.Errorf("IPFS node returned different CID: %s", storedCid), Context: "Result CID"}
 			}
 		}(gateway)
 	}
@@ -227,8 +237,9 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 				return nil
 			}
 
-		case err := <-errorChan:
-			finalError = err
+		case errCxt := <-errorChan:
+			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
+			finalError = errCxt.Err
 		}
 	}
 
@@ -256,6 +267,7 @@ func (s *Sampler) getDataFromGateway(gateway, cid string) ([]byte, error) {
 	baseURL.RawQuery = query.Encode()
 
 	// Perform the HTTP GET request
+	log.Debugf("Getting data from gateway: %s", baseURL.String())
 	resp, err := http.Get(baseURL.String())
 	if err != nil {
 		return nil, err
