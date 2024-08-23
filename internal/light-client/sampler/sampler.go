@@ -30,9 +30,10 @@ var DefaultGateways = []string{
 
 // Sampler is a struct that samples data from IPFS and verifies it.
 type Sampler struct {
-	IPFSShell *ipfs.Shell
-	Gateways  []string
-	pub       *publisher.Publisher
+	IPFSShell     *ipfs.Shell
+	Gateways      []string
+	pub           *publisher.Publisher
+	samplingDelay uint
 }
 
 // Link represents a link to another CID in IPFS.
@@ -92,7 +93,7 @@ func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
-func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
+func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
 
 	if _, _, err := shell.Version(); err != nil {
@@ -100,17 +101,18 @@ func NewSampler(ipfsAddr string, pub *publisher.Publisher) (*Sampler, error) {
 	}
 
 	return &Sampler{
-		IPFSShell: shell,
-		Gateways:  DefaultGateways,
-		pub:       pub,
+		IPFSShell:     shell,
+		Gateways:      DefaultGateways,
+		pub:           pub,
+		samplingDelay: samplingDelay,
 	}, nil
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
 func (s *Sampler) ProcessEvent(cidStr string) {
 	go func(cidStr string) {
-		log.Debugf("Processing event for CID [%s] is defered for 2 min", cidStr)
-		time.Sleep(120 * time.Second)
+		log.Debugf("Processing event for CID [%s] is defered for % min", cidStr, s.samplingDelay/60)
+		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
 		log.Debugf("Processing event for CID [%s] ...", cidStr)
 
 		_, err := cid.Decode(cidStr)
