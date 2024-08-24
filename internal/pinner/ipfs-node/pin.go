@@ -36,7 +36,7 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error
 	}()
 
 	store := dagStore{
-		dag: ipfsNode.API.Dag(),
+		dag: ipfsNode.api.Dag(),
 		ctx: ctx,
 	}
 
@@ -47,7 +47,7 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error
 		return cid.Undef, err
 	}
 
-	pinnedCid, err := ipfsNode.W3.Pin(carFile)
+	pinnedCid, err := ipfsNode.w3.Pin(carFile)
 	if err != nil {
 		return cid.Undef, err
 	}

@@ -14,13 +14,14 @@ import (
 )
 
 var (
-	loglevel     string
-	rpcURL       string
-	contract     string
-	ipfsAddr     string
-	gcpTopicId   string
-	gcpCredsFile string
-	clientId     string
+	loglevel      string
+	rpcURL        string
+	contract      string
+	ipfsAddr      string
+	gcpTopicId    string
+	gcpCredsFile  string
+	clientId      string
+	samplingDelay uint
 )
 
 var greeting = `
@@ -75,6 +76,7 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
 	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
 	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
+	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("contract")
@@ -98,7 +100,7 @@ func startClient() {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}
 
-	sampler, err := sampler.NewSampler(ipfsAddr, pub)
+	sampler, err := sampler.NewSampler(ipfsAddr, samplingDelay, pub)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}

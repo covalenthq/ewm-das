@@ -68,9 +68,9 @@ func (d *DataBlockImpl) encodeBlobs(data []byte) error {
 		}
 	}
 
-	d.Size = uint64(len(data))
-	d.Blobs = blobs
-	d.Commitments = commitments
+	d.size = uint64(len(data))
+	d.blobs = blobs
+	d.commitments = commitments
 	return nil
 }
 
@@ -87,10 +87,10 @@ func (d *DataBlockImpl) addBlobAndCommitment(blobs *[]*ckzg4844.Blob, commitment
 
 // decodeBlobs decodes the blobs back into the original data.
 func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
-	data := make([]byte, d.Size)
+	data := make([]byte, d.size)
 	j := 0
 
-	for _, blob := range d.Blobs {
+	for _, blob := range d.blobs {
 		for k := 0; k < len(blob); k += 32 {
 			remaining := len(data) - j
 			if remaining < 31 {
@@ -108,20 +108,20 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 
 // computeCellsAndKZGProofs computes the cells and KZG proofs for the encoded blobs.
 func (d *DataBlockImpl) computeCellsAndKZGProofs() error {
-	if d.Blobs == nil {
+	if d.blobs == nil {
 		return nil
 	}
 
-	d.Cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, len(d.Blobs))
-	d.Proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, len(d.Blobs))
+	d.cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, len(d.blobs))
+	d.proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, len(d.blobs))
 
-	for i, blob := range d.Blobs {
+	for i, blob := range d.blobs {
 		cells, proofs, err := ckzg4844.ComputeCellsAndKZGProofs(blob)
 		if err != nil {
 			return err
 		}
-		d.Cells[i] = cells
-		d.Proofs[i] = proofs
+		d.cells[i] = cells
+		d.proofs[i] = proofs
 	}
 
 	return nil

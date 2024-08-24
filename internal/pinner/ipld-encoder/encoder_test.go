@@ -1,14 +1,11 @@
 package ipldencoder
 
 import (
-	"bytes"
 	"fmt"
 	"os"
 	"testing"
 
-	"github.com/ipld/go-ipld-prime/codec/dagcbor"
 	"github.com/ipld/go-ipld-prime/datamodel"
-	"github.com/ipld/go-ipld-prime/node/basicnode"
 )
 
 // expectedKeys is a list of expected keys in the CBOR encoded data.
@@ -32,20 +29,8 @@ func readAndDecodeCbor(filePath string) (datamodel.Node, error) {
 		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 
-	// Create a NodeAssembler to build the decoded node
-	nb := basicnode.Prototype.Any.NewBuilder()
-
-	// Wrap the data in a bytes.Reader to satisfy io.Reader interface
-	reader := bytes.NewReader(data)
-
-	// Decode the data using the DAG-CBOR decoder
-	err = dagcbor.Decode(nb, reader)
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode CBOR data: %w", err)
-	}
-
 	// Return the decoded node
-	return nb.Build(), nil
+	return DecodeNode(data)
 }
 
 // TestReadAndDecodeCbor tests the readAndDecodeCbor function.
