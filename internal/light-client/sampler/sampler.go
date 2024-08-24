@@ -196,7 +196,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	// Start goroutines to get data from each public gateway
 	for _, gateway := range s.gateways {
 		go func(gateway string) {
-			gatewayData, err := s.getDataFromGateway(gateway, cid.String())
+			gatewayData, err := s.getDataFromGateway(ctx, gateway, cid.String())
 			if err != nil {
 				errorChan <- errorContext{Err: err, Context: gateway}
 				return
@@ -224,6 +224,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 
 			select {
 			case resultChan <- data:
+				cancel()
 			case <-ctx.Done():
 			}
 
@@ -275,11 +276,11 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	return nil
 }
 
-func (s *Sampler) getDataFromGateway(gateway, cid string) ([]byte, error) {
+func (s *Sampler) getDataFromGateway(ctx context.Context, gateway, cid string) ([]byte, error) {
 	// Parse the base gateway URL
 	baseURL, err := url.Parse(gateway)
 	if err != nil {
-		return nil, fmt.Errorf("invalid gateway URL: %v", err)
+		return nil, err
 	}
 
 	// Append the IPFS path and CID
@@ -290,9 +291,14 @@ func (s *Sampler) getDataFromGateway(gateway, cid string) ([]byte, error) {
 	query.Set("format", "raw")
 	baseURL.RawQuery = query.Encode()
 
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
 	// Perform the HTTP GET request
 	log.Debugf("Getting data from gateway: %s", baseURL.String())
-	resp, err := http.Get(baseURL.String())
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
