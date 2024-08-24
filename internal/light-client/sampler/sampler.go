@@ -1,6 +1,7 @@
 package sampler
 
 import (
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -15,9 +16,11 @@ import (
 
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
+	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
+	"github.com/ipld/go-ipld-prime/codec/dagjson"
 )
 
 var log = logging.Logger("light-client")
@@ -111,15 +114,20 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 // ProcessEvent handles events asynchronously by processing the provided CID.
 func (s *Sampler) ProcessEvent(cidStr string) {
 	go func(cidStr string) {
-		log.Debugf("Processing event for CID [%s] is defered for % min", cidStr, s.samplingDelay/60)
-		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
-		log.Debugf("Processing event for CID [%s] ...", cidStr)
-
-		_, err := cid.Decode(cidStr)
+		rawCid, err := cid.Decode(cidStr)
 		if err != nil {
 			log.Errorf("Invalid CID: %v", err)
 			return
 		}
+
+		if rawCid.Prefix().Codec != cid.DagCBOR {
+			log.Debugf("Unsupported CID codec: %v. Skipping", rawCid.Prefix().Codec)
+			return
+		}
+
+		log.Debugf("Processing event for CID [%s] is defered for %d min", cidStr, s.samplingDelay/60)
+		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
+		log.Debugf("Processing event for CID [%s] ...", cidStr)
 
 		var rootNode RootNode
 		if err := s.GetData(cidStr, &rootNode); err != nil {
@@ -194,8 +202,22 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 				return
 			}
 
+			// Decode the data into an IPLD node from CBOR
+			node, err := ipldencoder.DecodeNode(gatewayData)
+			if err != nil {
+				errorChan <- errorContext{Err: err, Context: gateway}
+				return
+			}
+
+			// Encode the IPLD node into JSON
+			var jsonData bytes.Buffer
+			if err := dagjson.Encode(node, &jsonData); err != nil {
+				errorChan <- errorContext{Err: err, Context: gateway}
+				return
+			}
+
 			// Unmarshal JSON data into the provided data interface
-			if err := json.Unmarshal(gatewayData, &data); err != nil {
+			if err := json.Unmarshal(jsonData.Bytes(), data); err != nil {
 				errorChan <- errorContext{Err: err, Context: gateway}
 				return
 			}

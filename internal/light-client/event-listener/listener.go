@@ -85,7 +85,7 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 // ProcessLogs processes the logs emitted by the contract
 func (el *EventListener) ProcessLogs() {
 	for vLog := range el.Logs {
-		log.Debugf("Log: %v", vLog)
+		log.Debugf("Log Event: %v", vLog.Topics)
 
 		event, err := el.ContractInstance.ParseBlockSpecimenProductionProofSubmitted(vLog)
 		if err != nil {
