@@ -83,12 +83,12 @@ func (ipfsNode *IPFSNode) processAndStoreNode(codecConfig *codecConfig, node ipl
 		return cid.Undef, err
 	}
 
-	blockStore := blockstore.NewBlockstore(ipfsNode.Node.Repo.Datastore())
+	blockStore := blockstore.NewBlockstore(ipfsNode.node.Repo.Datastore())
 	if err := blockStore.Put(context.Background(), block); err != nil {
 		return cid.Undef, nil
 	}
 
-	retrievedNode, err := ipfsNode.API.Dag().Get(context.Background(), blockCid)
+	retrievedNode, err := ipfsNode.api.Dag().Get(context.Background(), blockCid)
 	if err != nil {
 		return cid.Undef, err
 	}

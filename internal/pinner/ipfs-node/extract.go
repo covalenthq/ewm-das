@@ -21,7 +21,7 @@ func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*ipl
 	}
 
 	// Retrieve the block from blockstore
-	node, err := ipfsNode.API.Dag().Get(ctx, cid)
+	node, err := ipfsNode.api.Dag().Get(ctx, cid)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +77,7 @@ func (ipfsNode *IPFSNode) processLinks(ctx context.Context, links datamodel.Node
 		}
 
 		// Get the linked node
-		legacyNode, err := ipfsNode.API.Dag().Get(ctx, linkCid)
+		legacyNode, err := ipfsNode.api.Dag().Get(ctx, linkCid)
 		if err != nil {
 			return nil, nil, err
 		}
@@ -123,7 +123,7 @@ func (ipfsNode *IPFSNode) decodeLinkedNode(ctx context.Context, rootCid cid.Cid,
 		}
 
 		// Get the linked node
-		legacyNode, err := ipfsNode.API.Dag().Get(ctx, linkCid)
+		legacyNode, err := ipfsNode.api.Dag().Get(ctx, linkCid)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -19,9 +19,9 @@ var log = logging.Logger("das-pinner") // Initialize the logger
 
 // IPFSNode struct encapsulates the IPFS node and CoreAPI.
 type IPFSNode struct {
-	Node *core.IpfsNode
-	API  iface.CoreAPI
-	W3   *W3Storage
+	node *core.IpfsNode
+	api  iface.CoreAPI
+	w3   *W3Storage
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
@@ -51,9 +51,9 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 	}
 
 	return &IPFSNode{
-		Node: node,
-		API:  api,
-		W3:   w3,
+		node: node,
+		api:  api,
+		w3:   w3,
 	}, nil
 }
 

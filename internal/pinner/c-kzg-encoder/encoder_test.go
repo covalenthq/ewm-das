@@ -70,8 +70,8 @@ func TestEncodeDecode(t *testing.T) {
 			}
 
 			// Test if Size matches
-			if db.Size != uint64(len(tt.data)) {
-				t.Fatalf("Size mismatch after Encode, got = %v, want = %v", db.Size, len(tt.data))
+			if db.size != uint64(len(tt.data)) {
+				t.Fatalf("Size mismatch after Encode, got = %v, want = %v", db.size, len(tt.data))
 			}
 
 			// Test decoding
