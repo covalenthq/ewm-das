@@ -19,12 +19,12 @@ var log = logging.Logger("light-client")
 
 // EventListener listens for events emitted by the contract
 type EventListener struct {
-	Client           *ethclient.Client
-	ContractAddress  common.Address
-	ContractInstance *contract.Contract
-	Logs             chan types.Log
-	Subscription     ethereum.Subscription
-	Sampler          *sampler.Sampler
+	client           *ethclient.Client
+	contractAddress  common.Address
+	contractInstance *contract.Contract
+	logs             chan types.Log
+	subscription     ethereum.Subscription
+	sampler          *sampler.Sampler
 }
 
 // NewEventListener creates a new EventListener instance
@@ -34,11 +34,11 @@ func NewEventListener(clientURL, contractAddressHex string, sampler *sampler.Sam
 	contractInstance := loadContract(client, contractAddress)
 
 	return &EventListener{
-		Client:           client,
-		ContractAddress:  contractAddress,
-		ContractInstance: contractInstance,
-		Logs:             make(chan types.Log),
-		Sampler:          sampler,
+		client:           client,
+		contractAddress:  contractAddress,
+		contractInstance: contractInstance,
+		logs:             make(chan types.Log),
+		sampler:          sampler,
 	}
 }
 
@@ -63,15 +63,15 @@ func loadContract(client *ethclient.Client, address common.Address) *contract.Co
 // SubscribeToLogs subscribes to logs emitted by the contract
 func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 	query := ethereum.FilterQuery{
-		Addresses: []common.Address{el.ContractAddress},
+		Addresses: []common.Address{el.contractAddress},
 	}
 
-	sub, err := el.Client.SubscribeFilterLogs(ctx, query, el.Logs)
+	sub, err := el.client.SubscribeFilterLogs(ctx, query, el.logs)
 	if err != nil {
 		log.Fatalf("Failed to subscribe to logs: %v", err)
 	}
 
-	el.Subscription = sub
+	el.subscription = sub
 
 	go func() {
 		for err := range sub.Err() {
@@ -79,15 +79,15 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 		}
 	}()
 
-	log.Infof("Subscribed to logs for contract: %v", el.ContractAddress.Hex())
+	log.Infof("Subscribed to logs for contract: %v", el.contractAddress.Hex())
 }
 
 // ProcessLogs processes the logs emitted by the contract
 func (el *EventListener) ProcessLogs() {
-	for vLog := range el.Logs {
+	for vLog := range el.logs {
 		log.Debugf("Log Event: %v", vLog.Topics)
 
-		event, err := el.ContractInstance.ParseBlockSpecimenProductionProofSubmitted(vLog)
+		event, err := el.contractInstance.ParseBlockSpecimenProductionProofSubmitted(vLog)
 		if err != nil {
 			if err.Error() == "event signature mismatch" {
 				log.Debug("Event signature mismatch")
@@ -107,6 +107,6 @@ func (el *EventListener) ProcessLogs() {
 			continue
 		}
 
-		el.Sampler.ProcessEvent(parsedURL.Host)
+		el.sampler.ProcessEvent(parsedURL.Host)
 	}
 }

@@ -33,8 +33,8 @@ var DefaultGateways = []string{
 
 // Sampler is a struct that samples data from IPFS and verifies it.
 type Sampler struct {
-	IPFSShell     *ipfs.Shell
-	Gateways      []string
+	ipfsShell     *ipfs.Shell
+	gateways      []string
 	pub           *publisher.Publisher
 	samplingDelay uint
 }
@@ -104,8 +104,8 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 	}
 
 	return &Sampler{
-		IPFSShell:     shell,
-		Gateways:      DefaultGateways,
+		ipfsShell:     shell,
+		gateways:      DefaultGateways,
 		pub:           pub,
 		samplingDelay: samplingDelay,
 	}, nil
@@ -183,7 +183,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	// Start a goroutine to get data from the IPFS node
 	go func() {
 		log.Debugf("Getting data from IPFS node: %s", cid.String())
-		if err := s.IPFSShell.DagGet(cid.String(), &data); err != nil {
+		if err := s.ipfsShell.DagGet(cid.String(), &data); err != nil {
 			errorChan <- errorContext{Err: err, Context: "IPFS node"}
 			return
 		}
@@ -194,7 +194,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	}()
 
 	// Start goroutines to get data from each public gateway
-	for _, gateway := range s.Gateways {
+	for _, gateway := range s.gateways {
 		go func(gateway string) {
 			gatewayData, err := s.getDataFromGateway(gateway, cid.String())
 			if err != nil {
@@ -229,7 +229,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 
 			// populate ipfs node with data
 			// TODO: deduce the correct format from the CID
-			storedCid, err := s.IPFSShell.DagPut(data, "dag-cbor", "dag-cbor")
+			storedCid, err := s.ipfsShell.DagPut(data, "dag-cbor", "dag-cbor")
 			if err != nil {
 				errorChan <- errorContext{Err: err, Context: "IPFS node"}
 			}
@@ -243,7 +243,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	// Wait for the first successful response or all errors
 	var finalError error
 	successCount := 0
-	totalCount := len(s.Gateways) + 1 // +1 for the IPFS node
+	totalCount := len(s.gateways) + 1 // +1 for the IPFS node
 
 	for i := 0; i < totalCount; i++ {
 		select {
