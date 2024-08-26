@@ -13,7 +13,6 @@ mkdir -p "$COVALENT_DIR"
 # Copy the executable to the destination directory
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
-cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
 
 # Create the launchd plist file
 cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
