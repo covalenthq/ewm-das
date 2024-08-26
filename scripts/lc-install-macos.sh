@@ -19,6 +19,9 @@ cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
 cat <<EOF > "$COVALENT_DIR/$WRAPPER_SCRIPT"
 #!/bin/bash
 
+# Define the directory again in the wrapper script, it will use the value assigned during installation
+COVALENT_DIR="$COVALENT_DIR"
+
 # Ensure that only one instance of the service is running
 SERVICE_NAME="$EXECUTABLE"
 if pgrep -f "\$SERVICE_NAME" > /dev/null 2>&1; then
