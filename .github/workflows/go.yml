@@ -50,6 +50,10 @@ jobs:
     - name: Build binaries
       run: make build
 
+    - name: Collect artifacts
+      if: matrix.os == 'macos-latest'
+      run: cp scripts/lc-install-macos.sh bin/ && cp scripts/lc-uninstall-macos.sh bin/ && cp test/data/trusted_setup.txt bin/ && cp lc-gcp-credentials.json bin/
+
     - name: Create tarball
       run: tar -czvf das-${{ matrix.os }}.tar.gz bin
 

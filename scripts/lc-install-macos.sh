@@ -5,7 +5,7 @@ COVALENT_DIR="$HOME/.covalenthq"
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 PLIST_FILE="com.covalenthq.light-client.plist"
-GCP_CREDENTIALS="gcp-credentials.json"
+GCP_CREDENTIALS="lc-gcp-credentials.json"
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
@@ -39,6 +39,11 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
         <string>--client-id</string>
         <string>{YOUR_UNIQUE_ID}</string>
     </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PINNER_DIR</key>
+        <string>$COVALENT_DIR</string>
+    </dict>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
