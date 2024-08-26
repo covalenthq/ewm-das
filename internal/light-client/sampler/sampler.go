@@ -117,7 +117,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string) {
+func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 	go func(cidStr string) {
 		rawCid, err := cid.Decode(cidStr)
 		if err != nil {
@@ -165,7 +165,7 @@ func (s *Sampler) ProcessEvent(cidStr string) {
 
 		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
 
-		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell); err != nil {
+		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell, blockHeight); err != nil {
 			log.Errorf("Failed to publish to Cloud Storage: %v", err)
 			return
 		}
