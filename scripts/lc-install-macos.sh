@@ -26,7 +26,16 @@ if pgrep -f "\$SERVICE_NAME" > /dev/null 2>&1; then
     exit 1
 fi
 
-# Wait for IPFS daemon to start (check if it's running)
+# Start the IPFS daemon with garbage collection if it's not already running
+if ! pgrep -f "ipfs daemon" > /dev/null 2>&1; then
+    echo "Starting IPFS daemon with garbage collection..."
+    ipfs daemon --enable-gc &
+    sleep 10 # Give IPFS some time to start
+else
+    echo "IPFS daemon is already running."
+fi
+
+# Wait for IPFS daemon to be fully available
 until pgrep -f "ipfs daemon" > /dev/null 2>&1; do
     echo "Waiting for IPFS daemon to start..."
     sleep 5
