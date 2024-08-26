@@ -7,9 +7,10 @@ import (
 	"io"
 	"os"
 	"time"
-
+	"github.com/covalenthq/das-ipfs-pinner/common"
 	"cloud.google.com/go/pubsub"
 	"google.golang.org/api/option"
+
 )
 
 type Publisher struct {
@@ -29,6 +30,8 @@ type message struct {
 	Commitment  string    `json:"commitment"`
 	Proof       string    `json:"proof"`
 	Cell        string    `json:"cell"`
+	BlockHeight uint      `json:"block_height"`
+	Version     string    `json:"version"`
 }
 
 // Define a struct with only the `project_id` field
@@ -66,7 +69,7 @@ func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
 }
 
 // Publish to Pubsub
-func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte) error {
+func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte, blockHeight uint) error {
 	ctx := context.Background()
 
 	// Create a Pub/Sub client using the credentials
@@ -89,6 +92,9 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Commitment:  base64.StdEncoding.EncodeToString(commitment),
 		Proof:       base64.StdEncoding.EncodeToString(proof),
 		Cell:        base64.StdEncoding.EncodeToString(cell),
+		BlockHeight: blockHeight,
+		Version:     common.Version,
+
 	}
 
 	// Marshal the message into JSON.

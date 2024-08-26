@@ -99,6 +99,8 @@ func (el *EventListener) ProcessLogs() {
 
 		log.Debugf("Event ChainID: %v", event.ChainId)
 		log.Debugf("Event StorageURL: %v", event.StorageURL)
+		log.Debugf("Event BlockHeight: %v", event.BlockHeight)
+
 
 		// strip the ipfs://
 		parsedURL, err := url.Parse(event.StorageURL)
@@ -107,6 +109,6 @@ func (el *EventListener) ProcessLogs() {
 			continue
 		}
 
-		el.sampler.ProcessEvent(parsedURL.Host)
+		el.sampler.ProcessEvent(parsedURL.Host, uint(event.BlockHeight))
 	}
 }
