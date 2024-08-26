@@ -98,8 +98,8 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 
 	}
 
-	fmt.Sprintf("%s-%s", common.Version, common.GitCommit)
-
+	fmt.Printf("%s-%s", common.Version, common.GitCommit)
+	
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
 	if err != nil {
