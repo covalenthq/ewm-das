@@ -112,7 +112,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint) {
+func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 	go func(cidStr string) {
 		rawCid, err := cid.Decode(cidStr)
 		if err != nil {

@@ -109,6 +109,6 @@ func (el *EventListener) ProcessLogs() {
 			continue
 		}
 
-		el.sampler.ProcessEvent(parsedURL.Host, uint(event.BlockHeight))
+		el.sampler.ProcessEvent(parsedURL.Host, uint64(event.BlockHeight))
 	}
 }
