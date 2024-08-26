@@ -14,6 +14,7 @@ mkdir -p "$COVALENT_DIR"
 # Copy the executable and trusted setup to the destination directory
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
+cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
 
 # Make the executable runnable
 chmod +x "$COVALENT_DIR/$EXECUTABLE"
@@ -58,7 +59,7 @@ done
     --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 \\
     --topic-id DAS-TO-BQ \\
     --gcp-creds-file "\$COVALENT_DIR/$GCP_CREDENTIALS" \\
-    --client-id "{YOUR_UNIQUE_ID}"
+    --client-id {YOUR_UNIQUE_ID}
 
 EOF
 
