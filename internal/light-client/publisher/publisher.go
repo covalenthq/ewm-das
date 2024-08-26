@@ -93,10 +93,8 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Proof:       base64.StdEncoding.EncodeToString(proof),
 		Cell:        base64.StdEncoding.EncodeToString(cell),
 		BlockHeight: blockHeight,
-		Version:     common.Version,
+		Version:     fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
 	}
-
-	fmt.Printf("%s-%s", common.Version, common.GitCommit)
 
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
