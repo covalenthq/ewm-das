@@ -1,15 +1,16 @@
 package publisher
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"github.com/covalenthq/das-ipfs-pinner/common"
+	"google.golang.org/api/option"
 	"io"
 	"os"
 	"time"
-
-	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
 )
 
 type Publisher struct {
@@ -29,6 +30,8 @@ type message struct {
 	Commitment  string    `json:"commitment"`
 	Proof       string    `json:"proof"`
 	Cell        string    `json:"cell"`
+	BlockHeight uint64    `json:"block_height"`
+	Version     string    `json:"version"`
 }
 
 // Define a struct with only the `project_id` field
@@ -66,7 +69,7 @@ func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
 }
 
 // Publish to Pubsub
-func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte) error {
+func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte, blockHeight uint64) error {
 	ctx := context.Background()
 
 	// Create a Pub/Sub client using the credentials
@@ -89,6 +92,8 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Commitment:  base64.StdEncoding.EncodeToString(commitment),
 		Proof:       base64.StdEncoding.EncodeToString(proof),
 		Cell:        base64.StdEncoding.EncodeToString(cell),
+		BlockHeight: blockHeight,
+		Version:     fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
 	}
 
 	// Marshal the message into JSON.
