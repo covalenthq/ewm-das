@@ -95,7 +95,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <key>StandardOutPath</key>
     <string>$COVALENT_DIR/light-client.log</string>
     <key>StandardErrorPath</key>
-    <string>$COVALENT_DIR/light-client.error.log</string>
+    <string>$COVALENT_DIR/light-client.log</string>
 </dict>
 </plist>
 EOF
