@@ -37,7 +37,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
         <string>--gcp-creds-file</string>
         <string>$COVALENT_DIR/$GCP_CREDENTIALS</string>
         <string>--client-id</string>
-        <string>4e440d76-4a26-4117-b317-b5b407b0cd54</string>
+        <string>{YOUR_UNIQUE_ID}</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
