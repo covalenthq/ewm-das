@@ -1,17 +1,16 @@
 package publisher
 
 import (
+	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
+	"github.com/covalenthq/das-ipfs-pinner/common"
+	"google.golang.org/api/option"
 	"io"
 	"os"
 	"time"
-	"fmt"
-	"github.com/covalenthq/das-ipfs-pinner/common"
-	"cloud.google.com/go/pubsub"
-	"google.golang.org/api/option"
-
 )
 
 type Publisher struct {
@@ -31,7 +30,7 @@ type message struct {
 	Commitment  string    `json:"commitment"`
 	Proof       string    `json:"proof"`
 	Cell        string    `json:"cell"`
-	BlockHeight uint64      `json:"block_height"`
+	BlockHeight uint64    `json:"block_height"`
 	Version     string    `json:"version"`
 }
 
@@ -95,11 +94,10 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Cell:        base64.StdEncoding.EncodeToString(cell),
 		BlockHeight: blockHeight,
 		Version:     common.Version,
-
 	}
 
 	fmt.Printf("%s-%s", common.Version, common.GitCommit)
-	
+
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
 	if err != nil {
