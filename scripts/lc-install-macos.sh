@@ -15,6 +15,13 @@ mkdir -p "$COVALENT_DIR"
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
 
+# Make the executable runnable
+chmod +x "$COVALENT_DIR/$EXECUTABLE"
+
+# Bypass Gatekeeper for the executable
+spctl --add --label "Trusted" "$COVALENT_DIR/$EXECUTABLE"
+spctl --enable --label "Trusted"
+
 # Create the wrapper script
 cat <<EOF > "$COVALENT_DIR/$WRAPPER_SCRIPT"
 #!/bin/bash
