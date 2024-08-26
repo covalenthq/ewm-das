@@ -6,13 +6,45 @@ EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 PLIST_FILE="com.covalenthq.light-client.plist"
 GCP_CREDENTIALS="lc-gcp-credentials.json"
+WRAPPER_SCRIPT="run_light_client.sh"
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
 
-# Copy the executable to the destination directory
+# Copy the executable and trusted setup to the destination directory
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
+
+# Create the wrapper script
+cat <<EOF > "$COVALENT_DIR/$WRAPPER_SCRIPT"
+#!/bin/bash
+
+# Ensure that only one instance of the service is running
+SERVICE_NAME="$EXECUTABLE"
+if pgrep -f "\$SERVICE_NAME" > /dev/null 2>&1; then
+    echo "\$SERVICE_NAME is already running."
+    exit 1
+fi
+
+# Wait for IPFS daemon to start (check if it's running)
+until pgrep -f "ipfs daemon" > /dev/null 2>&1; do
+    echo "Waiting for IPFS daemon to start..."
+    sleep 5
+done
+
+# Run your service binary with all the arguments
+"\$COVALENT_DIR/\$SERVICE_NAME" \\
+    --loglevel debug \\
+    --rpc-url wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e \\
+    --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 \\
+    --topic-id DAS-TO-BQ \\
+    --gcp-creds-file "\$COVALENT_DIR/$GCP_CREDENTIALS" \\
+    --client-id "{YOUR_UNIQUE_ID}"
+
+EOF
+
+# Make the wrapper script executable
+chmod +x "$COVALENT_DIR/$WRAPPER_SCRIPT"
 
 # Create the launchd plist file
 cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
@@ -24,19 +56,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <string>com.covalenthq.light-client</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$COVALENT_DIR/$EXECUTABLE</string>
-        <string>--loglevel</string>
-        <string>debug</string>
-        <string>--rpc-url</string>
-        <string>wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e</string>
-        <string>--contract</string>
-        <string>0x916B54696A70588a716F899bE1e8f2A5fFd5f135</string>
-        <string>--topic-id</string>
-        <string>DAS-TO-BQ</string>
-        <string>--gcp-creds-file</string>
-        <string>$COVALENT_DIR/$GCP_CREDENTIALS</string>
-        <string>--client-id</string>
-        <string>{YOUR_UNIQUE_ID}</string>
+        <string>$COVALENT_DIR/$WRAPPER_SCRIPT</string>
     </array>
     <key>EnvironmentVariables</key>
     <dict>
@@ -46,7 +66,12 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <true/>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>30</integer> <!-- Prevents rapid restarts -->
     <key>StandardOutPath</key>
     <string>$COVALENT_DIR/light-client.log</string>
     <key>StandardErrorPath</key>
@@ -57,4 +82,5 @@ EOF
 
 # Load the daemon
 launchctl load "$HOME/Library/LaunchAgents/$PLIST_FILE"
+
 echo "Installation completed. The light client daemon is now running."
