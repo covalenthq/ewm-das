@@ -101,7 +101,6 @@ func (el *EventListener) ProcessLogs() {
 		log.Debugf("Event StorageURL: %v", event.StorageURL)
 		log.Debugf("Event BlockHeight: %v", event.BlockHeight)
 
-
 		// strip the ipfs://
 		parsedURL, err := url.Parse(event.StorageURL)
 		if err != nil {
