@@ -1,7 +1,7 @@
 # DAS-Pinner + Light-Client
 
 [![Go CI](https://github.com/covalenthq/das-ipfs-pinner/actions/workflows/go.yml/badge.svg)](https://github.com/covalenthq/das-ipfs-pinner/actions)
-![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/covalenthq/das-ipfs-pinner?label=version&color=blue)
+![GitHub tag (latest SemVer)](https://img.shields.io/github/v/tag/covalenthq/das-ipfs-pinner?label=version&color=blue&sort=semver)
 
 DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS network and pins the data using **web3.storage**. It is designed to be used with the DAS Light-Client to retrieve data from the IPFS network and verify the data using the DAS protocol.
 
