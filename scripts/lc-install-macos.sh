@@ -1,12 +1,15 @@
 #!/bin/bash
 
 # Paths
+IPFS_PATH=$(which ipfs)
 COVALENT_DIR="$HOME/.covalenthq"
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 PLIST_FILE="com.covalenthq.light-client.plist"
-GCP_CREDENTIALS="lc-gcp-credentials.json"
+GCP_CREDENTIALS="gcp-credentials.json"
 WRAPPER_SCRIPT="run_light_client.sh"
+IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
+IPFS_WRAPPER_SCRIPT="run_ipfs.sh"
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
@@ -23,7 +26,56 @@ chmod +x "$COVALENT_DIR/$EXECUTABLE"
 spctl --add --label "Trusted" "$COVALENT_DIR/$EXECUTABLE"
 spctl --enable --label "Trusted"
 
-# Create the wrapper script
+# Create the IPFS wrapper script
+cat <<EOF > "$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT"
+#!/bin/bash
+
+# Start the IPFS daemon with garbage collection
+if ! pgrep -f "ipfs daemon" > /dev/null 2>&1; then
+    echo "Starting IPFS daemon with garbage collection..."
+    "$IPFS_PATH" daemon --enable-gc &
+    sleep 10 # Give IPFS some time to start
+else
+    echo "IPFS daemon is already running."
+fi
+EOF
+
+# Make the IPFS wrapper script executable
+chmod +x "$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT"
+
+# Create the IPFS launchd plist file
+cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.covalenthq.ipfs</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>10</integer> <!-- Prevent rapid restarts -->
+    <key>StandardOutPath</key>
+    <string>$COVALENT_DIR/ipfs.log</string>
+    <key>StandardErrorPath</key>
+    <string>$COVALENT_DIR/ipfs.error.log</string>
+</dict>
+</plist>
+EOF
+
+# Load the IPFS daemon
+launchctl load "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
+
+# Create the light client wrapper script
 cat <<EOF > "$COVALENT_DIR/$WRAPPER_SCRIPT"
 #!/bin/bash
 
@@ -35,15 +87,6 @@ SERVICE_NAME="$EXECUTABLE"
 if pgrep -f "\$SERVICE_NAME" > /dev/null 2>&1; then
     echo "\$SERVICE_NAME is already running."
     exit 1
-fi
-
-# Start the IPFS daemon with garbage collection if it's not already running
-if ! pgrep -f "ipfs daemon" > /dev/null 2>&1; then
-    echo "Starting IPFS daemon with garbage collection..."
-    ipfs daemon --enable-gc &
-    sleep 10 # Give IPFS some time to start
-else
-    echo "IPFS daemon is already running."
 fi
 
 # Wait for IPFS daemon to be fully available
@@ -66,7 +109,7 @@ EOF
 # Make the wrapper script executable
 chmod +x "$COVALENT_DIR/$WRAPPER_SCRIPT"
 
-# Create the launchd plist file
+# Create the launchd plist file for the light client
 cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -100,7 +143,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
 </plist>
 EOF
 
-# Load the daemon
+# Load the light client daemon
 launchctl load "$HOME/Library/LaunchAgents/$PLIST_FILE"
 
-echo "Installation completed. The light client daemon is now running."
+echo "Installation completed. The IPFS daemon and the light client daemon are now running."

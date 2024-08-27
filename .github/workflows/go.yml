@@ -52,7 +52,7 @@ jobs:
 
     - name: Collect artifacts
       if: matrix.os == 'macos-latest'
-      run: cp scripts/lc-install-macos.sh bin/ && cp scripts/lc-uninstall-macos.sh bin/ && cp test/data/trusted_setup.txt bin/ 
+      run: cp scripts/lc-install-macos.sh bin/install.sh && cp scripts/lc-uninstall-macos.sh bin/uinstall.sh && cp test/data/trusted_setup.txt bin/ 
     - name: Create tarball
       run: tar -czvf das-${{ matrix.os }}.tar.gz bin
 
