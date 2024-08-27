@@ -163,7 +163,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
+		log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowindex, colindex, res, cidStr)
 
 		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell, blockHeight); err != nil {
 			log.Errorf("Failed to publish to Cloud Storage: %v", err)
