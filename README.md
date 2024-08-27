@@ -20,7 +20,10 @@ DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS netw
 
 ## Installation
 
-TODO: Add installation instructions
+### Light-Client
+
+- macOS: [Installation Guide](INSTALL.md#)
+- Linux: TODO: Add installation instructions
 
 ## Usage
 
