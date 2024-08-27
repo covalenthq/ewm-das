@@ -1,15 +1,14 @@
 #!/bin/bash
 
 # Paths
-IPFS_PATH=$(which ipfs)
 COVALENT_DIR="$HOME/.covalenthq"
+IPFS_PATH=$(which ipfs)
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
-PLIST_FILE="com.covalenthq.light-client.plist"
 GCP_CREDENTIALS="gcp-credentials.json"
 WRAPPER_SCRIPT="run_light_client.sh"
+PLIST_FILE="com.covalenthq.light-client.plist"
 IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
-IPFS_WRAPPER_SCRIPT="run_ipfs.sh"
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
@@ -26,24 +25,7 @@ chmod +x "$COVALENT_DIR/$EXECUTABLE"
 spctl --add --label "Trusted" "$COVALENT_DIR/$EXECUTABLE"
 spctl --enable --label "Trusted"
 
-# Create the IPFS wrapper script
-cat <<EOF > "$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT"
-#!/bin/bash
-
-# Start the IPFS daemon with garbage collection
-if ! pgrep -f "ipfs daemon" > /dev/null 2>&1; then
-    echo "Starting IPFS daemon with garbage collection..."
-    "$IPFS_PATH" daemon --enable-gc &
-    sleep 10 # Give IPFS some time to start
-else
-    echo "IPFS daemon is already running."
-fi
-EOF
-
-# Make the IPFS wrapper script executable
-chmod +x "$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT"
-
-# Create the IPFS launchd plist file
+# Create the IPFS launchd plist file without a wrapper script
 cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -53,7 +35,9 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
     <string>com.covalenthq.ipfs</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$COVALENT_DIR/$IPFS_WRAPPER_SCRIPT</string>
+        <string>$IPFS_PATH</string>
+        <string>daemon</string>
+        <string>--enable-gc</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -129,10 +113,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <dict>
-        <key>SuccessfulExit</key>
-        <false/>
-    </dict>
+    <true/>
     <key>ThrottleInterval</key>
     <integer>30</integer> <!-- Prevents rapid restarts -->
     <key>StandardOutPath</key>
