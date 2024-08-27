@@ -97,9 +97,7 @@ func (el *EventListener) ProcessLogs() {
 			log.Errorf("Failed to parse log: %v", err)
 		}
 
-		log.Debugf("Event ChainID: %v", event.ChainId)
-		log.Debugf("Event StorageURL: %v", event.StorageURL)
-		log.Debugf("Event BlockHeight: %v", event.BlockHeight)
+		log.Debugf("chain-id=%v, storage-url=%v, block-height=%v", event.ChainId, event.StorageURL, event.BlockHeight)
 
 		// strip the ipfs://
 		parsedURL, err := url.Parse(event.StorageURL)

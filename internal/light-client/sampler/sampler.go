@@ -74,6 +74,11 @@ type errorContext struct {
 	Context string
 }
 
+type resultContext struct {
+	Result  interface{}
+	Context string
+}
+
 // UnmarshalJSON handles base64 decoding directly into the Bytes field.
 func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 	var aux struct {
@@ -158,7 +163,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		log.Infof("Verification result for [%d, %d]: %v", rowindex, colindex, res)
+		log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowindex, colindex, res, cidStr)
 
 		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell, blockHeight); err != nil {
 			log.Errorf("Failed to publish to Cloud Storage: %v", err)
@@ -173,7 +178,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 		return err
 	}
 
-	resultChan := make(chan interface{})
+	resultChan := make(chan resultContext)
 	errorChan := make(chan errorContext)
 
 	// Define a context with timeout to prevent hanging
@@ -182,13 +187,13 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 
 	// Start a goroutine to get data from the IPFS node
 	go func() {
-		log.Debugf("Getting data from IPFS node: %s", cid.String())
 		if err := s.ipfsShell.DagGet(cid.String(), &data); err != nil {
 			errorChan <- errorContext{Err: err, Context: "IPFS node"}
 			return
 		}
 		select {
-		case resultChan <- data:
+		case resultChan <- resultContext{Result: data, Context: "IPFS node"}:
+			cancel()
 		case <-ctx.Done():
 		}
 	}()
@@ -223,7 +228,7 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 			}
 
 			select {
-			case resultChan <- data:
+			case resultChan <- resultContext{Result: data, Context: fmt.Sprintf("gateway %s for %s", gateway, cid.String())}:
 				cancel()
 			case <-ctx.Done():
 			}
@@ -255,7 +260,8 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 			return fmt.Errorf("timeout exceeded")
 
 		case result := <-resultChan:
-			data = result
+			log.Debugf("Data fetched from %s", result.Context)
+			data = result.Result
 			successCount++
 			if successCount == 1 {
 				// If we get at least one successful response, return nil
@@ -297,7 +303,6 @@ func (s *Sampler) getDataFromGateway(ctx context.Context, gateway, cid string) (
 	}
 
 	// Perform the HTTP GET request
-	log.Debugf("Getting data from gateway: %s", baseURL.String())
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
