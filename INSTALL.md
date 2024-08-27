@@ -46,6 +46,22 @@ Open the `install.sh` file and update the `{YOUR_UNIQUE_ID}` with your unique ID
 ...
 ```
 
+Your folder structure should look like this:
+
+```bash
+$ tree
+.
+├── gcp-credentials.json
+├── install.sh
+├── light-client
+├── pinner
+├── pinner-cli
+├── trusted_setup.txt
+└── uninstall.sh
+
+1 directory, 7 files
+```
+
 Run the following command to install the Light Client:
 
 ```bash
