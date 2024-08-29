@@ -1,35 +1,65 @@
-# Build stage: build the Go application
+# Use an official Golang image as a base image
 FROM golang:1.22-alpine AS builder
 
-# Install build dependencies
-RUN apk add --no-cache make gcc musl-dev git
+# Install necessary dependencies
+RUN apk add --no-cache git make bash curl
 
-# Set the working directory inside the container
-WORKDIR /lc
+# Set the working directory for IPFS Kubo
+WORKDIR /go/src/ipfs-kubo
 
-# Copy the entire source code, including submodules
+# Clone the IPFS Kubo repository
+RUN git clone https://github.com/ipfs/kubo.git .
+
+# Checkout the specific version v0.29.0
+RUN git checkout v0.29.0
+
+# Build IPFS Kubo
+RUN make build
+
+# Set the working directory for the light-client
+WORKDIR /go/src/light-client
+
+RUN apk add --no-cache gcc musl-dev
+
+# Clone the light-client repository
 COPY . .
 
-# Initialize and update submodules
+# Initialize submodules
 RUN git submodule update --init --recursive
 
-# Download Go module dependencies
-RUN go mod download
-
-# Run the make command to build the application
+# Build the light-client
 RUN make build-light
 
-# Final stage: use the ipfs/kubo image and add the Go application
-FROM ipfs/kubo:v0.29.0
+# Create a minimal runtime image
+FROM alpine:latest
 
-# Copy the built Go application from the build stage
-COPY --from=builder /lc/bin/light-client /usr/local/bin/light-client
+# Copy the built IPFS Kubo binary
+COPY --from=builder /go/src/ipfs-kubo/cmd/ipfs/ipfs /usr/local/bin/ipfs
 
-# Expose the necessary IPFS ports
-EXPOSE 4001 5001 8080
+# Copy the built light-client binary
+COPY --from=builder /go/src/light-client/bin/light-client /usr/local/bin/light-client
 
-# Set default environment variables (can be overridden)
-ENV CLIENT_ID="default-client-id"
+# Copy the GCP credentials file
+COPY --from=builder /go/src/light-client/test/data/gcp-credentials.json /gcp-credentials.json
 
-# Override the entrypoint to use a shell
-ENTRYPOINT ["/bin/sh", "-c", "ipfs daemon --enable-gc & exec /usr/local/bin/light-client --loglevel debug --rpc-url wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 --topic-id DAS-TO-BQ --gcp-creds-file /lc/test/data/gcp-credentials.json --client-id $CLIENT_ID"]
+# Copy trusted setup files
+COPY --from=builder /go/src/light-client/test/data/trusted_setup.txt /root/.pinner/trusted_setup.txt
+
+# Expose the default IPFS port
+EXPOSE 4001
+
+# Expose the default IPFS API port
+EXPOSE 5001
+
+# Expose the default IPFS Gateway port
+EXPOSE 8080
+
+# Initialize IPFS
+RUN ipfs init
+
+# Copy the entrypoint script
+COPY scripts/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Set the entrypoint for the container
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
