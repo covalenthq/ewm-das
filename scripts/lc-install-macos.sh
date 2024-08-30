@@ -1,14 +1,15 @@
 #!/bin/bash
 
 # Paths
-COVALENT_DIR="$HOME/.covalenthq"
+COVALENT_DIR="$HOME/.covalent"
 IPFS_PATH=$(which ipfs)
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 GCP_CREDENTIALS="gcp-credentials.json"
 WRAPPER_SCRIPT="run_light_client.sh"
-PLIST_FILE="com.covalenthq.light-client.plist"
-IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
+PLIST_FILE="com.covalent.light-client.plist"
+IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+IPFS_REPO_DIR="$HOME/.ipfs"
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
@@ -32,11 +33,13 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.covalenthq.ipfs</string>
+    <string>com.covalent.ipfs</string>
     <key>ProgramArguments</key>
     <array>
         <string>$IPFS_PATH</string>
         <string>daemon</string>
+        <string>--repo-dir</string>
+        <string>$IPFS_REPO_DIR</string>
         <string>--enable-gc</string>
     </array>
     <key>RunAtLoad</key>
@@ -100,7 +103,7 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.covalenthq.light-client</string>
+    <string>com.covalent.light-client</string>
     <key>ProgramArguments</key>
     <array>
         <string>$COVALENT_DIR/$WRAPPER_SCRIPT</string>
