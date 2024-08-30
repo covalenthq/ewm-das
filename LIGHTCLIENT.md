@@ -8,30 +8,30 @@
 
 ### Usage
 
-1. Clone the repository:
+Clone the repository:
 
-    ```bash
-    git clone https://github.com/covalenthq/das-ipfs-pinner
-    cd das-ipfs-pinner
-    ```
+```bash
+git clone https://github.com/covalenthq/das-ipfs-pinner
+cd das-ipfs-pinner
+```
 
-2. Build the Docker image:
+Build the Docker image:
 
-    ```bash
-    docker build -t covalent/light-client -f Dockerfile.lc .
-    ```
+```bash
+docker build -t covalent/light-client -f Dockerfile.lc .
+```
 
-3. Run the Docker container:
+Run the Docker container:
 
-    ```bash
-    docker run -d --name light-client -e CLIENT_ID="YOUR UNIQUE ID" covalent/light-client
-    ```
+```bash
+docker run -d --name light-client -e CLIENT_ID="YOUR UNIQUE ID" covalent/light-client
+```
 
-4. Check the status of the Light Client:
+Check the status of the Light Client:
 
-    ```bash
-    docker logs -f light-client
-    ```
+```bash
+docker logs -f light-client
+```
 
 ## Running Light Client Locally
 
@@ -41,9 +41,9 @@
 
 ### Building from Source
 
-- [Building from Source](../README.md#building-from-source)
+- [Guide](../README.md#building-from-source)
 
-#### Running the Light-Client
+### Running Light Client
 
 To run the light-client, use the following command:
 

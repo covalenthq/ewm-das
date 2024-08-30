@@ -2,7 +2,9 @@
 
 [![Go CI](https://github.com/covalenthq/das-ipfs-pinner/actions/workflows/go.yml/badge.svg)](https://github.com/covalenthq/das-ipfs-pinner/actions)
 
-DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS network and pins the data using **web3.storage**. It is designed to be used with the DAS Light-Client to retrieve data from the IPFS network and verify the data using the DAS protocol.
+**DAS-Pinner** is a lightweight IPFS service that stores and pins data on the IPFS network using **web3.storage**. It is designed to work seamlessly with the DAS Light-Client, enabling the retrieval of data from the IPFS network and its verification using the DAS protocol.
+
+**DAS Light-Client** is a lightweight client that retrieves data from the IPFS network and verifies it using the DAS protocol. It is intended to complement the DAS-Pinner service, facilitating efficient data storage and retrieval from the IPFS network.
 
 ## Current Iteration
 
@@ -10,27 +12,16 @@ DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS netw
 
 ## Table of Contents
 
+- [Building from Source](#building-from-source)
+  - [Prerequisites](#prerequisites)
+  - [Build Commands](#build-commands)
+  - [Clean Up](#clean-up)
 - [Running the Service](#running-the-service)
   - [Light-Client](#light-client)
   - [DAS Pinner](#das-pinner)
-- [Building from Source](#building-from-source)
-- [Configuration](#configuration)
 - [Development](#development)
 - [License](#license)
 - [Contributing](#contributing)
-
-## Running the Service
-
-### Light-Client
-
-- Source: [Guide](LIGHTCLIENT.md#running-light-client-locally)
-- Docker version: [Guide](LIGHTCLIENT.md#running-light-client-in-docker)
-- macOS: [Guide](INSTALL.md#)
-- Linux: TODO
-
-### DAS Pinner
-
-- Run the DAS Pinner service: [DAS-Pinner](PINNER.md#)
 
 ## Building from Source
 
@@ -40,26 +31,27 @@ DAS-Pinner is a lightweight IPFS pinner daemon that stores data on the IPFS netw
 
 ### Build Commands
 
-1. Clone the repository:
+Clone the repository:
 
-    ```sh
-    git clone https://github.com/covalenthq/das-ipfs-pinner
-    cd das-ipfs-pinner
-    ```
+```sh
+git clone https://github.com/covalenthq/das-ipfs-pinner
+cd das-ipfs-pinner
+git submodule update --init --recursive
+```
 
-2. Install dependencies:
+Install dependencies:
 
-    ```sh
-    make deps
-    ```
+```sh
+make deps
+```
 
-3. Build binaries:
+Build binaries:
 
-    ```sh
-    make
-    ```
+```sh
+make
+```
 
-This will compile the daemon and CLI tool into the bin directory.
+The binaries will be built in the `bin` directory.
 
 ### Clean Up
 
@@ -69,9 +61,18 @@ To clean up the build artifacts, run:
 make clean
 ```
 
-## Configuration
+## Running the Service
 
-The project uses environment variables and flags for configuration. For example, you can set `DAEMON_ADDR` to change the address the daemon listens on.
+### Light-Client
+
+- Source: [Guide](LIGHTCLIENT.md#running-light-client-locally)
+- Docker: [Guide](LIGHTCLIENT.md#running-light-client-in-docker)
+- macOS: [Guide](INSTALL.md#)
+- Linux: TODO
+
+### DAS-Pinner
+
+- Source: [Guide](PINNER.md#)
 
 ## Development
 
@@ -89,6 +90,8 @@ To lint the code, run:
 make vet
 make staticcheck
 ```
+
+Note: The `staticcheck` command requires the `staticcheck` binary to be installed. For more information, see the [staticcheck](https://staticcheck.dev/docs/getting-started/) documentation.
 
 ### Testing
 

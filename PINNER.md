@@ -5,7 +5,7 @@
 Before running the service, you need to install the following dependencies:
 
 - [web3.storage](https://web3.storage/docs/go-w3up/#install-w3-cli)
-- Trusted setup for the DAS-Pinner service
+- Trusted setup for the service
 
 ### Setting up web3.storage
 
@@ -75,7 +75,7 @@ For more options, use the `--help` flag:
 
 ## Running the CLI Tool
 
-To interact with the pinner service, use the CLI tool:
+To interact with the service, use the CLI tool:
 
 ```sh
 ./bin/pinner-cli upload --data <path-to-data> --addr <pinner-address>
