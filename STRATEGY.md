@@ -1,4 +1,4 @@
-# Sampling Strategy for Data Availability Sampling
+# Sampling Strategy for Data Availability
 
 ## Background
 
@@ -8,7 +8,7 @@ The data availability sampling strategy is designed to ensure that data remains 
 
 In this system, 1D erasure coding is applied to data organized into rows, where each row is extended to 128 cells. The first 64 cells contain the original data, while the remaining 64 cells store redundancy generated through the erasure coding process. This structure allows for the recovery of the original data even if some cells are lost or corrupted. However, to achieve a high level of confidence in data integrity—such as 99%—it is crucial to test every row. By verifying each row individually, we ensure that the erasure coding effectively protects the data and that the system maintains its reliability across all rows.
 
-### Samples number estimation
+### Samples number estimations
 
 $$
 S \geq R - R \times \left(1 - C\right)^{\frac{1}{E}}

@@ -31,4 +31,5 @@ settings.json
 c_cpp_properties.json
 *.log
 
-gcp-credentials.json
+# disable for testign
+# gcp-credentials.json

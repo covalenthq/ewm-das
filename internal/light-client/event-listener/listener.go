@@ -3,6 +3,7 @@ package eventlistener
 import (
 	"context"
 	"net/url"
+	"time"
 
 	logging "github.com/ipfs/go-log/v2"
 
@@ -66,20 +67,74 @@ func (el *EventListener) SubscribeToLogs(ctx context.Context) {
 		Addresses: []common.Address{el.contractAddress},
 	}
 
+	// Initial subscription
 	sub, err := el.client.SubscribeFilterLogs(ctx, query, el.logs)
 	if err != nil {
-		log.Fatalf("Failed to subscribe to logs: %v", err)
+		log.Errorf("Failed to subscribe to logs: %v", err)
+		el.retrySubscription(ctx, query) // Try to recover by retrying the subscription
+		return
 	}
 
 	el.subscription = sub
 
 	go func() {
-		for err := range sub.Err() {
-			log.Fatalf("Subscription error: %v", err)
+		for {
+			select {
+			case err := <-sub.Err():
+				if err != nil {
+					log.Errorf("Subscription error: %v", err)
+					el.retrySubscription(ctx, query) // Try to recover by retrying the subscription
+					return
+				}
+			case <-ctx.Done():
+				log.Infof("Context canceled, stopping log subscription.")
+				return
+			}
 		}
 	}()
 
 	log.Infof("Subscribed to logs for contract: %v", el.contractAddress.Hex())
+}
+
+func (el *EventListener) retrySubscription(ctx context.Context, query ethereum.FilterQuery) {
+	backoff := 2 * time.Second    // Initial backoff duration
+	maxBackoff := 1 * time.Minute // Maximum backoff duration
+
+	for {
+		select {
+		case <-ctx.Done():
+			log.Infof("Context canceled, aborting subscription retry.")
+			return
+		default:
+			sub, err := el.client.SubscribeFilterLogs(ctx, query, el.logs)
+			if err != nil {
+				log.Errorf("Retrying subscription to logs failed: %v", err)
+
+				// Increase backoff duration, but don't exceed maxBackoff
+				time.Sleep(backoff)
+				backoff *= 2
+				if backoff > maxBackoff {
+					backoff = maxBackoff
+				}
+				continue
+			}
+
+			el.subscription = sub
+
+			go func() {
+				for err := range sub.Err() {
+					if err != nil {
+						log.Errorf("Subscription error after retry: %v", err)
+						el.retrySubscription(ctx, query) // Retry again if needed
+						return
+					}
+				}
+			}()
+
+			log.Infof("Successfully resubscribed to logs for contract: %v", el.contractAddress.Hex())
+			return
+		}
+	}
 }
 
 // ProcessLogs processes the logs emitted by the contract
