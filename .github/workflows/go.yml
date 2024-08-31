@@ -9,12 +9,11 @@ on:
 
 jobs:
   build:
-
-    runs-on: ${{ matrix.os }}
-
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout code
@@ -50,7 +49,7 @@ jobs:
     - name: Build binaries
       run: make build
 
-    - name: Collect light client artifacts
+    - name: Collect light client artifacts (macOS)
       if: matrix.os == 'macos-latest'
       run: |
         mkdir -p das-${{ matrix.os }}/setup-files
@@ -59,7 +58,7 @@ jobs:
         cp test/data/trusted_setup.txt das-${{ matrix.os }}/setup-files/
         cp test/data/gcp-credentials.json das-${{ matrix.os }}/setup-files/
 
-    - name: Collect light client artifacts
+    - name: Collect light client artifacts (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
         mkdir -p das-${{ matrix.os }}/setup-files
@@ -69,7 +68,7 @@ jobs:
       run: tar -czvf das-${{ matrix.os }}.tar.gz das-${{ matrix.os }}
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: das-${{ matrix.os }}
         path: das-${{ matrix.os }}.tar.gz
@@ -85,15 +84,16 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Download binaries
-      uses: actions/download-artifact@v3
+    - name: Download Ubuntu artifacts
+      uses: actions/download-artifact@v4
       with:
-        name: das-ubuntu-latest
+        pattern: das-ubuntu-latest.tar.gz
         path: .
-    - name: Download binaries
-      uses: actions/download-artifact@v3
+
+    - name: Download macOS artifacts
+      uses: actions/download-artifact@v4
       with:
-        name: das-macos-latest
+        pattern: das-macos-latest.tar.gz
         path: .
 
     - name: Upload release asset
