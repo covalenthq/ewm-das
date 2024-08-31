@@ -24,7 +24,7 @@ docker build -t covalent/light-client -f Dockerfile.lc .
 Run the Docker container:
 
 ```bash
-docker run -d --name light-client -e CLIENT_ID="YOUR UNIQUE ID" covalent/light-client
+docker run -d --restart always --name light-client -e CLIENT_ID="YOUR UNIQUE ID" covalent/light-client
 ```
 
 Check the status of the Light Client:
