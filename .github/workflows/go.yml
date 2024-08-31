@@ -50,11 +50,17 @@ jobs:
     - name: Build binaries
       run: make build
 
-    - name: Collect artifacts
+    - name: Collect light client artifacts
       if: matrix.os == 'macos-latest'
-      run: cp scripts/lc-install-macos.sh bin/install.sh && cp scripts/lc-uninstall-macos.sh bin/uninstall.sh && cp test/data/trusted_setup.txt bin/ 
+      run: |
+        mkdir -p das-${{ matrix.os }}/setup-files
+        cp bin/light-client das-${{ matrix.os }}/light-client
+        cp scripts/macos/* das-${{ matrix.os }}/setup-files/
+        cp test/data/trusted_setup.txt das-${{ matrix.os }}/setup-files/
+        cp test/data/gcp-credentials.json das-${{ matrix.os }}/setup-files/
+        
     - name: Create tarball
-      run: tar -czvf das-${{ matrix.os }}.tar.gz bin
+      run: tar -czvf das-${{ matrix.os }}.tar.gz das-${{ matrix.os }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v3
