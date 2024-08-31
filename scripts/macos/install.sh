@@ -12,7 +12,7 @@ IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
 IPFS_REPO_DIR="$HOME/.ipfs"
 
 # Uninstallation step (run the uninstallation script)
-bash uninstall_light_client.sh
+bash uninstall.sh
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
@@ -21,6 +21,7 @@ mkdir -p "$COVALENT_DIR"
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
 cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
+cp "uninstall.sh" "$COVALENT_DIR/"
 cp "run_light_client.sh" "$WRAPPER_SCRIPT"
 
 # Make the executable and wrapper script runnable
