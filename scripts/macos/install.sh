@@ -6,7 +6,7 @@ IPFS_PATH=$(which ipfs)  # Get the actual path of the IPFS binary
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 GCP_CREDENTIALS="gcp-credentials.json"
-WRAPPER_SCRIPT="$COVALENT_DIR/run_light_client.sh"
+WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
 PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.light-client.plist"
 IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
 IPFS_REPO_DIR="$HOME/.ipfs"
@@ -22,7 +22,7 @@ cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
 cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
 cp "uninstall.sh" "$COVALENT_DIR/"
-cp "run_light_client.sh" "$WRAPPER_SCRIPT"
+cp "run.sh" "$WRAPPER_SCRIPT"
 
 # Make the executable and wrapper script runnable
 chmod +x "$COVALENT_DIR/$EXECUTABLE"
@@ -65,16 +65,57 @@ cat <<EOF > "$IPFS_PLIST_FILE"
 </plist>
 EOF
 
+# Validate the IPFS plist file
+plutil -lint "$IPFS_PLIST_FILE"
+
 # Load the IPFS daemon
-launchctl load "$IPFS_PLIST_FILE"
+launchctl unload "$IPFS_PLIST_FILE" # Unload first to ensure no conflicts
+launchctl load "$IPFS_PLIST_FILE" || {
+    echo "Failed to load IPFS plist. Check the plist and system logs for more details."
+    exit 1
+}
 
-# Set CLIENT_ID environment variable for the light client
-export CLIENT_ID="$1"
+# Create the light client launchd plist file with the correct executable path
+cat <<EOF > "$PLIST_FILE"
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.covalent.light-client</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>$HOME/.covalent/run.sh</string>
+    </array>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PINNER_DIR</key>
+        <string>$HOME/.covalent</string>
+        <key>CLIENT_ID</key>
+        <string>$1</string>
+    </dict>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <true/>
+    <key>ThrottleInterval</key>
+    <integer>30</integer> <!-- Prevents rapid restarts -->
+    <key>StandardOutPath</key>
+    <string>$HOME/.covalent/light-client.log</string>
+    <key>StandardErrorPath</key>
+    <string>$HOME/.covalent/light-client.log</string>
+</dict>
+</plist>
+EOF
 
-# Copy the light client launchd plist file
-cp "light_client.plist" "$PLIST_FILE"
+# Validate the light client plist file
+plutil -lint "$PLIST_FILE"
 
 # Load the light client daemon
-launchctl load "$PLIST_FILE"
+launchctl unload "$PLIST_FILE" # Unload first to ensure no conflicts
+launchctl load "$PLIST_FILE" || {
+    echo "Failed to load Light Client plist. Check the plist and system logs for more details."
+    exit 1
+}
 
 echo "Installation completed. The IPFS daemon and the light client daemon are now running."
