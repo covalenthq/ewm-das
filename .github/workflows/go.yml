@@ -52,21 +52,21 @@ jobs:
     - name: Collect light client artifacts (macOS)
       if: matrix.os == 'macos-latest'
       run: |
-        mkdir -p das-${{ matrix.os }}/setup-files
-        cp bin/light-client das-${{ matrix.os }}/setup-files/
-        cp scripts/macos/* das-${{ matrix.os }}/setup-files/
-        cp test/data/trusted_setup.txt das-${{ matrix.os }}/setup-files/
-        cp test/data/gcp-credentials.json das-${{ matrix.os }}/setup-files/
-
+        mkdir -p das-${{ matrix.os }}
+        cp bin/light-client das-${{ matrix.os }}/
+        cp scripts/macos/* das-${{ matrix.os }}/
+        cp test/data/trusted_setup.txt das-${{ matrix.os }}/
+        cp test/data/gcp-credentials.json das-${{ matrix.os }}/
+    
     - name: Collect light client artifacts (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: |
-        mkdir -p das-${{ matrix.os }}/setup-files
-        cp bin/light-client das-${{ matrix.os }}/setup-files/
-        
+        mkdir -p das-${{ matrix.os }}
+        cp bin/light-client das-${{ matrix.os }}/
+            
     - name: Create tarball
-      run: tar -czvf das-${{ matrix.os }}.tar.gz das-${{ matrix.os }}
-
+      run: tar -czvf das-${{ matrix.os }}.tar.gz -C das-${{ matrix.os }} .
+    
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
