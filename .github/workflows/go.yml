@@ -58,6 +58,12 @@ jobs:
         cp scripts/macos/* das-${{ matrix.os }}/setup-files/
         cp test/data/trusted_setup.txt das-${{ matrix.os }}/setup-files/
         cp test/data/gcp-credentials.json das-${{ matrix.os }}/setup-files/
+
+    - name: Collect light client artifacts
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        mkdir -p das-${{ matrix.os }}/setup-files
+        cp bin/light-client das-${{ matrix.os }}/light-client
         
     - name: Create tarball
       run: tar -czvf das-${{ matrix.os }}.tar.gz das-${{ matrix.os }}
