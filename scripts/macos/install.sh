@@ -1,5 +1,11 @@
 #!/bin/bash
 
+if [ -z "$1" ]; then
+    echo "Client ID is required."
+    echo "Usage: $0 <client_id>"
+    exit 1
+fi
+
 # Paths
 COVALENT_DIR="$HOME/.covalent"
 IPFS_PATH=$(which ipfs)  # Get the actual path of the IPFS binary
