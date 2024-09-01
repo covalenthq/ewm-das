@@ -1,33 +1,45 @@
 #!/bin/bash
 
+if [ -z "$1" ]; then
+    echo "Client ID is required."
+    echo "Usage: $0 <client_id>"
+    exit 1
+fi
+
 # Paths
 COVALENT_DIR="$HOME/.covalent"
-IPFS_PATH=$(which ipfs)
+IPFS_PATH=$(which ipfs)  # Get the actual path of the IPFS binary
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
 GCP_CREDENTIALS="gcp-credentials.json"
-WRAPPER_SCRIPT="run_light_client.sh"
-PLIST_FILE="com.covalent.light-client.plist"
-IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
+PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.light-client.plist"
+IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
 IPFS_REPO_DIR="$HOME/.ipfs"
+
+# Uninstallation step (run the uninstallation script)
+bash uninstall.sh
 
 # Check if the destination directory exists
 mkdir -p "$COVALENT_DIR"
 
-# Copy the executable and trusted setup to the destination directory
+# Copy the executable, trusted setup, and wrapper script to the destination directory
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
 cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
+cp "uninstall.sh" "$COVALENT_DIR/"
+cp "run.sh" "$WRAPPER_SCRIPT"
 
-# Make the executable runnable
+# Make the executable and wrapper script runnable
 chmod +x "$COVALENT_DIR/$EXECUTABLE"
+chmod +x "$WRAPPER_SCRIPT"
 
 # Bypass Gatekeeper for the executable
 spctl --add --label "Trusted" "$COVALENT_DIR/$EXECUTABLE"
 spctl --enable --label "Trusted"
 
-# Create the IPFS launchd plist file without a wrapper script
-cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
+# Create the IPFS launchd plist file with the correct IPFS path
+cat <<EOF > "$IPFS_PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -59,45 +71,18 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
 </plist>
 EOF
 
+# Validate the IPFS plist file
+plutil -lint "$IPFS_PLIST_FILE"
+
 # Load the IPFS daemon
-launchctl load "$HOME/Library/LaunchAgents/$IPFS_PLIST_FILE"
-
-# Create the light client wrapper script
-cat <<EOF > "$COVALENT_DIR/$WRAPPER_SCRIPT"
-#!/bin/bash
-
-# Define the directory again in the wrapper script, it will use the value assigned during installation
-COVALENT_DIR="$COVALENT_DIR"
-
-# Ensure that only one instance of the service is running
-SERVICE_NAME="$EXECUTABLE"
-if pgrep -f "\$SERVICE_NAME" > /dev/null 2>&1; then
-    echo "\$SERVICE_NAME is already running."
+launchctl unload "$IPFS_PLIST_FILE" # Unload first to ensure no conflicts
+launchctl load "$IPFS_PLIST_FILE" || {
+    echo "Failed to load IPFS plist. Check the plist and system logs for more details."
     exit 1
-fi
+}
 
-# Wait for IPFS daemon to be fully available
-until pgrep -f "ipfs daemon" > /dev/null 2>&1; do
-    echo "Waiting for IPFS daemon to start..."
-    sleep 5
-done
-
-# Run your service binary with all the arguments
-"\$COVALENT_DIR/\$SERVICE_NAME" \\
-    --loglevel debug \\
-    --rpc-url wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e \\
-    --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 \\
-    --topic-id DAS-TO-BQ \\
-    --gcp-creds-file "\$COVALENT_DIR/$GCP_CREDENTIALS" \\
-    --client-id {YOUR_UNIQUE_ID}
-
-EOF
-
-# Make the wrapper script executable
-chmod +x "$COVALENT_DIR/$WRAPPER_SCRIPT"
-
-# Create the launchd plist file for the light client
-cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
+# Create the light client launchd plist file with the correct executable path
+cat <<EOF > "$PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -106,12 +91,14 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <string>com.covalent.light-client</string>
     <key>ProgramArguments</key>
     <array>
-        <string>$COVALENT_DIR/$WRAPPER_SCRIPT</string>
+        <string>$HOME/.covalent/run.sh</string>
     </array>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PINNER_DIR</key>
-        <string>$COVALENT_DIR</string>
+        <string>$HOME/.covalent</string>
+        <key>CLIENT_ID</key>
+        <string>$1</string>
     </dict>
     <key>RunAtLoad</key>
     <true/>
@@ -120,14 +107,21 @@ cat <<EOF > "$HOME/Library/LaunchAgents/$PLIST_FILE"
     <key>ThrottleInterval</key>
     <integer>30</integer> <!-- Prevents rapid restarts -->
     <key>StandardOutPath</key>
-    <string>$COVALENT_DIR/light-client.log</string>
+    <string>$HOME/.covalent/light-client.log</string>
     <key>StandardErrorPath</key>
-    <string>$COVALENT_DIR/light-client.log</string>
+    <string>$HOME/.covalent/light-client.log</string>
 </dict>
 </plist>
 EOF
 
+# Validate the light client plist file
+plutil -lint "$PLIST_FILE"
+
 # Load the light client daemon
-launchctl load "$HOME/Library/LaunchAgents/$PLIST_FILE"
+launchctl unload "$PLIST_FILE" # Unload first to ensure no conflicts
+launchctl load "$PLIST_FILE" || {
+    echo "Failed to load Light Client plist. Check the plist and system logs for more details."
+    exit 1
+}
 
 echo "Installation completed. The IPFS daemon and the light client daemon are now running."
