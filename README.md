@@ -20,6 +20,7 @@
   - [Light-Client](#light-client)
   - [DAS Pinner](#das-pinner)
 - [Development](#development)
+- [TODO](#todo)
 - [License](#license)
 - [Contributing](#contributing)
 
@@ -106,6 +107,24 @@ To run tests with a coverage report:
 ```sh
 make test-cover
 ```
+
+## TODO
+
+### TESTNET (WIP)
+
+- [ ]  LC workload management - verify only 1 validated (post consensus) block specimen cid per block height
+- [ ]  DAS-pinner parity development to replace ipfs-pinner
+- [ ]  Guarantee LCs perform minimum sampling for availability
+- [ ]  Workload distribution system v1
+- [ ]  Authorization layer for LC proof submission v1 (PoA)
+- [ ]  Collection-Reward distribution system v1
+- [ ]  Client node profiling
+- [ ]  Network stress test
+- [ ]  dashboard: lifetime active light clients
+- [ ]  dashboard: number of cells samples / submission time series
+- [ ]  dashboard: unique clients / day - last 30 days
+- [ ]  Packaging and installation improvements
+- [ ]  ...
 
 ## License
 
