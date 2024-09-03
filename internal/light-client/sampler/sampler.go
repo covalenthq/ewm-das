@@ -37,6 +37,7 @@ type Sampler struct {
 	gateways      []string
 	pub           *publisher.Publisher
 	samplingDelay uint
+	samplingFn    func(int, int, float64) int
 }
 
 // Link represents a link to another CID in IPFS.
@@ -113,6 +114,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 		gateways:      DefaultGateways,
 		pub:           pub,
 		samplingDelay: samplingDelay,
+		samplingFn:    CalculateSamplesNeeded,
 	}, nil
 }
 
@@ -130,7 +132,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		log.Debugf("Processing event for CID [%s] is defered for %d min", cidStr, s.samplingDelay/60)
+		log.Debugf("Processing event for CID [%s] is deferred for %d min", cidStr, s.samplingDelay/60)
 		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
 		log.Debugf("Processing event for CID [%s] ...", cidStr)
 
@@ -140,34 +142,51 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		rowindex := rand.Intn(len(rootNode.Links))
-		var links []Link
-		if err := s.GetData(rootNode.Links[rowindex].CID, &links); err != nil {
-			log.Errorf("Failed to fetch link data: %v", err)
-			return
-		}
+		sampleIterations := s.samplingFn(rootNode.Size, rootNode.Size/2, 0.95)
 
-		var data DataMap
-		colindex := rand.Intn(len(links))
-		if err := s.GetData(links[colindex].CID, &data); err != nil {
-			log.Errorf("Failed to fetch data node: %v", err)
-			return
-		}
+		for rowIndex, rowLink := range rootNode.Links {
+			var links []Link
+			if err := s.GetData(rowLink.CID, &links); err != nil {
+				log.Errorf("Failed to fetch link data: %v", err)
+				return
+			}
 
-		commitment := rootNode.Commitments[rowindex].Nested.Bytes
-		proof := data.Proof.Nested.Bytes
-		cell := data.Cell.Nested.Bytes
-		res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colindex)).Verify()
-		if err != nil {
-			log.Errorf("Failed to verify proof and cell: %v", err)
-			return
-		}
+			// Track sampled column indices to avoid duplicates
+			sampledCols := make(map[int]bool)
 
-		log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowindex, colindex, res, cidStr)
+			for i := 0; i < sampleIterations; i++ {
+				// Find a unique column index that hasn't been sampled yet
+				var colIndex int
+				for {
+					colIndex = rand.Intn(len(links))
+					if !sampledCols[colIndex] {
+						sampledCols[colIndex] = true
+						break
+					}
+				}
 
-		if err := s.pub.PublishToCS(cidStr, rowindex, colindex, res, commitment, proof, cell, blockHeight); err != nil {
-			log.Errorf("Failed to publish to Cloud Storage: %v", err)
-			return
+				var data DataMap
+				if err := s.GetData(links[colIndex].CID, &data); err != nil {
+					log.Errorf("Failed to fetch data node: %v", err)
+					return
+				}
+
+				commitment := rootNode.Commitments[rowIndex].Nested.Bytes
+				proof := data.Proof.Nested.Bytes
+				cell := data.Cell.Nested.Bytes
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex)).Verify()
+				if err != nil {
+					log.Errorf("Failed to verify proof and cell: %v", err)
+					return
+				}
+
+				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowIndex, colIndex, res, cidStr)
+
+				if err := s.pub.PublishToCS(cidStr, rowIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
+					log.Errorf("Failed to publish to Cloud Storage: %v", err)
+					return
+				}
+			}
 		}
 	}(cidStr)
 }

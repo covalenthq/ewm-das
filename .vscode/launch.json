@@ -61,7 +61,7 @@
         "--topic-id",
         "DAS-TO-BQ",
         "--gcp-creds-file",
-        "${workspaceFolder}/gcp-credentials.json",
+        "${workspaceFolder}/test/data/gcp-credentials.json",
         "--client-id",
         "4e440d76-4a26-4117-b317-b5b407b0cd54"
       ],
