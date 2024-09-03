@@ -87,13 +87,13 @@ jobs:
     - name: Download Ubuntu artifacts
       uses: actions/download-artifact@v4
       with:
-        pattern: das-ubuntu-latest.tar.gz
+        name: das-ubuntu-latest
         path: .
 
     - name: Download macOS artifacts
       uses: actions/download-artifact@v4
       with:
-        pattern: das-macos-latest.tar.gz
+        name: das-macos-latest
         path: .
 
     - name: Upload release asset
