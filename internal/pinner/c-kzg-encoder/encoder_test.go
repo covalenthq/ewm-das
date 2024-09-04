@@ -5,7 +5,7 @@ import (
 	"os"
 	"testing"
 
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	logging "github.com/ipfs/go-log/v2"
 	"golang.org/x/exp/rand"
 )

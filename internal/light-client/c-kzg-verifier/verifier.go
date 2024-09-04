@@ -3,7 +3,7 @@ package verifier
 import (
 	"fmt"
 
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
 // KZGVerifier represents a structure to verify KZG commitments.
