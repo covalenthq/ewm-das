@@ -4,7 +4,7 @@ go 1.22.3
 
 require (
 	cloud.google.com/go/pubsub v1.42.0
-	github.com/ethereum/c-kzg-4844 v1.0.3
+	github.com/ethereum/c-kzg-4844/v2 v2.0.1
 	github.com/ethereum/go-ethereum v1.14.8
 	github.com/ipfs/boxo v0.20.0
 	github.com/ipfs/go-block-format v0.2.0
@@ -61,6 +61,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
 	github.com/elastic/gosigar v0.14.2 // indirect
+	github.com/ethereum/c-kzg-4844 v1.0.3 // indirect
 	github.com/facebookgo/atomicfile v0.0.0-20151019160806-2de1f203e7d5 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect
 	github.com/flynn/noise v1.1.0 // indirect
@@ -254,5 +255,3 @@ require (
 	lukechampine.com/blake3 v1.3.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
-
-replace github.com/ethereum/c-kzg-4844 => ./c-kzg-4844

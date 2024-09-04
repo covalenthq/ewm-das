@@ -36,7 +36,6 @@ Clone the repository:
 ```sh
 git clone https://github.com/covalenthq/das-ipfs-pinner
 cd das-ipfs-pinner
-git submodule update --init --recursive
 ```
 
 Install dependencies:

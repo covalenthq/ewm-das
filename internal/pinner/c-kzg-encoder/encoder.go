@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
-	ckzg4844 "github.com/ethereum/c-kzg-4844/bindings/go"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
 var (
