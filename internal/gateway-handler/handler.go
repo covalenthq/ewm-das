@@ -52,8 +52,6 @@ func (g *GatewayHandler) FetchFromGateways(ctx context.Context, cidStr string, d
 	// Channels to capture results and errors
 	resultChan := make(chan resultContext)
 	errorChan := make(chan errorContext)
-	defer close(resultChan)
-	defer close(errorChan)
 
 	// Set up context with timeout to prevent indefinite waiting
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
@@ -64,76 +62,32 @@ func (g *GatewayHandler) FetchFromGateways(ctx context.Context, cidStr string, d
 		go g.fetchFromGateway(ctx, gateway, cidStr, data, resultChan, errorChan)
 	}
 
-	// Collect results and return the first successful one
-	successCount := 0
-	totalCount := len(g.gateways)
-
-	for i := 0; i < totalCount; i++ {
-		select {
-		case <-ctx.Done():
-			if successCount > 0 {
-				return nil
-			}
-			return fmt.Errorf("timeout exceeded")
-
-		case result := <-resultChan:
-			log.Debugf("Data fetched from %s", result.Context)
-			// data = result.Result
-			successCount++
-			if successCount == 1 {
-				// Return after the first successful result
-				return nil
-			}
-
-		case errCxt := <-errorChan:
-			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
-		}
-	}
-
-	// If no successful results, return an error
-	if successCount == 0 {
-		return fmt.Errorf("failed to fetch data from any gateway")
-	}
-
-	return nil
+	// Wait for the first successful result or all errors
+	return g.waitForFirstSuccess(ctx, resultChan, errorChan)
 }
 
 // fetchFromGateway fetches data from a gateway concurrently.
 func (g *GatewayHandler) fetchFromGateway(ctx context.Context, gateway, cidStr string, data interface{}, resultChan chan<- resultContext, errorChan chan<- errorContext) {
+	// Fetch data from gateway
 	gatewayData, err := g.getDataFromGateway(ctx, gateway, cidStr)
 	if err != nil {
 		if err == context.Canceled {
-			return
+			return // Don't report the cancellation error
 		}
 		errorChan <- errorContext{Err: err, Context: gateway}
 		return
 	}
 
-	// Decode the data into an IPLD node from CBOR
-	node, err := ipldencoder.DecodeNode(gatewayData)
-	if err != nil {
-		errorChan <- errorContext{Err: err, Context: gateway}
-		return
-	}
-
-	// Encode the IPLD node into JSON
-	var jsonData bytes.Buffer
-	if err := dagjson.Encode(node, &jsonData); err != nil {
-		errorChan <- errorContext{Err: err, Context: gateway}
-		return
-	}
-
-	// Unmarshal JSON data into the provided data interface
-	if err := json.Unmarshal(jsonData.Bytes(), data); err != nil {
+	// Decode and process the data
+	if err := g.decodeAndUnmarshal(gateway, gatewayData, data); err != nil {
 		errorChan <- errorContext{Err: err, Context: gateway}
 		return
 	}
 
 	select {
 	case resultChan <- resultContext{Result: data, Context: fmt.Sprintf("gateway %s", gateway)}:
-		return
 	case <-ctx.Done():
-		return
+		// Context canceled, stop further actions
 	}
 }
 
@@ -158,9 +112,8 @@ func (g *GatewayHandler) getDataFromGateway(ctx context.Context, gateway, cid st
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		if urlErr, ok := err.(*url.Error); ok {
-			// Further inspect the fields of url.Error
+			// Handle specific URL errors like context cancellation
 			if urlErr.Err.Error() == "context canceled" {
-				// Handle the specific case where the URL is nil
 				return nil, context.Canceled
 			}
 		}
@@ -173,4 +126,61 @@ func (g *GatewayHandler) getDataFromGateway(ctx context.Context, gateway, cid st
 	}
 
 	return io.ReadAll(resp.Body)
+}
+
+// decodeAndUnmarshal decodes the IPLD data and unmarshals it into the provided interface.
+func (g *GatewayHandler) decodeAndUnmarshal(gateway string, gatewayData []byte, data interface{}) error {
+	// Decode the data into an IPLD node from CBOR
+	node, err := ipldencoder.DecodeNode(gatewayData)
+	if err != nil {
+		return fmt.Errorf("failed to decode IPLD data from %s: %w", gateway, err)
+	}
+
+	// Encode the IPLD node into JSON
+	var jsonData bytes.Buffer
+	if err := dagjson.Encode(node, &jsonData); err != nil {
+		return fmt.Errorf("failed to encode IPLD node into JSON from %s: %w", gateway, err)
+	}
+
+	// Unmarshal JSON data into the provided data interface
+	if err := json.Unmarshal(jsonData.Bytes(), data); err != nil {
+		return fmt.Errorf("failed to unmarshal JSON data from %s: %w", gateway, err)
+	}
+
+	return nil
+}
+
+// waitForFirstSuccess waits for the first successful result or returns an error if all fail.
+func (g *GatewayHandler) waitForFirstSuccess(ctx context.Context, resultChan <-chan resultContext, errorChan <-chan errorContext) error {
+	successCount := 0
+	totalCount := len(g.gateways)
+
+	for i := 0; i < totalCount; i++ {
+		select {
+		case <-ctx.Done():
+			// If the context is canceled and we've had no success, return a timeout error
+			if successCount > 0 {
+				return nil
+			}
+			return fmt.Errorf("timeout exceeded")
+
+		case result := <-resultChan:
+			log.Debugf("Data fetched from %s", result.Context)
+			successCount++
+			// Return immediately after the first successful result
+			if successCount == 1 {
+				return nil
+			}
+
+		case errCxt := <-errorChan:
+			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
+		}
+	}
+
+	// If no successful results, return an error
+	if successCount == 0 {
+		return fmt.Errorf("failed to fetch data from any gateway")
+	}
+
+	return nil
 }

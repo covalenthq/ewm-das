@@ -139,25 +139,11 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 	resultChan := make(chan resultContext)
 	errorChan := make(chan errorContext)
 
-	// Run IPFS node fetch concurrently
-	go func() {
-		if err := s.ipfsShell.DagGet(cidStr, &data); err != nil {
-			errorChan <- errorContext{Err: err, Context: "IPFS node"}
-		} else {
-			resultChan <- resultContext{Result: data, Context: "IPFS node"}
-		}
-	}()
+	// Start concurrent fetches
+	go s.fetchDataFromIPFS(cidStr, data, resultChan, errorChan)
+	go s.fetchDataFromGateways(ctx, cidStr, data, resultChan, errorChan)
 
-	// Run gateway fetch concurrently
-	go func() {
-		if err := s.gh.FetchFromGateways(ctx, cidStr, data); err != nil {
-			errorChan <- errorContext{Err: err, Context: "Gateways"}
-		} else {
-			resultChan <- resultContext{Result: data, Context: "Gateways"}
-		}
-	}()
-
-	// Wait for the first successful result
+	// Wait for the first successful result or errors
 	for {
 		select {
 		case result := <-resultChan:
@@ -168,14 +154,31 @@ func (s *Sampler) GetData(cidStr string, data interface{}) error {
 
 		case errCxt := <-errorChan:
 			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
-			// If we receive errors from both sources, return the last error.
 			if errCxt.Context == "Gateways" {
 				return errCxt.Err
 			}
 
 		case <-ctx.Done():
-			// If the context is canceled, return.
+			// Context canceled, exit
 			return nil
 		}
+	}
+}
+
+// fetchDataFromIPFS starts a concurrent fetch from the IPFS node
+func (s *Sampler) fetchDataFromIPFS(cidStr string, data interface{}, resultChan chan<- resultContext, errorChan chan<- errorContext) {
+	if err := s.ipfsShell.DagGet(cidStr, &data); err != nil {
+		errorChan <- errorContext{Err: err, Context: "IPFS node"}
+	} else {
+		resultChan <- resultContext{Result: data, Context: "IPFS node"}
+	}
+}
+
+// fetchDataFromGateways starts a concurrent fetch from the gateways
+func (s *Sampler) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, resultChan chan<- resultContext, errorChan chan<- errorContext) {
+	if err := s.gh.FetchFromGateways(ctx, cidStr, data); err != nil {
+		errorChan <- errorContext{Err: err, Context: "Gateways"}
+	} else {
+		resultChan <- resultContext{Result: data, Context: "Gateways"}
 	}
 }
