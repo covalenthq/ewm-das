@@ -3,156 +3,100 @@ package ipfsnode
 import (
 	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
 
 	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-ipld-prime/datamodel"
+	"github.com/ipld/go-ipld-prime/codec/dagjson"
 	"github.com/ipld/go-ipld-prime/multicodec"
 	"github.com/ipld/go-ipld-prime/node/basicnode"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 )
 
+type fetchContext struct {
+	Data    interface{}
+	Context string
+	Err     error
+}
+
 // ExtractBlock extracts the block from IPFS.
 func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*ipldencoder.IPLDDataBlock, error) {
-	// Parse the CID
-	cid, err := cid.Parse(cidStr)
-	if err != nil {
+	var root internal.RootNode
+	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
 		return nil, err
 	}
-
-	// Retrieve the block from blockstore
-	node, err := ipfsNode.api.Dag().Get(ctx, cid)
-	if err != nil {
-		return nil, err
-	}
-
-	// Decode the block
-	return ipfsNode.decodeNode(ctx, cid, node.RawData())
+	return nil, nil
 }
 
-func (ipfsNode *IPFSNode) decodeNode(ctx context.Context, rootCid cid.Cid, data []byte) (*ipldencoder.IPLDDataBlock, error) {
-	root, err := ipfsNode.decodeData(rootCid, data)
-	if err != nil {
-		return nil, err
-	}
+// GetData concurrently fetches data from both IPFS and gateways.
+func (s *IPFSNode) GetData(ctx context.Context, cidStr string, data interface{}) error {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
 
-	links, err := root.LookupByString("links")
-	if err != nil {
-		return nil, err
-	}
+	results := make(chan fetchContext, 2)
 
-	linkNodes, dataNodes, err := ipfsNode.processLinks(ctx, links)
-	if err != nil {
-		return nil, err
-	}
+	go s.fetchDataFromIPFS(ctx, cidStr, data, results)
+	go s.fetchDataFromGateways(ctx, cidStr, data, results)
 
-	return &ipldencoder.IPLDDataBlock{
-		Version:   rootCid.Version(),
-		Codec:     rootCid.Type(),
-		Links:     linkNodes,
-		DataNodes: dataNodes,
-		Root:      root,
-	}, nil
+	for i := 0; i < 2; i++ {
+		select {
+		case res := <-results:
+			if res.Err == nil {
+				log.Debugf("Data fetched from %s", res.Context)
+				return nil
+			}
+			log.Debugf("Error getting data from %s: %v", res.Context, res.Err)
+			if res.Context == "Gateways" {
+				return res.Err
+			}
+		case <-ctx.Done():
+			return fmt.Errorf("operation canceled")
+		}
+	}
+	return fmt.Errorf("failed to fetch data")
 }
 
-func (ipfsNode *IPFSNode) processLinks(ctx context.Context, links datamodel.Node) ([][]datamodel.Link, [][]datamodel.Node, error) {
-	var linkNodes [][]datamodel.Link
-	var dataNodes [][]datamodel.Node
-
-	iter := links.ListIterator()
-	for !iter.Done() {
-		_, linkNode, err := iter.Next()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		link, err := linkNode.AsLink()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		linkCid, err := cid.Parse(link.String())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Get the linked node
-		legacyNode, err := ipfsNode.api.Dag().Get(ctx, linkCid)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		links, data, err := ipfsNode.decodeLinkedNode(ctx, linkCid, legacyNode.RawData())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		linkNodes = append(linkNodes, links)
-		dataNodes = append(dataNodes, data)
-	}
-
-	return linkNodes, dataNodes, nil
+// fetchDataFromIPFS starts a concurrent fetch from the IPFS node.
+func (s *IPFSNode) fetchDataFromIPFS(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
+	err := s.FetchFromDagApi(ctx, cidStr, data)
+	results <- fetchContext{Data: data, Context: "IPFS node", Err: err}
 }
 
-func (ipfsNode *IPFSNode) decodeLinkedNode(ctx context.Context, rootCid cid.Cid, data []byte) ([]datamodel.Link, []datamodel.Node, error) {
-	root, err := ipfsNode.decodeData(rootCid, data)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	var dataNodes []datamodel.Node
-	var links []datamodel.Link
-
-	iter := root.ListIterator()
-	for !iter.Done() {
-		_, linkNode, err := iter.Next()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		link, err := linkNode.AsLink()
-		if err != nil {
-			return nil, nil, err
-		}
-
-		links = append(links, link)
-
-		linkCid, err := cid.Parse(link.String())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		// Get the linked node
-		legacyNode, err := ipfsNode.api.Dag().Get(ctx, linkCid)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		node, err := ipfsNode.decodeData(linkCid, legacyNode.RawData())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		dataNodes = append(dataNodes, node)
-	}
-
-	return links, dataNodes, nil
+// fetchDataFromGateways starts a concurrent fetch from the gateways.
+func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
+	err := s.gh.FetchFromGateways(ctx, cidStr, data)
+	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
 }
 
-func (ipfsNode *IPFSNode) decodeData(rootCid cid.Cid, data []byte) (datamodel.Node, error) {
-	decoder, err := multicodec.LookupDecoder(uint64(rootCid.Type()))
+// FetchFromDagApi fetches data from IPFS using the Dag API and decodes it.
+func (ipfsNode *IPFSNode) FetchFromDagApi(ctx context.Context, cidStr string, data interface{}) error {
+	parsedCid, err := cid.Parse(cidStr)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	// Wrap the data in a bytes.Reader to satisfy io.Reader interface
-	reader := bytes.NewReader(data)
+	node, err := ipfsNode.api.Dag().Get(ctx, parsedCid)
+	if err != nil {
+		return err
+	}
 
-	// Decode the data using the appropriate decoder
+	decoder, err := multicodec.LookupDecoder(uint64(parsedCid.Type()))
+	if err != nil {
+		return err
+	}
+
+	reader := bytes.NewReader(node.RawData())
 	nb := basicnode.Prototype.Any.NewBuilder()
 	if err := decoder(nb, reader); err != nil {
-		return nil, err
+		return err
 	}
 
-	return nb.Build(), nil
+	var jsonData bytes.Buffer
+	if err := dagjson.Encode(nb.Build(), &jsonData); err != nil {
+		return err
+	}
+
+	return json.Unmarshal(jsonData.Bytes(), data)
 }

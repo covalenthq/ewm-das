@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
-	gatewayhandler "github.com/covalenthq/das-ipfs-pinner/internal/gateway-handler"
+	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/ipfs/go-cid"
@@ -20,20 +20,10 @@ var log = logging.Logger("light-client")
 // Sampler is a struct that samples data from IPFS and verifies it.
 type Sampler struct {
 	ipfsShell     *ipfs.Shell
-	gh            *gatewayhandler.GatewayHandler
+	gh            *gateway.Handler
 	pub           *publisher.Publisher
 	samplingDelay uint
 	samplingFn    func(int, int, float64) int
-}
-
-type errorContext struct {
-	Err     error
-	Context string
-}
-
-type resultContext struct {
-	Result  interface{}
-	Context string
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
@@ -44,11 +34,11 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 		return nil, fmt.Errorf("failed to connect to IPFS daemon: %w", err)
 	}
 
-	gatewayhandler := gatewayhandler.NewGatewayHandler(gatewayhandler.DefaultGateways)
+	gh := gateway.NewHandler(gateway.DefaultGateways)
 
 	return &Sampler{
 		ipfsShell:     shell,
-		gh:            gatewayhandler,
+		gh:            gh,
 		pub:           pub,
 		samplingDelay: samplingDelay,
 		samplingFn:    CalculateSamplesNeeded,
@@ -131,54 +121,49 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 // GetData tries to fetch data from both the IPFS node and gateways simultaneously.
 // It cancels the other request as soon as one returns successfully.
 func (s *Sampler) GetData(cidStr string, data interface{}) error {
-	// Create a context with cancel to stop the other fetch when one completes.
 	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel() // Ensure all routines are stopped when done.
+	defer cancel()
 
-	// Channels to capture results and errors
-	resultChan := make(chan resultContext)
-	errorChan := make(chan errorContext)
+	results := make(chan error, 1) // Buffer of 1 to capture first result
 
-	// Start concurrent fetches
-	go s.fetchDataFromIPFS(cidStr, data, resultChan, errorChan)
-	go s.fetchDataFromGateways(ctx, cidStr, data, resultChan, errorChan)
+	go s.fetchDataFromIPFS(ctx, cidStr, data, results)
+	go s.fetchDataFromGateways(ctx, cidStr, data, results)
 
-	// Wait for the first successful result or errors
-	for {
-		select {
-		case result := <-resultChan:
-			// Successful fetch, cancel the other operation
-			cancel()
-			log.Debugf("Data fetched from %s", result.Context)
-			return nil
-
-		case errCxt := <-errorChan:
-			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
-			if errCxt.Context == "Gateways" {
-				return errCxt.Err
-			}
-
-		case <-ctx.Done():
-			// Context canceled, exit
-			return nil
-		}
+	// Return immediately after the first successful result
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("operation canceled")
+	case err := <-results:
+		return err
 	}
 }
 
-// fetchDataFromIPFS starts a concurrent fetch from the IPFS node
-func (s *Sampler) fetchDataFromIPFS(cidStr string, data interface{}, resultChan chan<- resultContext, errorChan chan<- errorContext) {
+// fetchDataFromIPFS starts a concurrent fetch from the IPFS node.
+func (s *Sampler) fetchDataFromIPFS(ctx context.Context, cidStr string, data interface{}, results chan<- error) {
 	if err := s.ipfsShell.DagGet(cidStr, &data); err != nil {
-		errorChan <- errorContext{Err: err, Context: "IPFS node"}
-	} else {
-		resultChan <- resultContext{Result: data, Context: "IPFS node"}
+		select {
+		case results <- fmt.Errorf("IPFS node: %v", err):
+		case <-ctx.Done():
+		}
+		return
+	}
+	select {
+	case results <- nil:
+	case <-ctx.Done():
 	}
 }
 
-// fetchDataFromGateways starts a concurrent fetch from the gateways
-func (s *Sampler) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, resultChan chan<- resultContext, errorChan chan<- errorContext) {
+// fetchDataFromGateways starts a concurrent fetch from the gateways.
+func (s *Sampler) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- error) {
 	if err := s.gh.FetchFromGateways(ctx, cidStr, data); err != nil {
-		errorChan <- errorContext{Err: err, Context: "Gateways"}
-	} else {
-		resultChan <- resultContext{Result: data, Context: "Gateways"}
+		select {
+		case results <- fmt.Errorf("gateways: %v", err):
+		case <-ctx.Done():
+		}
+		return
+	}
+	select {
+	case results <- nil:
+	case <-ctx.Done():
 	}
 }
