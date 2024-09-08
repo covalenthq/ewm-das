@@ -50,6 +50,12 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 		return nil, err
 	}
 
+	// err = cctx.Plugins.Start(node)
+	// if err != nil {
+	// 	return err
+	// }
+	// node.Process.AddChild(goprocess.WithTeardown(cctx.Plugins.Close))
+
 	return &IPFSNode{
 		node: node,
 		api:  api,
@@ -86,7 +92,7 @@ func initializeIPFSConfig() (*core.BuildCfg, error) {
 	return &core.BuildCfg{
 		Online:    true,
 		Permanent: true,
-		Routing:   libp2p.DHTOption,
+		Routing:   libp2p.ConstructDefaultRouting(ipfsConfig, libp2p.DHTOption),
 		Host:      libp2p.DefaultHostOption,
 		Repo:      repo,
 	}, nil

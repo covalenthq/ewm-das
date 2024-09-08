@@ -83,44 +83,25 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Only allow POST method
-		if r.Method != http.MethodPost {
-			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		// Only allow GET method
+		if r.Method != http.MethodGet {
+			handleError(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		// Validate Content-Type
-		contentType := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(contentType, "application/x-www-form-urlencoded") &&
-			!strings.HasPrefix(contentType, "multipart/form-data") {
-			handleError(w, "Content-Type must be application/x-www-form-urlencoded or multipart/form-data", http.StatusUnsupportedMediaType)
-			return
-		}
-
-		// Parse the form data
-		err := r.ParseForm()
-		if err != nil {
-			handleError(w, "Failed to parse form data", http.StatusBadRequest)
-			return
-		}
-
-		// Get the CID from the form
-		cid := r.FormValue("cid")
+		// Get the CID from the query parameters
+		cid := r.URL.Query().Get("cid")
 		if cid == "" {
-			handleError(w, "CID is required", http.StatusBadRequest)
+			handleError(w, "CID query parameter is required", http.StatusBadRequest)
 			return
 		}
-
-		// Process the CID (this is just a placeholder for the actual extraction logic)
-		fmt.Fprintf(w, "Extracting data for CID: %s", cid)
 
 		// Extract the block from IPFS
-		_, err = ipfsNode.ExtractBlock(r.Context(), cid)
+		_, err := ipfsNode.ExtractBlock(r.Context(), cid)
 		if err != nil {
 			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
 			return
 		}
-
 	}
 }
 
