@@ -14,7 +14,8 @@
         "${workspaceFolder}/delegation.proof"
       ],
       "env": {
-        "PINNER_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data",
+        "IPFS_LOGGING": "info",
       }
     },
     {
