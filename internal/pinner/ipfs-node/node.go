@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
+	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/erasurefix"
 	logging "github.com/ipfs/go-log/v2"
 	config "github.com/ipfs/kubo/config"
 	"github.com/ipfs/kubo/core"
@@ -24,6 +25,7 @@ type IPFSNode struct {
 	api  iface.CoreAPI
 	w3   *W3Storage
 	gh   *gateway.Handler
+	ef   *erasurefix.Erasurer
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
@@ -54,6 +56,8 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 
 	gh := gateway.NewHandler(gateway.DefaultGateways)
 
+	ef := erasurefix.NewErasurer()
+
 	// err = cctx.Plugins.Start(node)
 	// if err != nil {
 	// 	return err
@@ -65,6 +69,7 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 		api:  api,
 		w3:   w3,
 		gh:   gh,
+		ef:   ef,
 	}, nil
 }
 

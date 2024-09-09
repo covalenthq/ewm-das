@@ -53,10 +53,10 @@ func (s *IPFSNode) fetchDataFromIPFS(ctx context.Context, cidStr string, data in
 }
 
 // fetchDataFromGateways starts a concurrent fetch from the gateways.
-func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
-	err := s.gh.FetchFromGateways(ctx, cidStr, data)
-	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
-}
+// func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
+// 	err := s.gh.FetchFromGateways(ctx, cidStr, data)
+// 	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
+// }
 
 // FetchFromDagApi fetches data from IPFS using the Dag API and decodes it.
 func (ipfsNode *IPFSNode) FetchFromDagApi(ctx context.Context, cidStr string, data interface{}) error {

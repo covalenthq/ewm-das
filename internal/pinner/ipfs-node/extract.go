@@ -8,12 +8,8 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 )
 
-type Block struct {
-	Cells [][]*internal.DataMap
-}
-
 // ExtractBlock extracts the block from IPFS and downloads all cells.
-func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*Block, error) {
+func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) ([]byte, error) {
 	var root internal.RootNode
 	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
 		return nil, err
@@ -76,7 +72,7 @@ func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*Blo
 		return nil, errors.New("context canceled")
 	case <-errorChan:
 		// All downloads completed successfully, combine them into a block
-		return combineDownloadedCells(downloadedCells), nil
+		return ipfsNode.combineDownloadedCells(root, downloadedCells)
 	}
 }
 
@@ -124,9 +120,42 @@ func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.
 }
 
 // combineDownloadedCells combines the downloaded cells into a block.
-func combineDownloadedCells(cells [][]*internal.DataMap) *Block {
-	// Combine the downloaded cells into a block.
-	return &Block{
-		Cells: cells,
+// combineDownloadedCells combines the downloaded cells into a block.
+func (ipfsNode *IPFSNode) combineDownloadedCells(root internal.RootNode, cells [][]*internal.DataMap) ([]byte, error) {
+	// Fix the cells using error correction, if needed
+	block, err := ipfsNode.ef.Fix(cells)
+	if err != nil {
+		return nil, err
 	}
+
+	data := make([]byte, root.Size) // Preallocate the final data array with exact size
+	dataOffset := 0                 // Keep track of the offset in the final data array
+
+	for _, row := range block {
+		for _, cell := range row {
+			cellLen := len(cell)
+
+			// Copy every 31 bytes from each 32-byte chunk, skipping the 0 padding
+			for k := 0; k < cellLen; k += 32 {
+				if k+32 <= cellLen {
+					// Calculate the number of remaining bytes to copy
+					bytesToCopy := 31
+					if dataOffset+31 > root.Size {
+						bytesToCopy = root.Size - dataOffset // Ensure we don't exceed root.Size
+					}
+
+					// Copy 31 bytes from position k+1 to k+32 (skip the first byte)
+					copy(data[dataOffset:], cell[k+1:k+1+bytesToCopy])
+					dataOffset += bytesToCopy
+
+					// Stop if we've copied enough data
+					if dataOffset >= root.Size {
+						return data, nil
+					}
+				}
+			}
+		}
+	}
+
+	return data, nil
 }
