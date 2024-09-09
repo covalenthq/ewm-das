@@ -1,102 +1,132 @@
 package ipfsnode
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"fmt"
-
-	"github.com/ipfs/go-cid"
-	"github.com/ipld/go-ipld-prime/codec/dagjson"
-	"github.com/ipld/go-ipld-prime/multicodec"
-	"github.com/ipld/go-ipld-prime/node/basicnode"
+	"errors"
+	"sync"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
-	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 )
 
-type fetchContext struct {
-	Data    interface{}
-	Context string
-	Err     error
+type Block struct {
+	Cells [][]*internal.DataMap
 }
 
-// ExtractBlock extracts the block from IPFS.
-func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*ipldencoder.IPLDDataBlock, error) {
+// ExtractBlock extracts the block from IPFS and downloads all cells.
+func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) (*Block, error) {
 	var root internal.RootNode
 	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
 		return nil, err
 	}
-	return nil, nil
-}
 
-// GetData concurrently fetches data from both IPFS and gateways.
-func (s *IPFSNode) GetData(ctx context.Context, cidStr string, data interface{}) error {
+	// Pre-allocate space for cells from each of the root links (up to 13)
+	downloadedCells := make([][]*internal.DataMap, len(root.Links))
+
+	// Channel for handling errors
+	errorChan := make(chan error, 1)
+
+	// WaitGroup to synchronize the completion of all downloads
+	var wg sync.WaitGroup
+
+	// Context with cancelation to stop downloads if an error occurs
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	results := make(chan fetchContext, 2)
+	// Start processing each root link in parallel
+	for i, link := range root.Links {
+		wg.Add(1)
+		go func(i int, link internal.Link) {
+			defer wg.Done()
 
-	go s.fetchDataFromIPFS(ctx, cidStr, data, results)
-	go s.fetchDataFromGateways(ctx, cidStr, data, results)
+			// Fetch the next set of links (128 cells per link)
+			var rowLinks []internal.Link
+			if err := ipfsNode.GetData(ctx, link.CID, &rowLinks); err != nil {
+				select {
+				case errorChan <- err:
+				default:
+				}
+				return
+			}
 
-	for i := 0; i < 2; i++ {
-		select {
-		case res := <-results:
-			if res.Err == nil {
-				log.Debugf("Data fetched from %s", res.Context)
-				return nil
+			// Download up to 64 cells from the row links
+			cells, err := downloadCells(ctx, ipfsNode, rowLinks, errorChan, 64)
+			if err != nil {
+				return
 			}
-			log.Debugf("Error getting data from %s: %v", res.Context, res.Err)
-			if res.Context == "Gateways" {
-				return res.Err
-			}
-		case <-ctx.Done():
-			return fmt.Errorf("operation canceled")
+
+			// Store the downloaded cells in the correct index of the root link
+			downloadedCells[i] = cells
+		}(i, link)
+	}
+
+	// Goroutine to close error channel when all downloads are done
+	go func() {
+		wg.Wait()
+		close(errorChan)
+	}()
+
+	// Wait for either all downloads to complete or an error to occur
+	select {
+	case err := <-errorChan:
+		// If an error occurs, cancel the remaining operations
+		cancel()
+		return nil, err
+	case <-ctx.Done():
+		// If the context is canceled, return an error
+		return nil, errors.New("context canceled")
+	case <-errorChan:
+		// All downloads completed successfully, combine them into a block
+		return combineDownloadedCells(downloadedCells), nil
+	}
+}
+
+// downloadCells downloads up to the specified limit of cells from the provided row links.
+// It preserves the order of the cells.
+func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.Link, errorChan chan<- error, limit int) ([]*internal.DataMap, error) {
+	var wg sync.WaitGroup
+	cells := make([]*internal.DataMap, len(rowLinks)) // Pre-allocate with the full length to maintain order
+	mu := sync.Mutex{}                                // Mutex to ensure safe access to shared state
+	count := 0                                        // Track number of downloaded cells
+
+	for i, link := range rowLinks {
+		if count >= limit {
+			break
 		}
+
+		wg.Add(1)
+		go func(i int, link internal.Link) {
+			defer wg.Done()
+
+			var cell internal.DataMap
+			if err := ipfsNode.GetData(ctx, link.CID, &cell); err != nil {
+				select {
+				case errorChan <- err:
+				default:
+				}
+				return
+			}
+
+			mu.Lock()
+			defer mu.Unlock()
+
+			// Insert the cell at the correct index and increment the count
+			if count < limit {
+				cells[i] = &cell
+				count++
+			}
+		}(i, link)
 	}
-	return fmt.Errorf("failed to fetch data")
+
+	// Wait for all downloads to finish
+	wg.Wait()
+
+	return cells, nil
 }
 
-// fetchDataFromIPFS starts a concurrent fetch from the IPFS node.
-func (s *IPFSNode) fetchDataFromIPFS(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
-	err := s.FetchFromDagApi(ctx, cidStr, data)
-	results <- fetchContext{Data: data, Context: "IPFS node", Err: err}
-}
-
-// fetchDataFromGateways starts a concurrent fetch from the gateways.
-func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
-	err := s.gh.FetchFromGateways(ctx, cidStr, data)
-	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
-}
-
-// FetchFromDagApi fetches data from IPFS using the Dag API and decodes it.
-func (ipfsNode *IPFSNode) FetchFromDagApi(ctx context.Context, cidStr string, data interface{}) error {
-	parsedCid, err := cid.Parse(cidStr)
-	if err != nil {
-		return err
+// combineDownloadedCells combines the downloaded cells into a block.
+func combineDownloadedCells(cells [][]*internal.DataMap) *Block {
+	// Combine the downloaded cells into a block.
+	return &Block{
+		Cells: cells,
 	}
-
-	node, err := ipfsNode.api.Dag().Get(ctx, parsedCid)
-	if err != nil {
-		return err
-	}
-
-	decoder, err := multicodec.LookupDecoder(uint64(parsedCid.Type()))
-	if err != nil {
-		return err
-	}
-
-	reader := bytes.NewReader(node.RawData())
-	nb := basicnode.Prototype.Any.NewBuilder()
-	if err := decoder(nb, reader); err != nil {
-		return err
-	}
-
-	var jsonData bytes.Buffer
-	if err := dagjson.Encode(nb.Build(), &jsonData); err != nil {
-		return err
-	}
-
-	return json.Unmarshal(jsonData.Bytes(), data)
 }
