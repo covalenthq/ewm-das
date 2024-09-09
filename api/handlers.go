@@ -97,11 +97,18 @@ func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 		}
 
 		// Extract the block from IPFS
-		_, err := ipfsNode.ExtractBlock(r.Context(), cid)
+		data, err := ipfsNode.ExtractBlock(r.Context(), cid)
 		if err != nil {
 			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
 			return
 		}
+
+		// Write the data to the response
+		if _, err := w.Write(data); err != nil {
+			log.Errorf("error writing data to connection: %w", err)
+			return
+		}
+		log.Infof("Data download successfully with CID: %s", cid)
 	}
 }
 
