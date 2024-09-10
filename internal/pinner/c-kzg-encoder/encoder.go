@@ -1,18 +1,8 @@
 package ckzgencoder
 
 import (
-	"errors"
-
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
-)
-
-var (
-	// ErrCellsOrProofsMissing is returned when cells or proofs are missing.
-	ErrCellsOrProofsMissing = errors.New("cells or proofs missing")
-
-	// ErrVerificationFailed is returned when verification fails.
-	ErrVerificationFailed = errors.New("verification failed")
 )
 
 // EncodeDatablock encodes the data block.

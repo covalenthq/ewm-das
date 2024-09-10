@@ -1,18 +1,10 @@
 package ckzgencoder
 
 import (
-	"errors"
-
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
-var (
-	// ErrOutOfRange is returned when the index is out of range.
-	ErrOutOfRange = errors.New("out of range")
-
-	// ErrNotEnoughCells is returned when there are not enough cells to recover the data.
-	ErrNotEnoughCells = errors.New("not enough cells")
-)
+const MinRequiredCells = ckzg4844.CellsPerExtBlob / 2
 
 // DataBlockImpl is the data block implementation.
 type DataBlockImpl struct {
@@ -98,6 +90,10 @@ func (d *DataBlockImpl) Init(size uint64, nBlobs uint64) {
 
 // RecoverData recovers the data from the KZG cells and proofs.
 func (d *DataBlockImpl) RecoverData(bCells [][][]byte) error {
+	if bCells == nil {
+		return ErrBadArgument
+	}
+
 	if d.cells == nil || d.proofs == nil {
 		return ErrCellsOrProofsMissing
 	}
@@ -120,10 +116,9 @@ func (d *DataBlockImpl) RecoverData(bCells [][][]byte) error {
 		}
 
 		// Ensure we have at least the minimum number of valid cells
-		if len(validCells) < ckzg4844.CellsPerExtBlob/2 {
+		if len(validCells) < MinRequiredCells {
 			return ErrNotEnoughCells
 		}
-
 		// Recover cells and proofs using the valid indexes and cells
 		rCells, rProofs, err := ckzg4844.RecoverCellsAndKZGProofs(validIndexes, validCells)
 		if err != nil {
