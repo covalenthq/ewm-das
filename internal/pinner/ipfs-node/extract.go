@@ -120,7 +120,6 @@ func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.
 }
 
 // combineDownloadedCells combines the downloaded cells into a block.
-// combineDownloadedCells combines the downloaded cells into a block.
 func (ipfsNode *IPFSNode) combineDownloadedCells(root internal.RootNode, cells [][]*internal.DataMap) ([]byte, error) {
 	// Fix the cells using error correction, if needed
 	block, err := ipfsNode.ef.Fix(cells)
@@ -132,7 +131,7 @@ func (ipfsNode *IPFSNode) combineDownloadedCells(root internal.RootNode, cells [
 	dataOffset := 0                 // Keep track of the offset in the final data array
 
 	for _, row := range block {
-		for _, cell := range row {
+		for _, cell := range row[:64] {
 			cellLen := len(cell)
 
 			// Copy every 31 bytes from each 32-byte chunk, skipping the 0 padding
