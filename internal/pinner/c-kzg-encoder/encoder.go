@@ -17,7 +17,7 @@ var (
 
 // EncodeDatablock encodes the data block.
 func EncodeDatablock(data []byte) (internal.DataBlock, error) {
-	datablock := &DataBlockImpl{}
+	datablock := NewDataBlock()
 
 	err := datablock.Encode(data)
 	if err != nil {

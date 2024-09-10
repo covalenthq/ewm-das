@@ -63,12 +63,7 @@ func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 		b.DataNodes[row] = make([]datamodel.Node, cols)
 
 		for col := uint64(0); col < cols; col++ {
-			proof, err := block.Proof(row, col)
-			if err != nil {
-				return err
-			}
-
-			cell, err := block.Cell(row, col)
+			proof, cell, err := block.ProofAndCell(row, col)
 			if err != nil {
 				return err
 			}

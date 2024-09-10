@@ -6,17 +6,17 @@ import (
 	"sync"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
+	ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/c-kzg-encoder"
 )
 
-// ExtractBlock extracts the block from IPFS and downloads all cells.
-func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) ([]byte, error) {
+// ExtractData extracts the block from IPFS and downloads all cells.
+func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byte, error) {
 	var root internal.RootNode
 	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
 		return nil, err
 	}
 
-	// Pre-allocate space for cells from each of the root links (up to 13)
-	downloadedCells := make([][]*internal.DataMap, len(root.Links))
+	byteCells := make([][][]byte, len(root.Links))
 
 	// Channel for handling errors
 	errorChan := make(chan error, 1)
@@ -45,13 +45,10 @@ func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) ([]by
 			}
 
 			// Download up to 64 cells from the row links
-			cells, err := downloadCells(ctx, ipfsNode, rowLinks, errorChan, 64)
+			err := downloadCells(ctx, byteCells, ipfsNode, i, rowLinks, errorChan, 64)
 			if err != nil {
 				return
 			}
-
-			// Store the downloaded cells in the correct index of the root link
-			downloadedCells[i] = cells
 		}(i, link)
 	}
 
@@ -72,17 +69,18 @@ func (ipfsNode *IPFSNode) ExtractBlock(ctx context.Context, cidStr string) ([]by
 		return nil, errors.New("context canceled")
 	case <-errorChan:
 		// All downloads completed successfully, combine them into a block
-		return ipfsNode.combineDownloadedCells(root, downloadedCells)
+		return combineDownloadedCells(root, byteCells)
 	}
 }
 
 // downloadCells downloads up to the specified limit of cells from the provided row links.
 // It preserves the order of the cells.
-func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.Link, errorChan chan<- error, limit int) ([]*internal.DataMap, error) {
+func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode, rowIndex int, rowLinks []internal.Link, errorChan chan<- error, limit int) error {
 	var wg sync.WaitGroup
-	cells := make([]*internal.DataMap, len(rowLinks)) // Pre-allocate with the full length to maintain order
-	mu := sync.Mutex{}                                // Mutex to ensure safe access to shared state
-	count := 0                                        // Track number of downloaded cells
+	mu := sync.Mutex{} // Mutex to ensure safe access to shared state
+	count := 0         // Track number of downloaded cells
+
+	byteCells[rowIndex] = make([][]byte, 128)
 
 	for i, link := range rowLinks {
 		if count >= limit {
@@ -102,12 +100,16 @@ func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.
 				return
 			}
 
+			// Allocate space for each byte slice within the cell
+			cellBytes := make([]byte, len(cell.Cell.Nested.Bytes))
+
 			mu.Lock()
 			defer mu.Unlock()
 
 			// Insert the cell at the correct index and increment the count
 			if count < limit {
-				cells[i] = &cell
+				copy(cellBytes, cell.Cell.Nested.Bytes)
+				byteCells[rowIndex][i] = cellBytes
 				count++
 			}
 		}(i, link)
@@ -116,45 +118,16 @@ func downloadCells(ctx context.Context, ipfsNode *IPFSNode, rowLinks []internal.
 	// Wait for all downloads to finish
 	wg.Wait()
 
-	return cells, nil
+	return nil
 }
 
 // combineDownloadedCells combines the downloaded cells into a block.
-func (ipfsNode *IPFSNode) combineDownloadedCells(root internal.RootNode, cells [][]*internal.DataMap) ([]byte, error) {
-	// Fix the cells using error correction, if needed
-	block, err := ipfsNode.ef.Fix(cells)
-	if err != nil {
+func combineDownloadedCells(root internal.RootNode, byteCells [][][]byte) ([]byte, error) {
+	dataBlock := ckzgencoder.NewDataBlock()
+	dataBlock.Init(uint64(root.Size), uint64(len(root.Links)))
+
+	if err := dataBlock.RecoverData(byteCells); err != nil {
 		return nil, err
 	}
-
-	data := make([]byte, root.Size) // Preallocate the final data array with exact size
-	dataOffset := 0                 // Keep track of the offset in the final data array
-
-	for _, row := range block {
-		for _, cell := range row[:64] {
-			cellLen := len(cell)
-
-			// Copy every 31 bytes from each 32-byte chunk, skipping the 0 padding
-			for k := 0; k < cellLen; k += 32 {
-				if k+32 <= cellLen {
-					// Calculate the number of remaining bytes to copy
-					bytesToCopy := 31
-					if dataOffset+31 > root.Size {
-						bytesToCopy = root.Size - dataOffset // Ensure we don't exceed root.Size
-					}
-
-					// Copy 31 bytes from position k+1 to k+32 (skip the first byte)
-					copy(data[dataOffset:], cell[k+1:k+1+bytesToCopy])
-					dataOffset += bytesToCopy
-
-					// Stop if we've copied enough data
-					if dataOffset >= root.Size {
-						return data, nil
-					}
-				}
-			}
-		}
-	}
-
-	return data, nil
+	return dataBlock.Decode()
 }

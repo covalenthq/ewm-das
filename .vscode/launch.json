@@ -15,7 +15,7 @@
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data",
-        "IPFS_LOGGING": "info",
+        // "IPFS_LOGGING": "info",
       }
     },
     {
@@ -27,9 +27,9 @@
       "args": [
         "upload",
         "--data",
-        "${workspaceFolder}/test/data/specimen.bin",
+        "${workspaceFolder}/test/data/specimen-result.json",
         "--addr",
-        "http://127.0.0.1:3001"
+        "http://127.0.0.1:5080"
       ]
     },
     {
