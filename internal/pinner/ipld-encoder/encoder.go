@@ -56,14 +56,14 @@ func (b *IPLDDataBlock) Encode(block internal.DataBlock) error {
 }
 
 func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
-	_, rows, cols := block.Describe()
+	_, nBlobs, nCells := block.Describe()
 
-	b.DataNodes = make([][]datamodel.Node, rows)
-	for row := uint64(0); row < rows; row++ {
-		b.DataNodes[row] = make([]datamodel.Node, cols)
+	b.DataNodes = make([][]datamodel.Node, nBlobs)
+	for nBlob := uint64(0); nBlob < nBlobs; nBlob++ {
+		b.DataNodes[nBlob] = make([]datamodel.Node, nCells)
 
-		for col := uint64(0); col < cols; col++ {
-			proof, cell, err := block.ProofAndCell(row, col)
+		for nCell := uint64(0); nCell < nCells; nCell++ {
+			proof, cell, err := block.ProofAndCell(nBlob, nCell)
 			if err != nil {
 				return err
 			}
@@ -73,7 +73,7 @@ func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 				return err
 			}
 
-			b.DataNodes[row][col] = node
+			b.DataNodes[nBlob][nCell] = node
 		}
 	}
 
@@ -81,12 +81,12 @@ func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 }
 
 func (b *IPLDDataBlock) encodeLinks(lsys *linking.LinkSystem, block internal.DataBlock) error {
-	_, rows, cols := block.Describe()
+	_, nBlobs, nCells := block.Describe()
 
-	b.Links = make([][]datamodel.Link, rows)
-	for i := uint64(0); i < rows; i++ {
-		b.Links[i] = make([]datamodel.Link, cols)
-		for j := uint64(0); j < cols; j++ {
+	b.Links = make([][]datamodel.Link, nBlobs)
+	for i := uint64(0); i < nBlobs; i++ {
+		b.Links[i] = make([]datamodel.Link, nCells)
+		for j := uint64(0); j < nCells; j++ {
 			link, err := b.createLink(lsys, b.DataNodes[i][j])
 			if err != nil {
 				return err
@@ -100,10 +100,10 @@ func (b *IPLDDataBlock) encodeLinks(lsys *linking.LinkSystem, block internal.Dat
 }
 
 func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.DataBlock) error {
-	size, rows, cols := block.Describe()
+	size, nBlob, nCell := block.Describe()
 
 	// Create an array of links for the root node
-	listLinks := make([]datamodel.Link, rows)
+	listLinks := make([]datamodel.Link, nBlob)
 	for i, subLinks := range b.Links {
 		node, err := qp.BuildList(basicnode.Prototype.List, int64(len(subLinks)), func(la ipld.ListAssembler) {
 			for _, link := range subLinks {
@@ -123,10 +123,10 @@ func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.Data
 	// Create the root DAG-CBOR object
 	rootNode, err := qp.BuildMap(basicnode.Prototype.Map, -1, func(ma datamodel.MapAssembler) {
 		qp.MapEntry(ma, "version", qp.String("v0.1.0"))
-		qp.MapEntry(ma, "length", qp.Int(int64(cols)))
+		qp.MapEntry(ma, "length", qp.Int(int64(nCell)))
 		qp.MapEntry(ma, "size", qp.Int(int64(size)))
-		qp.MapEntry(ma, "commitments", qp.List(int64(rows), func(la ipld.ListAssembler) {
-			for i := uint64(0); i < rows; i++ {
+		qp.MapEntry(ma, "commitments", qp.List(int64(nBlob), func(la ipld.ListAssembler) {
+			for i := uint64(0); i < nBlob; i++ {
 				commitment, err := block.Commitment(i)
 				if err != nil {
 					return

@@ -71,9 +71,9 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 
 		sampleIterations := s.samplingFn(rootNode.Size, rootNode.Size/2, 0.95)
 
-		for rowIndex, rowLink := range rootNode.Links {
+		for blobIndex, blobLink := range rootNode.Links {
 			var links []internal.Link
-			if err := s.GetData(rowLink.CID, &links); err != nil {
+			if err := s.GetData(blobLink.CID, &links); err != nil {
 				log.Errorf("Failed to fetch link data: %v", err)
 				return
 			}
@@ -98,7 +98,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 					return
 				}
 
-				commitment := rootNode.Commitments[rowIndex].Nested.Bytes
+				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
 				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex)).Verify()
@@ -107,9 +107,9 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 					return
 				}
 
-				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowIndex, colIndex, res, cidStr)
+				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
 
-				if err := s.pub.PublishToCS(cidStr, rowIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
+				if err := s.pub.PublishToCS(cidStr, blobIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
 					log.Errorf("Failed to publish to Cloud Storage: %v", err)
 					return
 				}

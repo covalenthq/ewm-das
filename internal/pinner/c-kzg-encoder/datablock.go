@@ -9,6 +9,9 @@ import (
 var (
 	// ErrOutOfRange is returned when the index is out of range.
 	ErrOutOfRange = errors.New("out of range")
+
+	// ErrNotEnoughCells is returned when there are not enough cells to recover the data.
+	ErrNotEnoughCells = errors.New("not enough cells")
 )
 
 // DataBlockImpl is the data block implementation.
@@ -25,25 +28,25 @@ func NewDataBlock() *DataBlockImpl {
 	return &DataBlockImpl{}
 }
 
-// Describe returns the size and number of rows in the data block.
-func (d *DataBlockImpl) Describe() (size uint64, rows uint64, cols uint64) {
+// Describe returns the size and number of blobs in the data block.
+func (d *DataBlockImpl) Describe() (size uint64, nBlobs uint64, nCells uint64) {
 	return d.size, uint64(len(d.cells)), ckzg4844.CellsPerExtBlob
 }
 
-// Commitment returns the commitment for the given row.
-func (d *DataBlockImpl) Commitment(row uint64) ([]byte, error) {
-	if row >= uint64(len(d.commitments)) {
+// Commitment returns the commitment to the given blob index.
+func (d *DataBlockImpl) Commitment(nBlob uint64) ([]byte, error) {
+	if nBlob >= uint64(len(d.commitments)) {
 		return nil, ErrOutOfRange
 	}
-	return d.commitments[row][:], nil
+	return d.commitments[nBlob][:], nil
 }
 
-// ProofAndCell returns the KZG proof for the given row and column and the cell.
-func (d *DataBlockImpl) ProofAndCell(row uint64, col uint64) ([]byte, []byte, error) {
-	if row >= uint64(len(d.proofs)) || col >= ckzg4844.CellsPerExtBlob {
+// ProofAndCell returns the KZG proof for the given blob and cell index.
+func (d *DataBlockImpl) ProofAndCell(nBlob uint64, nCell uint64) ([]byte, []byte, error) {
+	if nBlob >= uint64(len(d.proofs)) || nCell >= ckzg4844.CellsPerExtBlob {
 		return nil, nil, ErrOutOfRange
 	}
-	return d.proofs[row][col][:], d.cells[row][col][:], nil
+	return d.proofs[nBlob][nCell][:], d.cells[nBlob][nCell][:], nil
 }
 
 // Verify verifies the data block.
@@ -85,42 +88,29 @@ func (d *DataBlockImpl) verifyCommitmentsAndProofs() error {
 }
 
 // Init initializes the data block.
-func (d *DataBlockImpl) Init(size uint64, rows uint64) {
-	d.blobs = make([]*ckzg4844.Blob, rows)
-	d.commitments = make([]ckzg4844.KZGCommitment, rows)
-	d.cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, rows)
-	d.proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, rows)
+func (d *DataBlockImpl) Init(size uint64, nBlobs uint64) {
+	d.blobs = make([]*ckzg4844.Blob, nBlobs)
+	d.commitments = make([]ckzg4844.KZGCommitment, nBlobs)
+	d.cells = make([][ckzg4844.CellsPerExtBlob]ckzg4844.Cell, nBlobs)
+	d.proofs = make([][ckzg4844.CellsPerExtBlob]ckzg4844.KZGProof, nBlobs)
 	d.size = size
 }
 
-// SetProofAndCell sets the KZG proof and cell for the given row and column.
-func (d *DataBlockImpl) SetProofAndCell(row uint64, col uint64, proof []byte, cell []byte) error {
-	if row >= uint64(len(d.proofs)) || col >= ckzg4844.CellsPerExtBlob {
-		return ErrOutOfRange
-	}
-	copy(d.proofs[row][col][:], proof)
-	copy(d.cells[row][col][:], cell)
-	return nil
-}
-
-// SetCellBytes sets the cell for the given row and column.
-func (d *DataBlockImpl) SetCellBytes(row uint64, col uint64, cell []byte) error {
-	if row >= uint64(len(d.cells)) || col >= ckzg4844.CellsPerExtBlob {
-		return ErrOutOfRange
-	}
-	copy(d.cells[row][col][:], cell)
-	return nil
-}
-
 // RecoverData recovers the data from the KZG cells and proofs.
-func (d *DataBlockImpl) RecoverData(byteCells [][][]byte) error {
-	for i, row := range byteCells {
+func (d *DataBlockImpl) RecoverData(bCells [][][]byte) error {
+	if d.cells == nil || d.proofs == nil {
+		return ErrCellsOrProofsMissing
+	}
+
+	for i, bBlob := range bCells {
+		// Pre-allocate to avoid multiple reallocations
 		var validCells []ckzg4844.Cell
 		var validIndexes []uint64
 
-		for k, byteCell := range row {
+		// Iterate through the blob to collect valid cells and their indexes
+		for k, byteCell := range bBlob {
 			if byteCell == nil {
-				continue
+				continue // Skip nil cells
 			}
 			var cell ckzg4844.Cell
 			copy(cell[:], byteCell)
@@ -129,10 +119,18 @@ func (d *DataBlockImpl) RecoverData(byteCells [][][]byte) error {
 			validIndexes = append(validIndexes, uint64(k))
 		}
 
+		// Ensure we have at least the minimum number of valid cells
+		if len(validCells) < ckzg4844.CellsPerExtBlob/2 {
+			return ErrNotEnoughCells
+		}
+
+		// Recover cells and proofs using the valid indexes and cells
 		rCells, rProofs, err := ckzg4844.RecoverCellsAndKZGProofs(validIndexes, validCells)
 		if err != nil {
 			return err
 		}
+
+		// Copy recovered cells and proofs into the DataBlockImpl
 		copy(d.cells[i][:], rCells[:])
 		copy(d.proofs[i][:], rProofs[:])
 	}

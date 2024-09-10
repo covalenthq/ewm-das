@@ -35,8 +35,8 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 			defer wg.Done()
 
 			// Fetch the next set of links (128 cells per link)
-			var rowLinks []internal.Link
-			if err := ipfsNode.GetData(ctx, link.CID, &rowLinks); err != nil {
+			var blobLinks []internal.Link
+			if err := ipfsNode.GetData(ctx, link.CID, &blobLinks); err != nil {
 				select {
 				case errorChan <- err:
 				default:
@@ -44,8 +44,8 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 				return
 			}
 
-			// Download up to 64 cells from the row links
-			err := downloadCells(ctx, byteCells, ipfsNode, i, rowLinks, errorChan, 64)
+			// Download up to 64 cells from the blob links
+			err := downloadCells(ctx, byteCells, ipfsNode, i, blobLinks, errorChan, 64)
 			if err != nil {
 				return
 			}
@@ -73,16 +73,16 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 	}
 }
 
-// downloadCells downloads up to the specified limit of cells from the provided row links.
+// downloadCells downloads up to the specified limit of cells from the provided blob links.
 // It preserves the order of the cells.
-func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode, rowIndex int, rowLinks []internal.Link, errorChan chan<- error, limit int) error {
+func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode, blobIndex int, blobLinks []internal.Link, errorChan chan<- error, limit int) error {
 	var wg sync.WaitGroup
 	mu := sync.Mutex{} // Mutex to ensure safe access to shared state
 	count := 0         // Track number of downloaded cells
 
-	byteCells[rowIndex] = make([][]byte, 128)
+	byteCells[blobIndex] = make([][]byte, 128)
 
-	for i, link := range rowLinks {
+	for i, link := range blobLinks {
 		if count >= limit {
 			break
 		}
@@ -109,7 +109,7 @@ func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode
 			// Insert the cell at the correct index and increment the count
 			if count < limit {
 				copy(cellBytes, cell.Cell.Nested.Bytes)
-				byteCells[rowIndex][i] = cellBytes
+				byteCells[blobIndex][i] = cellBytes
 				count++
 			}
 		}(i, link)
