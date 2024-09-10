@@ -54,6 +54,10 @@ func TestEncodeDecode(t *testing.T) {
 			data: bytes.Repeat([]byte("a"), 31*3+10),
 		},
 		{
+			name: "One blob",
+			data: fillRandomBytes(126976),
+		},
+		{
 			name: "Large data",
 			data: fillRandomBytes(1 << 20),
 		},
