@@ -32,26 +32,26 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 
 	// Start processing each root link in parallel
 	for i, link := range root.Links {
-		// wg.Add(1)
-		// go func(i int, link internal.Link) {
-		// defer wg.Done()
+		wg.Add(1)
+		go func(i int, link internal.Link) {
+			defer wg.Done()
 
-		// Fetch the next set of links (128 cells per link)
-		var blobLinks []internal.Link
-		if err := ipfsNode.GetData(ctx, link.CID, &blobLinks); err != nil {
-			select {
-			case errorChan <- err:
-			default:
+			// Fetch the next set of links (128 cells per link)
+			var blobLinks []internal.Link
+			if err := ipfsNode.GetData(ctx, link.CID, &blobLinks); err != nil {
+				select {
+				case errorChan <- err:
+				default:
+				}
+				return
 			}
-			// return
-		}
 
-		// Download up to 64 cells from the blob links
-		err := downloadCells(ctx, byteCells, ipfsNode, i, blobLinks, errorChan, 64)
-		if err != nil {
-			// return
-		}
-		// }(i, link)
+			// Download up to 64 cells from the blob links
+			err := downloadCells(ctx, byteCells, ipfsNode, i, blobLinks, errorChan, 64)
+			if err != nil {
+				return
+			}
+		}(i, link)
 	}
 
 	// Goroutine to close error channel when all downloads are done
