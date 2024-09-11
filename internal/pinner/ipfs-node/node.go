@@ -52,7 +52,7 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 		return nil, err
 	}
 
-	gh := gateway.NewHandler(gateway.DefaultGateways)
+	gh := gateway.NewHandler(gateway.DefaultGateways, 128)
 
 	// Stuf from Kubo client to consider
 	// err = cctx.Plugins.Start(node)

@@ -26,7 +26,7 @@ func (s *IPFSNode) GetData(ctx context.Context, cidStr string, data interface{})
 	results := make(chan fetchContext, 2)
 
 	go s.fetchDataFromIPFS(ctx, cidStr, data, results)
-	// go s.fetchDataFromGateways(ctx, cidStr, data, results)
+	go s.fetchDataFromGateways(ctx, cidStr, data, results)
 
 	for i := 0; i < 2; i++ {
 		select {
@@ -35,7 +35,7 @@ func (s *IPFSNode) GetData(ctx context.Context, cidStr string, data interface{})
 				log.Debugf("Data fetched from %s", res.Context)
 				return nil
 			}
-			log.Debugf("Error getting data from %s: %v", res.Context, res.Err)
+			log.Errorf("Error getting data from %s: %v", res.Context, res.Err)
 			if res.Context == "Gateways" {
 				return res.Err
 			}
@@ -53,10 +53,10 @@ func (s *IPFSNode) fetchDataFromIPFS(ctx context.Context, cidStr string, data in
 }
 
 // fetchDataFromGateways starts a concurrent fetch from the gateways.
-// func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
-// 	err := s.gh.FetchFromGateways(ctx, cidStr, data)
-// 	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
-// }
+func (s *IPFSNode) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- fetchContext) {
+	err := s.gh.FetchFromGateways(ctx, cidStr, data)
+	results <- fetchContext{Data: data, Context: "Gateways", Err: err}
+}
 
 // FetchFromDagApi fetches data from IPFS using the Dag API and decodes it.
 func (ipfsNode *IPFSNode) FetchFromDagApi(ctx context.Context, cidStr string, data interface{}) error {

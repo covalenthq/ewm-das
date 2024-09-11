@@ -9,11 +9,13 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"sync"
 	"time"
 
 	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/ipld/go-ipld-prime/codec/dagjson"
+	"golang.org/x/exp/rand"
 )
 
 var log = logging.Logger("das-gateway")
@@ -22,59 +24,118 @@ var DefaultGateways = []string{
 	"https://w3s.link/",
 	"https://trustless-gateway.link/",
 	"https://dweb.link/",
+	"https://ipfs.io/",
 }
 
-// Handler handles fetching data from IPFS gateways concurrently.
+// Handler handles fetching data from IPFS gateways concurrently with a worker pool.
 type Handler struct {
 	gateways []string
+	workers  int // Number of workers in the pool
 }
 
-// NewHandler creates a new GatewayHandler instance.
-func NewHandler(gateways []string) *Handler {
-	return &Handler{gateways: gateways}
+// NewHandler creates a new GatewayHandler instance with a specified number of workers.
+func NewHandler(gateways []string, workers int) *Handler {
+	return &Handler{gateways: gateways, workers: workers}
 }
 
-// FetchFromGateways concurrently fetches data from multiple gateways.
+// FetchFromGateways concurrently fetches data from multiple gateways using a worker pool.
 // Returns the first successful result or an error if all attempts fail.
 func (g *Handler) FetchFromGateways(ctx context.Context, cidStr string, data interface{}) error {
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
-	defer cancel()
+	defer cancel() // Ensures context cleanup
 
-	results := make(chan error, 1) // Only need 1 result, so buffer size is 1
-	for _, gateway := range g.gateways {
-		go g.fetchFromGateway(ctx, gateway, cidStr, data, results)
+	results := make(chan error, 1) // Channel to capture the first result (success or failure)
+	gatewayChan := make(chan string, len(g.gateways))
+
+	// Start worker pool
+	var wg sync.WaitGroup
+	for i := 0; i < g.workers; i++ {
+		wg.Add(1)
+		go g.worker(ctx, cidStr, data, gatewayChan, results, &wg)
 	}
 
-	// Return immediately after the first successful result
-	select {
-	case <-ctx.Done():
-		return fmt.Errorf("operation timed out")
-	case err := <-results:
-		if err != nil {
+	// Send gateways to the worker pool
+	for _, gateway := range g.shufledGateways() {
+		gatewayChan <- gateway
+	}
+
+	// Close gatewayChan as we have sent all gateways
+	close(gatewayChan)
+
+	// Wait for workers in a separate goroutine to close results when all are done
+	go func() {
+		wg.Wait()
+		close(results)
+	}()
+
+	// Wait for the first successful result or context timeout
+	for {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("operation timed out")
+		case err := <-results:
+			if err == nil {
+				cancel() // Stop remaining workers after success
+				return nil
+			}
+			// Log errors but continue to wait for a successful result
 			log.Debugf("Error: %v", err)
-			return err
 		}
-		return nil
 	}
 }
 
+// worker fetches data from a single gateway and returns a result.
+// It stops if the context is canceled after one success.
+func (g *Handler) worker(ctx context.Context, cidStr string, data interface{}, gatewayChan <-chan string, results chan<- error, wg *sync.WaitGroup) {
+	defer wg.Done()
+	for gateway := range gatewayChan {
+		select {
+		case <-ctx.Done():
+			return // Stop if context is done or canceled
+		default:
+			// Try to fetch data from the current gateway
+			if err := g.fetchFromGateway(ctx, gateway, cidStr, data, results); err == nil {
+				// Successful fetch, signal success and exit
+				results <- nil
+				return
+			}
+		}
+	}
+}
+
+func (g *Handler) shufledGateways() []string {
+	gateways := make([]string, len(g.gateways))
+	copy(gateways, g.gateways)
+	for i := range gateways {
+		j := i + rand.Intn(len(gateways)-i)
+		gateways[i], gateways[j] = gateways[j], gateways[i]
+	}
+	return gateways
+}
+
+var mu sync.Mutex // Mutex to protect concurrent access to the gateways slice
+
 // fetchFromGateway retrieves and processes data from a single gateway.
-func (g *Handler) fetchFromGateway(ctx context.Context, gateway, cidStr string, data interface{}, results chan<- error) {
+func (g *Handler) fetchFromGateway(ctx context.Context, gateway, cidStr string, data interface{}, results chan<- error) error {
 	gatewayData, err := g.getDataFromGateway(ctx, gateway, cidStr)
 	if err != nil {
 		select {
 		case results <- fmt.Errorf("gateway %s: %v", gateway, err):
 		case <-ctx.Done():
 		}
-		return
+		return err
 	}
+
+	// Protect access to shared `data`
+	mu.Lock()
+	defer mu.Unlock()
 
 	if err := g.decodeAndUnmarshal(gateway, gatewayData, data); err != nil {
 		select {
 		case results <- fmt.Errorf("gateway %s: %v", gateway, err):
 		case <-ctx.Done():
 		}
-		return
+		return err
 	}
 
 	// Send success (nil error) if the data is fetched and processed correctly
@@ -82,6 +143,7 @@ func (g *Handler) fetchFromGateway(ctx context.Context, gateway, cidStr string, 
 	case results <- nil:
 	case <-ctx.Done():
 	}
+	return nil
 }
 
 // getDataFromGateway fetches raw data from a specified gateway.

@@ -34,7 +34,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 		return nil, fmt.Errorf("failed to connect to IPFS daemon: %w", err)
 	}
 
-	gh := gateway.NewHandler(gateway.DefaultGateways)
+	gh := gateway.NewHandler(gateway.DefaultGateways, 3)
 
 	return &Sampler{
 		ipfsShell:     shell,

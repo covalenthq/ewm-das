@@ -110,7 +110,7 @@ func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
 			return
 		}
-		log.Infof("Data download successfully with CID: %s", cid)
+		log.Infof("Data download successfully with CID: %s, lenght %d", cid, len(data))
 	}
 }
 
