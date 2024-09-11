@@ -1,4 +1,4 @@
-//go:build !experimental
+//go:build experimental
 
 package ipfsnode
 
@@ -103,16 +103,19 @@ func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode
 			}
 
 			// Allocate space for each byte slice within the cell
-			cellBytes := make([]byte, len(cell.Cell.Nested.Bytes))
+			cellBytes := make([][2048]byte, len(cell.Cell.Nested.Bytes)/2048)
 
 			mu.Lock()
 			defer mu.Unlock()
 
 			// Insert the cell at the correct index and increment the count
 			if count < limit {
-				copy(cellBytes, cell.Cell.Nested.Bytes)
-				byteCells[blobIndex][i] = cellBytes
-				count++
+				for z := 0; z < len(cellBytes); z++ {
+					copy(cellBytes[z][:], cell.Cell.Nested.Bytes[z*2048:(z+1)*2048])
+					byteCells[blobIndex][i*64+z] = cellBytes[z][:]
+
+					count++
+				}
 
 				log.Infof("Downloaded blob [%3d] cell [%3d] total [%3d/%3d]", blobIndex, i, count, limit)
 			}
