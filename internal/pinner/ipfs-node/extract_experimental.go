@@ -65,13 +65,14 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 	case err := <-errorChan:
 		// If an error occurs, cancel the remaining operations
 		cancel()
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+		// If no error, combine them into a block
+		return combineDownloadedCells(root, byteCells)
 	case <-ctx.Done():
 		// If the context is canceled, return an error
 		return nil, errors.New("context canceled")
-	case <-errorChan:
-		// All downloads completed successfully, combine them into a block
-		return combineDownloadedCells(root, byteCells)
 	}
 }
 
