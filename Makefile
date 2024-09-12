@@ -36,11 +36,11 @@ $(BIN_DIR):
 
 # Build both the daemon and CLI tool
 .PHONY: build
-build: $(BIN_DIR) build-daemon build-cli build-light
+build: $(BIN_DIR) buid-pinner build-cli build-light
 
 # Build the daemon binary with a custom name
-.PHONY: build-daemon
-build-daemon: $(BIN_DIR)
+.PHONY: buid-pinner
+buid-pinner: $(BIN_DIR)
 	go build $(EXTRA_TAGS) -ldflags "-s -w -X $(COMMON_PACKAGE).BinaryName=pinner -X $(COMMON_PACKAGE).Version=$(VERSION) -X $(COMMON_PACKAGE).GitCommit=$(GIT_COMMIT)" -o $(DAEMON_BINARY) $(DAEMON_SOURCE)
 
 # Build the CLI tool binary with a custom name
