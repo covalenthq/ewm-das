@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	logging "github.com/ipfs/go-log/v2"
 	config "github.com/ipfs/kubo/config"
 	"github.com/ipfs/kubo/core"
@@ -22,6 +23,7 @@ type IPFSNode struct {
 	node *core.IpfsNode
 	api  iface.CoreAPI
 	w3   *W3Storage
+	gh   *gateway.Handler
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
@@ -50,10 +52,20 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 		return nil, err
 	}
 
+	gh := gateway.NewHandler(gateway.DefaultGateways, 128)
+
+	// Stuf from Kubo client to consider
+	// err = cctx.Plugins.Start(node)
+	// if err != nil {
+	// 	return err
+	// }
+	// node.Process.AddChild(goprocess.WithTeardown(cctx.Plugins.Close))
+
 	return &IPFSNode{
 		node: node,
 		api:  api,
 		w3:   w3,
+		gh:   gh,
 	}, nil
 }
 
@@ -86,7 +98,7 @@ func initializeIPFSConfig() (*core.BuildCfg, error) {
 	return &core.BuildCfg{
 		Online:    true,
 		Permanent: true,
-		Routing:   libp2p.DHTOption,
+		Routing:   libp2p.ConstructDefaultRouting(ipfsConfig, libp2p.DHTOption),
 		Host:      libp2p.DefaultHostOption,
 		Repo:      repo,
 	}, nil

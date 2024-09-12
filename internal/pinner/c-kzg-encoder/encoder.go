@@ -1,23 +1,13 @@
 package ckzgencoder
 
 import (
-	"errors"
-
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 )
 
-var (
-	// ErrCellsOrProofsMissing is returned when cells or proofs are missing.
-	ErrCellsOrProofsMissing = errors.New("cells or proofs missing")
-
-	// ErrVerificationFailed is returned when verification fails.
-	ErrVerificationFailed = errors.New("verification failed")
-)
-
 // EncodeDatablock encodes the data block.
 func EncodeDatablock(data []byte) (internal.DataBlock, error) {
-	datablock := &DataBlockImpl{}
+	datablock := NewDataBlock()
 
 	err := datablock.Encode(data)
 	if err != nil {
@@ -37,6 +27,9 @@ func (d *DataBlockImpl) Encode(data []byte) error {
 
 // Decode decodes the data block.
 func (d *DataBlockImpl) Decode() ([]byte, error) {
+	if d.cells != nil {
+		return d.decodeCells()
+	}
 	return d.decodeBlobs()
 }
 
@@ -100,6 +93,35 @@ func (d *DataBlockImpl) decodeBlobs() ([]byte, error) {
 			}
 			copy(data[j:j+31], blob[k+1:k+32])
 			j += 31
+		}
+	}
+
+	return data, nil
+}
+
+// decodeCells decodes the cells back into the original data.
+func (d *DataBlockImpl) decodeCells() ([]byte, error) {
+	data := make([]byte, d.size)
+	j := 0
+	count := uint64(0)
+
+	for _, cells := range d.cells {
+		for _, cell := range cells[:64] {
+			if count >= d.size {
+				return data, nil
+			}
+
+			for k := 0; k < len(cell); k += 32 {
+				remaining := int(d.size) - j
+				if remaining < 31 {
+					copy(data[j:], cell[k+1:k+1+remaining])
+					j += remaining
+					break
+				}
+
+				copy(data[j:j+31], cell[k+1:k+32])
+				j += 31
+			}
 		}
 	}
 

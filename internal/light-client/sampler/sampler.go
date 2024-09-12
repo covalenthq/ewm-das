@@ -1,104 +1,29 @@
 package sampler
 
 import (
-	"bytes"
 	"context"
-	"encoding/base64"
-	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
-	"net/http"
-	"net/url"
-	"path"
-	"strings"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
+	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
-	ipldencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipld-encoder"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
-	"github.com/ipld/go-ipld-prime/codec/dagjson"
 )
 
 var log = logging.Logger("light-client")
 
-var DefaultGateways = []string{
-	"https://w3s.link/",
-	"https://trustless-gateway.link/",
-	"https://dweb.link/",
-}
-
 // Sampler is a struct that samples data from IPFS and verifies it.
 type Sampler struct {
 	ipfsShell     *ipfs.Shell
-	gateways      []string
+	gh            *gateway.Handler
 	pub           *publisher.Publisher
 	samplingDelay uint
 	samplingFn    func(int, int, float64) int
-}
-
-// Link represents a link to another CID in IPFS.
-type Link struct {
-	CID string `json:"/"`
-}
-
-// RootNode represents a DAG node containing metadata and links.
-type RootNode struct {
-	Version     string     `json:"version"`
-	Size        int        `json:"size"`
-	Length      int        `json:"length"`
-	Links       []Link     `json:"links"`
-	Commitments []InnerMap `json:"commitments"`
-}
-
-// NestedBytes holds the base64 decoded bytes.
-type NestedBytes struct {
-	Bytes []byte `json:"bytes"`
-}
-
-// InnerMap represents a nested structure containing bytes data.
-type InnerMap struct {
-	Nested NestedBytes `json:"/"`
-}
-
-// DataMap represents a cell and its proof, used in the DAG structure.
-type DataMap struct {
-	Cell  InnerMap `json:"cell"`
-	Proof InnerMap `json:"proof"`
-}
-
-type errorContext struct {
-	Err     error
-	Context string
-}
-
-type resultContext struct {
-	Result  interface{}
-	Context string
-}
-
-// UnmarshalJSON handles base64 decoding directly into the Bytes field.
-func (n *NestedBytes) UnmarshalJSON(data []byte) error {
-	var aux struct {
-		Bytes string `json:"bytes"`
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return fmt.Errorf("error unmarshaling bytes: %w", err)
-	}
-
-	bytesWithPadding := ensureBase64Padding(aux.Bytes)
-
-	decodedBytes, err := base64.StdEncoding.DecodeString(bytesWithPadding)
-	if err != nil {
-		return fmt.Errorf("error decoding base64 string: %w", err)
-	}
-
-	n.Bytes = decodedBytes
-	return nil
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
@@ -109,9 +34,11 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 		return nil, fmt.Errorf("failed to connect to IPFS daemon: %w", err)
 	}
 
+	gh := gateway.NewHandler(gateway.DefaultGateways, 3)
+
 	return &Sampler{
 		ipfsShell:     shell,
-		gateways:      DefaultGateways,
+		gh:            gh,
 		pub:           pub,
 		samplingDelay: samplingDelay,
 		samplingFn:    CalculateSamplesNeeded,
@@ -136,17 +63,17 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
 		log.Debugf("Processing event for CID [%s] ...", cidStr)
 
-		var rootNode RootNode
+		var rootNode internal.RootNode
 		if err := s.GetData(cidStr, &rootNode); err != nil {
 			log.Errorf("Failed to fetch root DAG data: %v", err)
 			return
 		}
 
-		sampleIterations := s.samplingFn(rootNode.Size, rootNode.Size/2, 0.95)
+		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
 
-		for rowIndex, rowLink := range rootNode.Links {
-			var links []Link
-			if err := s.GetData(rowLink.CID, &links); err != nil {
+		for blobIndex, blobLink := range rootNode.Links {
+			var links []internal.Link
+			if err := s.GetData(blobLink.CID, &links); err != nil {
 				log.Errorf("Failed to fetch link data: %v", err)
 				return
 			}
@@ -165,24 +92,24 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 					}
 				}
 
-				var data DataMap
+				var data internal.DataMap
 				if err := s.GetData(links[colIndex].CID, &data); err != nil {
 					log.Errorf("Failed to fetch data node: %v", err)
 					return
 				}
 
-				commitment := rootNode.Commitments[rowIndex].Nested.Bytes
+				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex)).Verify()
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), 64).VerifyBatch()
 				if err != nil {
 					log.Errorf("Failed to verify proof and cell: %v", err)
 					return
 				}
 
-				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", rowIndex, colIndex, res, cidStr)
+				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
 
-				if err := s.pub.PublishToCS(cidStr, rowIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
+				if err := s.pub.PublishToCS(cidStr, blobIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
 					log.Errorf("Failed to publish to Cloud Storage: %v", err)
 					return
 				}
@@ -191,156 +118,52 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 	}(cidStr)
 }
 
+// GetData tries to fetch data from both the IPFS node and gateways simultaneously.
+// It cancels the other request as soon as one returns successfully.
 func (s *Sampler) GetData(cidStr string, data interface{}) error {
-	cid, err := cid.Decode(cidStr)
-	if err != nil {
-		return err
-	}
-
-	resultChan := make(chan resultContext)
-	errorChan := make(chan errorContext)
-
-	// Define a context with timeout to prevent hanging
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Start a goroutine to get data from the IPFS node
-	go func() {
-		if err := s.ipfsShell.DagGet(cid.String(), &data); err != nil {
-			errorChan <- errorContext{Err: err, Context: "IPFS node"}
-			return
-		}
-		select {
-		case resultChan <- resultContext{Result: data, Context: "IPFS node"}:
-			cancel()
-		case <-ctx.Done():
-		}
-	}()
+	results := make(chan error, 1) // Buffer of 1 to capture first result
 
-	// Start goroutines to get data from each public gateway
-	for _, gateway := range s.gateways {
-		go func(gateway string) {
-			gatewayData, err := s.getDataFromGateway(ctx, gateway, cid.String())
-			if err != nil {
-				errorChan <- errorContext{Err: err, Context: gateway}
-				return
-			}
+	go s.fetchDataFromIPFS(ctx, cidStr, data, results)
+	go s.fetchDataFromGateways(ctx, cidStr, data, results)
 
-			// Decode the data into an IPLD node from CBOR
-			node, err := ipldencoder.DecodeNode(gatewayData)
-			if err != nil {
-				errorChan <- errorContext{Err: err, Context: gateway}
-				return
-			}
-
-			// Encode the IPLD node into JSON
-			var jsonData bytes.Buffer
-			if err := dagjson.Encode(node, &jsonData); err != nil {
-				errorChan <- errorContext{Err: err, Context: gateway}
-				return
-			}
-
-			// Unmarshal JSON data into the provided data interface
-			if err := json.Unmarshal(jsonData.Bytes(), data); err != nil {
-				errorChan <- errorContext{Err: err, Context: gateway}
-				return
-			}
-
-			select {
-			case resultChan <- resultContext{Result: data, Context: fmt.Sprintf("gateway %s for %s", gateway, cid.String())}:
-				cancel()
-			case <-ctx.Done():
-			}
-
-			// populate ipfs node with data
-			// TODO: deduce the correct format from the CID
-			storedCid, err := s.ipfsShell.DagPut(data, "dag-cbor", "dag-cbor")
-			if err != nil {
-				errorChan <- errorContext{Err: err, Context: "IPFS node"}
-			}
-
-			if storedCid != cid.String() {
-				errorChan <- errorContext{Err: fmt.Errorf("IPFS node returned different CID: %s", storedCid), Context: "Result CID"}
-			}
-		}(gateway)
+	// Return immediately after the first successful result
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("operation canceled")
+	case err := <-results:
+		return err
 	}
-
-	// Wait for the first successful response or all errors
-	var finalError error
-	successCount := 0
-	totalCount := len(s.gateways) + 1 // +1 for the IPFS node
-
-	for i := 0; i < totalCount; i++ {
-		select {
-		case <-ctx.Done():
-			if successCount > 0 {
-				return nil
-			}
-			return fmt.Errorf("timeout exceeded")
-
-		case result := <-resultChan:
-			log.Debugf("Data fetched from %s", result.Context)
-			data = result.Result
-			successCount++
-			if successCount == 1 {
-				// If we get at least one successful response, return nil
-				return nil
-			}
-
-		case errCxt := <-errorChan:
-			log.Debugf("Error getting data from %s: %v", errCxt.Context, errCxt.Err)
-			finalError = errCxt.Err
-		}
-	}
-
-	// If we reach here, it means all attempts failed
-	if successCount == 0 {
-		return finalError
-	}
-
-	return nil
 }
 
-func (s *Sampler) getDataFromGateway(ctx context.Context, gateway, cid string) ([]byte, error) {
-	// Parse the base gateway URL
-	baseURL, err := url.Parse(gateway)
-	if err != nil {
-		return nil, err
+// fetchDataFromIPFS starts a concurrent fetch from the IPFS node.
+func (s *Sampler) fetchDataFromIPFS(ctx context.Context, cidStr string, data interface{}, results chan<- error) {
+	if err := s.ipfsShell.DagGet(cidStr, &data); err != nil {
+		select {
+		case results <- fmt.Errorf("IPFS node: %v", err):
+		case <-ctx.Done():
+		}
+		return
 	}
-
-	// Append the IPFS path and CID
-	baseURL.Path = path.Join(baseURL.Path, "ipfs", cid)
-
-	// Add the raw format query parameter
-	query := baseURL.Query()
-	query.Set("format", "raw")
-	baseURL.RawQuery = query.Encode()
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, baseURL.String(), nil)
-	if err != nil {
-		return nil, err
+	select {
+	case results <- nil:
+	case <-ctx.Done():
 	}
-
-	// Perform the HTTP GET request
-	resp, err := http.DefaultClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("gateway %s returned status %d", gateway, resp.StatusCode)
-	}
-
-	return io.ReadAll(resp.Body)
 }
 
-// ensureBase64Padding ensures the base64 string has correct padding.
-func ensureBase64Padding(encoded string) string {
-	paddingNeeded := len(encoded) % 4
-	if paddingNeeded > 0 {
-		padding := 4 - paddingNeeded
-		encoded += strings.Repeat("=", padding)
+// fetchDataFromGateways starts a concurrent fetch from the gateways.
+func (s *Sampler) fetchDataFromGateways(ctx context.Context, cidStr string, data interface{}, results chan<- error) {
+	if err := s.gh.FetchFromGateways(ctx, cidStr, data); err != nil {
+		select {
+		case results <- fmt.Errorf("gateways: %v", err):
+		case <-ctx.Done():
+		}
+		return
 	}
-	return encoded
+	select {
+	case results <- nil:
+	case <-ctx.Done():
+	}
 }

@@ -7,6 +7,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/cmd/pinner/main.go",
+      "buildFlags": ["-tags", "experimental"],
       "args": [
         "--w3-agent-key",
         "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=",
@@ -14,7 +15,8 @@
         "${workspaceFolder}/delegation.proof"
       ],
       "env": {
-        "PINNER_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data",
+        // "IPFS_LOGGING": "info",
       }
     },
     {
@@ -26,9 +28,9 @@
       "args": [
         "upload",
         "--data",
-        "${workspaceFolder}/test/data/specimen.bin",
+        "${workspaceFolder}/test/data/specimen-result.json",
         "--addr",
-        "http://127.0.0.1:3001"
+        "http://127.0.0.1:5080"
       ]
     },
     {

@@ -50,6 +50,12 @@ Build binaries:
 make
 ```
 
+Note: To build das-pinner with experimental features (stacking erasure coded cells together), run:
+  
+```sh
+make build-pinner EXTRA_TAGS="-tags experimental"
+```
+
 The binaries will be built in the `bin` directory.
 
 ### Clean Up

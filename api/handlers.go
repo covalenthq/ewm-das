@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
@@ -83,44 +84,75 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		// Only allow POST method
+		// Measure the start time
+		start := time.Now()
+
+		// Only allow GET method
+		if r.Method != http.MethodGet {
+			handleError(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Get the CID from the query parameters
+		cid := r.URL.Query().Get("cid")
+		if cid == "" {
+			handleError(w, "CID query parameter is required", http.StatusBadRequest)
+			return
+		}
+
+		// Extract the block from IPFS
+		data, err := ipfsNode.ExtractData(r.Context(), cid)
+		if err != nil {
+			log.Errorf("Failed to extract data from IPFS: %w", err)
+			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
+			return
+		}
+
+		// Write the data to the response
+		if _, err := w.Write(data); err != nil {
+			log.Errorf("error writing data to connection: %w", err)
+			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
+			return
+		}
+		elapsed := time.Since(start)
+		log.Infof("Data download successfully with CID: %s, lenght %d, took %v", cid, len(data), elapsed)
+	}
+}
+
+func createLegacyDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Measure the start time
+		start := time.Now()
+
+		// Only allow GET method
 		if r.Method != http.MethodPost {
 			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
-		// Validate Content-Type
-		contentType := r.Header.Get("Content-Type")
-		if !strings.HasPrefix(contentType, "application/x-www-form-urlencoded") &&
-			!strings.HasPrefix(contentType, "multipart/form-data") {
-			handleError(w, "Content-Type must be application/x-www-form-urlencoded or multipart/form-data", http.StatusUnsupportedMediaType)
-			return
-		}
-
-		// Parse the form data
-		err := r.ParseForm()
-		if err != nil {
-			handleError(w, "Failed to parse form data", http.StatusBadRequest)
-			return
-		}
-
-		// Get the CID from the form
+		// Get the CID from the query parameters
 		cid := r.FormValue("cid")
 		if cid == "" {
-			handleError(w, "CID is required", http.StatusBadRequest)
+			handleError(w, "CID form parameter is required", http.StatusBadRequest)
 			return
 		}
 
-		// Process the CID (this is just a placeholder for the actual extraction logic)
-		fmt.Fprintf(w, "Extracting data for CID: %s", cid)
-
 		// Extract the block from IPFS
-		_, err = ipfsNode.ExtractBlock(r.Context(), cid)
+		data, err := ipfsNode.ExtractData(r.Context(), cid)
 		if err != nil {
+			log.Errorf("Failed to extract data from IPFS: %w", err)
 			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
 			return
 		}
 
+		// Write the data to the response
+		if _, err := w.Write(data); err != nil {
+			log.Errorf("error writing data to connection: %w", err)
+			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
+			return
+		}
+		elapsed := time.Since(start)
+		log.Infof("Downloaded CID %s, size %d, took %v", cid, len(data), elapsed)
 	}
 }
 

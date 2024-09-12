@@ -39,7 +39,7 @@ func StartServer(config ServerConfig) {
 
 	// Deprecated endpoints - same behavior, with deprecation notice in headers
 	mux.HandleFunc("/upload", deprecatedHandler(createUploadHandler(ipfsNode), "/api/v1/upload"))
-	mux.HandleFunc("/get", deprecatedHandler(createDownloadHandler(ipfsNode), "/api/v1/download"))
+	mux.HandleFunc("/get", deprecatedHandler(createLegacyDownloadHandler(ipfsNode), "/api/v1/download"))
 	mux.HandleFunc("/cid", deprecatedHandler(createCalculateCIDHandler(ipfsNode), "/api/v1/cid"))
 
 	server := &http.Server{

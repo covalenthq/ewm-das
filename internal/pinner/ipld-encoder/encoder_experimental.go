@@ -1,4 +1,4 @@
-//go:build !experimental
+//go:build experimental
 
 package ipldencoder
 
@@ -59,23 +59,32 @@ func (b *IPLDDataBlock) Encode(block internal.DataBlock) error {
 
 func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 	_, nBlobs, nCells := block.Describe()
+	cellsInNode := nCells / 64
 
 	b.DataNodes = make([][]datamodel.Node, nBlobs)
 	for nBlob := uint64(0); nBlob < nBlobs; nBlob++ {
-		b.DataNodes[nBlob] = make([]datamodel.Node, nCells)
+		b.DataNodes[nBlob] = make([]datamodel.Node, cellsInNode)
 
-		for nCell := uint64(0); nCell < nCells; nCell++ {
-			proof, cell, err := block.ProofAndCell(nBlob, nCell)
+		for nCellStack := uint64(0); nCellStack < cellsInNode; nCellStack++ {
+			var stackedProof []byte
+			var stackedCell []byte
+
+			for i := uint64(0); i < 64; i++ {
+				proof, cell, err := block.ProofAndCell(nBlob, nCellStack*64+i)
+				if err != nil {
+					return err
+				}
+
+				stackedProof = append(stackedProof, proof...)
+				stackedCell = append(stackedCell, cell...)
+			}
+
+			node, err := createCellNode(stackedProof, stackedCell)
 			if err != nil {
 				return err
 			}
 
-			node, err := createCellNode(proof, cell)
-			if err != nil {
-				return err
-			}
-
-			b.DataNodes[nBlob][nCell] = node
+			b.DataNodes[nBlob][nCellStack] = node
 		}
 	}
 
@@ -83,12 +92,14 @@ func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 }
 
 func (b *IPLDDataBlock) encodeLinks(lsys *linking.LinkSystem, block internal.DataBlock) error {
-	_, nBlobs, nCells := block.Describe()
+	_, nBlobs, _ := block.Describe()
 
 	b.Links = make([][]datamodel.Link, nBlobs)
 	for i := uint64(0); i < nBlobs; i++ {
+		nCells := len(b.DataNodes[i])
+
 		b.Links[i] = make([]datamodel.Link, nCells)
-		for j := uint64(0); j < nCells; j++ {
+		for j := 0; j < nCells; j++ {
 			link, err := b.createLink(lsys, b.DataNodes[i][j])
 			if err != nil {
 				return err
@@ -124,8 +135,8 @@ func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.Data
 
 	// Create the root DAG-CBOR object
 	rootNode, err := qp.BuildMap(basicnode.Prototype.Map, -1, func(ma datamodel.MapAssembler) {
-		qp.MapEntry(ma, "version", qp.String("v0.1.0"))
-		qp.MapEntry(ma, "length", qp.Int(int64(nCell)))
+		qp.MapEntry(ma, "version", qp.String("v0.2.0"))
+		qp.MapEntry(ma, "length", qp.Int(int64(nCell/64)))
 		qp.MapEntry(ma, "size", qp.Int(int64(size)))
 		qp.MapEntry(ma, "commitments", qp.List(int64(nBlob), func(la ipld.ListAssembler) {
 			for i := uint64(0); i < nBlob; i++ {

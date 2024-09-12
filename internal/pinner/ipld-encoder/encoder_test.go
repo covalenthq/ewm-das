@@ -70,12 +70,12 @@ func verifyRootNode(t *testing.T, root datamodel.Node) {
 
 // processLinks processes the "links" key in the root node.
 func processLinks(t *testing.T, linksNode datamodel.Node) {
-	rowLink, err := linksNode.LookupByIndex(2)
+	blobLink, err := linksNode.LookupByIndex(2)
 	if err != nil {
 		t.Fatalf("Failed to extract link: %v", err)
 	}
 
-	cid, err := rowLink.AsLink()
+	cid, err := blobLink.AsLink()
 	if err != nil {
 		t.Fatalf("Failed to extract CID: %v", err)
 	}
