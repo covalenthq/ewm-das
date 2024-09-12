@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
@@ -83,6 +84,9 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 
 func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// Measure the start time
+		start := time.Now()
+
 		// Only allow GET method
 		if r.Method != http.MethodGet {
 			handleError(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
@@ -110,7 +114,8 @@ func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
 			return
 		}
-		log.Infof("Data download successfully with CID: %s, lenght %d", cid, len(data))
+		elapsed := time.Since(start)
+		log.Infof("Data download successfully with CID: %s, lenght %d, took %v", cid, len(data), elapsed)
 	}
 }
 

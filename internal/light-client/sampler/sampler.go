@@ -69,7 +69,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		sampleIterations := s.samplingFn(rootNode.Size, rootNode.Size/2, 0.95)
+		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
 
 		for blobIndex, blobLink := range rootNode.Links {
 			var links []internal.Link
@@ -101,7 +101,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex)).Verify()
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), 64).VerifyBatch()
 				if err != nil {
 					log.Errorf("Failed to verify proof and cell: %v", err)
 					return
