@@ -101,7 +101,7 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex)).VerifyBatch()
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), 64).VerifyBatch()
 				if err != nil {
 					log.Errorf("Failed to verify proof and cell: %v", err)
 					return
