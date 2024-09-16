@@ -1,24 +1,23 @@
 package publisher
 
 import (
-	"cloud.google.com/go/pubsub"
+	"io"
+	"net/http"
+	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"google.golang.org/api/option"
-	"io"
-	"os"
 	"time"
+	"github.com/ethereum/go-ethereum/crypto"
 )
 
 type Publisher struct {
-	projectID       string
-	topicID         string
-	credentialsFile string
-	clientId        string
+	apiUrl   	  string
+	privateKeyStr string
 }
+
 
 type message struct {
 	ClientId    string    `json:"client_id"`
@@ -34,56 +33,51 @@ type message struct {
 	Version     string    `json:"version"`
 }
 
-// Define a struct with only the `project_id` field
-type serviceAccount struct {
-	ProjectID string `json:"project_id"`
-}
 
-// NewPublisher creates a new Publisher instance
-func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
-	file, err := os.Open(credsFile)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	// Read the file contents into a byte slice
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Unmarshal only the project_id field
-	var account serviceAccount
-	err = json.Unmarshal(data, &account)
-	if err != nil {
-		return nil, err
-	}
-
+// NewPublisher creates a new Publisher instance for the API
+func NewPublisher(apiUrl, privateKeyStr string) (*Publisher, error) {
 	return &Publisher{
-		projectID:       account.ProjectID,
-		topicID:         topicID,
-		credentialsFile: credsFile,
-		clientId:        clientId,
+		apiUrl:   apiUrl,
+		privateKeyStr: privateKeyStr,
 	}, nil
 }
+
+
+func getPublicAddressFromPrivateKey(privateKeyHex string) (string, error) {
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", err
+	}
+	publicKey := privateKey.PublicKey
+	publicAddress := crypto.PubkeyToAddress(publicKey).Hex()
+	return publicAddress, nil
+}
+
+
+func signMessage(messageData []byte, privateKeyHex string) (string, error) {
+	privateKey, err := crypto.HexToECDSA(privateKeyHex)
+	if err != nil {
+		return "", err
+	}
+	signature, err := crypto.Sign(crypto.Keccak256(messageData), privateKey)
+	if err != nil {
+		return "", err
+	}
+	return "0x" + fmt.Sprintf("%x", signature), nil
+}
+
 
 // Publish to Pubsub
 func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte, blockHeight uint64) error {
 	ctx := context.Background()
 
-	// Create a Pub/Sub client using the credentials
-	client, err := pubsub.NewClient(ctx, p.projectID, option.WithCredentialsFile(p.credentialsFile))
+	publicAddress, err := getPublicAddressFromPrivateKey(p.privateKeyStr)
 	if err != nil {
 		return err
 	}
-	defer client.Close()
-
-	// Get a reference to the topic.
-	topic := client.Topic(p.topicID)
 
 	message := message{
-		ClientId:    p.clientId,
+		ClientId:    publicAddress,
 		SignedAt:    time.Now(),
 		CID:         cid,
 		RowIndex:    rowIndex,
@@ -96,21 +90,42 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Version:     fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
 	}
 
+
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
-
-	// Publish a message.
-	result := topic.Publish(ctx, &pubsub.Message{
-		Data: messageData,
-	})
-
-	// Block until the result is returned and a server-generated ID is returned for the published message.
-	if _, err = result.Get(ctx); err != nil {
+	
+	// Sign the message
+	signature, err := signMessage(messageData, p.privateKeyStr)
+	if err != nil {
 		return err
 	}
 
+	// Create the HTTP request to the API
+	req, err := http.NewRequestWithContext(ctx, "POST", p.apiUrl, bytes.NewBuffer(messageData))
+	if err != nil {
+		return err
+	}
+
+	// Set the headers
+	req.Header.Set("signature", signature)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		responseBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+	}
+
 	return nil
+
 }

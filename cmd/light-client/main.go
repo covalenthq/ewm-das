@@ -18,9 +18,8 @@ var (
 	rpcURL        string
 	contract      string
 	ipfsAddr      string
-	gcpTopicId    string
-	gcpCredsFile  string
-	clientId      string
+    apiUrl        string
+	privateKey    string
 	samplingDelay uint
 )
 
@@ -73,17 +72,14 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
-	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
-	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
-	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
-	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
+    rootCmd.PersistentFlags().StringVar(&apiUrl, "api-url", "", "Api url for publishing message")
+    rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Your wallet private key")
+    rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
 
-	rootCmd.MarkPersistentFlagRequired("rpc-url")
-	rootCmd.MarkPersistentFlagRequired("contract")
-	rootCmd.MarkPersistentFlagRequired("project-id")
-	rootCmd.MarkPersistentFlagRequired("topic-id")
-	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
-	rootCmd.MarkPersistentFlagRequired("client-id")
+    rootCmd.MarkPersistentFlagRequired("rpc-url")
+    rootCmd.MarkPersistentFlagRequired("contract")
+    rootCmd.MarkPersistentFlagRequired("api-url")
+	rootCmd.MarkPersistentFlagRequired("private-key")
 }
 
 func initConfig() {
@@ -95,7 +91,7 @@ func startClient() {
 	fmt.Printf("Version: %s, commit: %s\n", common.Version, common.GitCommit)
 	log.Info("Starting client...")
 
-	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, clientId)
+	pub, err := publisher.NewPublisher(apiUrl, privateKey)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}
