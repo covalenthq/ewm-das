@@ -63,7 +63,7 @@
         "--api-url",
         "https://ewm-light-clients-go-838505730421.us-central1.run.app",
         "--private-key",
-        "d2db9a9bb3261fcf10b3958bc32c63bea145bbe871a9226ad65532c5394414bb"
+        "<your-private-key-here>"
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data"

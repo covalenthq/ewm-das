@@ -18,7 +18,7 @@ var (
 	rpcURL        string
 	contract      string
 	ipfsAddr      string
-    apiUrl        string
+	apiUrl        string
 	privateKey    string
 	samplingDelay uint
 )
@@ -72,13 +72,13 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
-    rootCmd.PersistentFlags().StringVar(&apiUrl, "api-url", "", "Api url for publishing message")
-    rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Your wallet private key")
-    rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
+	rootCmd.PersistentFlags().StringVar(&apiUrl, "api-url", "", "Api url for publishing message")
+	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Your wallet private key")
+	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
 
-    rootCmd.MarkPersistentFlagRequired("rpc-url")
-    rootCmd.MarkPersistentFlagRequired("contract")
-    rootCmd.MarkPersistentFlagRequired("api-url")
+	rootCmd.MarkPersistentFlagRequired("rpc-url")
+	rootCmd.MarkPersistentFlagRequired("contract")
+	rootCmd.MarkPersistentFlagRequired("api-url")
 	rootCmd.MarkPersistentFlagRequired("private-key")
 }
 

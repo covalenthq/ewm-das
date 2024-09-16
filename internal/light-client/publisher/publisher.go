@@ -1,23 +1,22 @@
 package publisher
 
 import (
-	"io"
-	"net/http"
 	"bytes"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"time"
 	"github.com/ethereum/go-ethereum/crypto"
+	"io"
+	"net/http"
+	"time"
 )
 
 type Publisher struct {
-	apiUrl   	  string
+	apiUrl        string
 	privateKeyStr string
 }
-
 
 type message struct {
 	ClientId    string    `json:"client_id"`
@@ -33,15 +32,13 @@ type message struct {
 	Version     string    `json:"version"`
 }
 
-
 // NewPublisher creates a new Publisher instance for the API
 func NewPublisher(apiUrl, privateKeyStr string) (*Publisher, error) {
 	return &Publisher{
-		apiUrl:   apiUrl,
+		apiUrl:        apiUrl,
 		privateKeyStr: privateKeyStr,
 	}, nil
 }
-
 
 func getPublicAddressFromPrivateKey(privateKeyHex string) (string, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
@@ -52,7 +49,6 @@ func getPublicAddressFromPrivateKey(privateKeyHex string) (string, error) {
 	publicAddress := crypto.PubkeyToAddress(publicKey).Hex()
 	return publicAddress, nil
 }
-
 
 func signMessage(messageData []byte, privateKeyHex string) (string, error) {
 	privateKey, err := crypto.HexToECDSA(privateKeyHex)
@@ -65,7 +61,6 @@ func signMessage(messageData []byte, privateKeyHex string) (string, error) {
 	}
 	return "0x" + fmt.Sprintf("%x", signature), nil
 }
-
 
 // Publish to Pubsub
 func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte, blockHeight uint64) error {
@@ -90,13 +85,12 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 		Version:     fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
 	}
 
-
 	// Marshal the message into JSON.
 	messageData, err := json.Marshal(message)
 	if err != nil {
 		return err
 	}
-	
+
 	// Sign the message
 	signature, err := signMessage(messageData, p.privateKeyStr)
 	if err != nil {
