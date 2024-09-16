@@ -125,8 +125,8 @@ func createLegacyDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 		start := time.Now()
 
 		// Only allow GET method
-		if r.Method != http.MethodPost {
-			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+		if r.Method != http.MethodGet {
+			handleError(w, "Only GET method is allowed", http.StatusMethodNotAllowed)
 			return
 		}
 
