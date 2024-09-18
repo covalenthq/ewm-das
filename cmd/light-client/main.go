@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
 	"fmt"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/events"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
@@ -16,8 +16,8 @@ import (
 var (
 	loglevel      string
 	rpcURL        string
-	contract      string
 	ipfsAddr      string
+	privateKey    string
 	gcpTopicId    string
 	gcpCredsFile  string
 	clientId      string
@@ -25,15 +25,13 @@ var (
 )
 
 var greeting = `
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░       ░▒▓██████▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓████████▓▒░▒▓███████▓▒░▒▓████████▓▒░ 
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒▒▓███▓▒░▒▓████████▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓████████▓▒░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░           ░▒▓██████▓▒░░▒▓████████▓▒░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-                                                                                                                                         
-                                                                                                                                         
+███████ ██     ██ ███    ███      ██████ ██      ██ ███████ ███    ██ ████████ 
+██      ██     ██ ████  ████     ██      ██      ██ ██      ████   ██    ██    
+█████   ██  █  ██ ██ ████ ██     ██      ██      ██ █████   ██ ██  ██    ██    
+██      ██ ███ ██ ██  ██  ██     ██      ██      ██ ██      ██  ██ ██    ██    
+███████  ███ ███  ██      ██      ██████ ███████ ██ ███████ ██   ████    ██    
+                                                                               
+                                                                                                                                                                                              
 `
 
 var log = logging.Logger("light-client")
@@ -71,15 +69,15 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&loglevel, "loglevel", "info", "Log level (debug, info, warn, error, fatal, panic)")
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
-	rootCmd.PersistentFlags().StringVar(&contract, "contract", "", "Contract address to listen for events")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
+	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Private key of the client")
 	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
 	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
 	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
-	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 120, "Delay between sampling process and the receiving of the event")
+	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 10, "Delay between sampling process and the receiving of the event")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
-	rootCmd.MarkPersistentFlagRequired("contract")
+	rootCmd.MarkPersistentFlagRequired("private-key")
 	rootCmd.MarkPersistentFlagRequired("project-id")
 	rootCmd.MarkPersistentFlagRequired("topic-id")
 	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
@@ -95,6 +93,12 @@ func startClient() {
 	fmt.Printf("Version: %s, commit: %s\n", common.Version, common.GitCommit)
 	log.Info("Starting client...")
 
+	identify, err := utils.NewIdentity(privateKey)
+	if err != nil {
+		log.Fatalf("Failed to create identity: %v", err)
+	}
+	log.Infof("Client idenity: %s", identify.GetAddress().Hex())
+
 	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, clientId)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
@@ -105,7 +109,6 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	eventlistener := eventlistener.NewEventListener(rpcURL, contract, sampler)
-	eventlistener.SubscribeToLogs(context.Background())
-	eventlistener.ProcessLogs()
+	eventlistener := events.NewEventListener(identify, sampler)
+	eventlistener.Start(rpcURL)
 }
