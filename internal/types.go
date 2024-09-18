@@ -67,3 +67,10 @@ func ensureBase64Padding(encoded string) string {
 	}
 	return encoded
 }
+
+type ScheduleRequest struct {
+	Cid      string
+	ClientId string
+	ChainId  uint64
+	BlockNum uint64
+}

@@ -6,6 +6,7 @@ require (
 	cloud.google.com/go/pubsub v1.42.0
 	github.com/ethereum/c-kzg-4844/v2 v2.0.1
 	github.com/ethereum/go-ethereum v1.14.8
+	github.com/filecoin-project/go-jsonrpc v0.6.0
 	github.com/ipfs/boxo v0.20.0
 	github.com/ipfs/go-block-format v0.2.0
 	github.com/ipfs/go-cid v0.4.1
@@ -19,6 +20,7 @@ require (
 	github.com/spf13/cobra v1.8.1
 	github.com/web3-storage/go-ucanto v0.1.0
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56
+	golang.org/x/sync v0.8.0
 	google.golang.org/api v0.193.0
 )
 
@@ -238,7 +240,6 @@ require (
 	golang.org/x/mod v0.19.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.22.0 // indirect
-	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.23.0 // indirect
 	golang.org/x/text v0.17.0 // indirect
 	golang.org/x/time v0.6.0 // indirect
