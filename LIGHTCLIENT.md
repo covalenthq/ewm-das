@@ -24,7 +24,7 @@ docker build -t covalent/light-client -f Dockerfile.lc .
 Run the Docker container:
 
 ```bash
-docker run -d --restart always --name light-client -e CLIENT_ID="YOUR UNIQUE ID" covalent/light-client
+docker run -d --restart always --name light-client -e PRIVATE_KEY="YOUR HEX PRIV KEY" covalent/light-client
 ```
 
 Check the status of the Light Client:
@@ -49,14 +49,17 @@ To run the light-client, use the following command:
 
 ```sh
 ./bin/light-client --rpc-url <rpc-url> \
-    --contract <contract-address> \
     --topic-id <topic-id> \
     --gcp-creds-file <gcp-creds-file> \
-    --client-id <client-id> 
+    --private-key <private-key> 
 ```
 
-Note: Client ID is the unique identifier for the client. It can be any string, just make sure it is unique.
+Note: Private key is the identity of your client. To generate a private key, use can use following resources:
+
+- [Visual-key](https://visualkey.link/)
+- [Vanity-eth](https://vanity-eth.tk/)
+- [Eth-vanity](https://eth-vanity.io/#calc)
 
 ```sh
-./bin/light-client --rpc-url wss://moonbeam.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e --contract 0x4932bDc983e5146224b9C2e68cfFBFEb004A2824 --topic-id DAS-TO-BQ --gcp-creds-file gcp-creds.json --client-id ${CLIENT_ID}
+./bin/light-client --rpc-url ws://34.42.69.93:8080/rpc --topic-id DAS-TO-BQ --gcp-creds-file gcp-creds.json --private-key ${PRIVATE_KEY}
 ```

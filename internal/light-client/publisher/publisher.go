@@ -1,23 +1,25 @@
 package publisher
 
 import (
-	"cloud.google.com/go/pubsub"
 	"context"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/covalenthq/das-ipfs-pinner/common"
-	"google.golang.org/api/option"
 	"io"
 	"os"
 	"time"
+
+	"cloud.google.com/go/pubsub"
+	"github.com/covalenthq/das-ipfs-pinner/common"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
+	"google.golang.org/api/option"
 )
 
 type Publisher struct {
 	projectID       string
 	topicID         string
 	credentialsFile string
-	clientId        string
+	identity        *utils.Identity
 }
 
 type message struct {
@@ -40,7 +42,7 @@ type serviceAccount struct {
 }
 
 // NewPublisher creates a new Publisher instance
-func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
+func NewPublisher(topicID, credsFile string, identity *utils.Identity) (*Publisher, error) {
 	file, err := os.Open(credsFile)
 	if err != nil {
 		return nil, err
@@ -64,7 +66,7 @@ func NewPublisher(topicID, credsFile, clientId string) (*Publisher, error) {
 		projectID:       account.ProjectID,
 		topicID:         topicID,
 		credentialsFile: credsFile,
-		clientId:        clientId,
+		identity:        identity,
 	}, nil
 }
 
@@ -83,7 +85,7 @@ func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status b
 	topic := client.Topic(p.topicID)
 
 	message := message{
-		ClientId:    p.clientId,
+		ClientId:    p.identity.GetAddress().Hex(),
 		SignedAt:    time.Now(),
 		CID:         cid,
 		RowIndex:    rowIndex,

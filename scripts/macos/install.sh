@@ -97,7 +97,7 @@ cat <<EOF > "$PLIST_FILE"
     <dict>
         <key>PINNER_DIR</key>
         <string>$HOME/.covalent</string>
-        <key>CLIENT_ID</key>
+        <key>PRIVATE_KEY</key>
         <string>$1</string>
     </dict>
     <key>RunAtLoad</key>

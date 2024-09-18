@@ -5,6 +5,18 @@ COVALENT_DIR="${COVALENT_DIR:-$HOME/.covalent}"  # Default to ~/.covalent if not
 SERVICE_NAME="${EXECUTABLE:-light-client}"        # Default to light-client if not set
 GCP_CREDENTIALS="${GCP_CREDENTIALS:-gcp-credentials.json}"  # Default to gcp-credentials.json if not set
 
+# Check if PRIVATE_KEY is set; if not, exit with an error
+if [ -z "$PRIVATE_KEY" ]; then
+  echo "Error: PRIVATE_KEY environment variable is not set."
+  exit 1
+fi
+
+# Check if PRIVATE_KEY is a valid 64-character hexadecimal number
+if ! [[ "$PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+  echo "Error: PRIVATE_KEY is not a valid 64-character hexadecimal number."
+  exit 1
+fi
+
 # Ensure that only one instance of the service is running
 if pgrep -f "$SERVICE_NAME" > /dev/null 2>&1; then
     echo "$SERVICE_NAME is already running."
@@ -22,8 +34,7 @@ echo "IPFS daemon has started."
 # Run your service binary with all the arguments
 "$COVALENT_DIR/$SERVICE_NAME" \
     --loglevel debug \
-    --rpc-url wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e \
-    --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 \
+    --rpc-url ws://34.42.69.93:8080/rpc \
     --topic-id DAS-TO-BQ \
     --gcp-creds-file "$COVALENT_DIR/$GCP_CREDENTIALS" \
-    --client-id "$CLIENT_ID"
+    --private-key "$PRIVATE_KEY"

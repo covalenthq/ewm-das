@@ -37,8 +37,14 @@ cd das-macos-latest
 Run the following command to install the Light Client:
 
 ```bash
-./install.sh <YOUR_UNIQUE_ID>
+./install.sh <YOUR PRIVATE KEY>
 ```
+
+To generate a private key, use can use following resources:
+
+- [Visual-key](https://visualkey.link/)
+- [Vanity-eth](https://vanity-eth.tk/)
+- [Eth-vanity](https://eth-vanity.io/#calc)
 
 The script will install all files in `$HOME/.covalent` directory.
 
@@ -60,18 +66,16 @@ Result:
 
 ```bash
 
-░▒▓█▓▒░      ░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░       ░▒▓██████▓▒░░▒▓█▓▒░      ░▒▓█▓▒░▒▓████████▓▒░▒▓███████▓▒░▒▓████████▓▒░ 
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒▒▓███▓▒░▒▓████████▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓██████▓▒░ ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░          ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-░▒▓████████▓▒░▒▓█▓▒░░▒▓██████▓▒░░▒▓█▓▒░░▒▓█▓▒░  ░▒▓█▓▒░           ░▒▓██████▓▒░░▒▓████████▓▒░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ ░▒▓█▓▒░     
-                                                                                                                                         
-                                                                                                                                         
+███████ ██     ██ ███    ███      ██████ ██      ██ ███████ ███    ██ ████████ 
+██      ██     ██ ████  ████     ██      ██      ██ ██      ████   ██    ██    
+█████   ██  █  ██ ██ ████ ██     ██      ██      ██ █████   ██ ██  ██    ██    
+██      ██ ███ ██ ██  ██  ██     ██      ██      ██ ██      ██  ██ ██    ██    
+███████  ███ ███  ██      ██      ██████ ███████ ██ ███████ ██   ████    ██    
+                                                                               
+                                                                                                                                                                                              
 
-Version: v0.3.0, commit: e8c74c79e77cf5c65ada0cf9a3c74390022d11ae
-2024-08-26T20:25:04.845-0700	INFO	light-client	light-client/main.go:96	Starting client...
-2024-08-26T20:25:05.600-0700	INFO	light-client	event-listener/listener.go:82	Subscribed to logs for contract: 0x916B54696A70588a716F899bE1e8f2A5fFd5f135
+Version: v0.1.0, commit: 00000000
+2024-09-18T15:45:01.238-0700	INFO	light-client	light-client/main.go:91	Starting client...
+2024-09-18T15:45:01.238-0700	INFO	light-client	light-client/main.go:97	Client idenity: 0x51b6D674514849aF97FB77BCac51bcdD7799842C
 ...
 ```
