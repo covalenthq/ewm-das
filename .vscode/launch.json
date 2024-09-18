@@ -72,6 +72,30 @@
       }
     },
     {
+      "name": "Light Client Testnet",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/light-client/main.go",
+      "args": [
+        "--loglevel",
+        "debug",
+        "--rpc-url",
+        "ws://34.42.69.93:8080/rpc",
+        "--private-key",
+        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077",
+        "--topic-id",
+        "DAS-TO-BQ",
+        "--gcp-creds-file",
+        "${workspaceFolder}/test/data/gcp-credentials.json",
+        "--client-id",
+        "4e440d76-4a26-4117-b317-b5b407b0cd54"
+      ],
+      "env": {
+        "PINNER_DIR": "${workspaceFolder}/test/data"
+      }
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "lldb",
       "request": "launch",
