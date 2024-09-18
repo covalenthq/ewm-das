@@ -8,7 +8,13 @@
 
 ## Current Iteration
 
-![DAS-Pinner + Light-Client](assets/iteration1.png)
+![DAS-Pinner + Light-Client](assets/iteration2.png)
+
+### Previous Iteration
+
+<a href="assets/iteration1.png">
+    <img src="assets/iteration1.png" alt="Iteration #1" width="150"/>
+</a>
 
 ## Table of Contents
 
