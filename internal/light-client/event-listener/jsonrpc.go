@@ -2,7 +2,6 @@ package eventlistener
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -19,29 +18,27 @@ import (
 
 // Listener represents the event listener with a private key and a handler
 type Listener struct {
-	privKey *ecdsa.PrivateKey
-	sampler *sampler.Sampler
+	identity *utils.Identity
+	sampler  *sampler.Sampler
 }
 
 // NewListener creates a new Listener with the provided private key in hex format
 func NewListener(hexPrivKey string, sampler *sampler.Sampler) (*Listener, error) {
-	privKey, err := utils.StringToPrivateKey(hexPrivKey)
+	identity, err := utils.NewIdentity(hexPrivKey)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Listener{privKey: privKey, sampler: sampler}, nil
+	return &Listener{identity: identity, sampler: sampler}, nil
 }
 
 // Id returns the address of the handler
 func (h *Listener) Id() (string, error) {
-	addr := utils.FromECDSAPubToAddress(&h.privKey.PublicKey)
-	return common.Bytes2Hex(addr), nil
+	return h.identity.GetAddressHex().Hex(), nil
 }
 
 // Sample is a placeholder for implementing sampling logic
 func (h *Listener) Sample(clientId, cid string, chainId, blockNum uint64, signature string) error {
-
 	request := &internal.ScheduleRequest{
 		ClientId: clientId,
 		Cid:      cid,
@@ -49,23 +46,12 @@ func (h *Listener) Sample(clientId, cid string, chainId, blockNum uint64, signat
 		BlockNum: blockNum,
 	}
 
-	// Marshal the request into a JSON string
-	requestBytes, err := json.Marshal(request)
+	err := h.verifyRequest(request, signature)
 	if err != nil {
-		log.Errorf("Failed to marshal request: %v", err)
 		return err
 	}
 
-	signatureBytes := common.Hex2Bytes(signature)
-
-	ok, recoveredAddress := utils.VerifySignature(requestBytes, signatureBytes)
-	if !ok {
-		log.Errorf("Failed to verify signature")
-		return fmt.Errorf("failed to verify signature")
-	}
-
-	log.Infof("Verified signature: %v", recoveredAddress.Hex())
-
+	// TODO: sign the message and send it to the sampler
 	h.sampler.ProcessEvent(cid, blockNum)
 
 	return nil
@@ -77,7 +63,7 @@ func (l *Listener) Start(addr string) error {
 		Subscribe func() error
 	}
 
-	signature, err := l.signMessage([]byte("hello"))
+	signature, err := l.identity.SignMessage([]byte("hello"))
 	if err != nil {
 		return err
 	}
@@ -102,22 +88,11 @@ func (l *Listener) Start(addr string) error {
 	return nil
 }
 
-// signMessage signs a message with the private key
-func (l *Listener) signMessage(message []byte) ([]byte, error) {
-	signature, err := utils.SignMessage(l.privKey, message)
-	if err != nil {
-		return nil, fmt.Errorf("failed to sign message: %w", err)
-	}
-	return signature, nil
-}
-
 // buildHeaders constructs the HTTP headers for the JSON-RPC request
-func (l *Listener) buildHeaders(signature []byte) http.Header {
-	id, _ := l.Id()
-
+func (l *Listener) buildHeaders(signature string) http.Header {
 	requestHeader := http.Header{}
-	requestHeader.Add("X-LC-Signature", fmt.Sprintf("%x", signature))
-	requestHeader.Add("X-LC-Address", fmt.Sprintf("%x", id))
+	requestHeader.Add("X-LC-Signature", signature)
+	requestHeader.Add("X-LC-Address", fmt.Sprintf("%x", l.identity.GetAddressHex()))
 
 	return requestHeader
 }
@@ -127,4 +102,25 @@ func (l *Listener) waitForShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
+}
+
+func (l *Listener) verifyRequest(request *internal.ScheduleRequest, signature string) error {
+	requestBytes, err := json.Marshal(request)
+	if err != nil {
+		return fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	signatureBytes := common.Hex2Bytes(signature)
+
+	ok, recoveredAddress := utils.VerifySignature(requestBytes, signatureBytes)
+	if !ok {
+		return fmt.Errorf("failed to verify signature")
+	}
+
+	log.Infof("Verified signature: %v", recoveredAddress.Hex())
+
+	// TODO: verify if recoveredAddress is in the whitelist
+	// TODO: implement a whitelist
+
+	return nil
 }
