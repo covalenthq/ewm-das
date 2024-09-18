@@ -24,7 +24,7 @@ func (i *Identity) GetPublicKey() *ecdsa.PublicKey {
 	return &i.privKey.PublicKey
 }
 
-func (i *Identity) GetAddressHex() common.Address {
+func (i *Identity) GetAddress() common.Address {
 	return crypto.PubkeyToAddress(*i.GetPublicKey())
 }
 

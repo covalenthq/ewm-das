@@ -34,7 +34,7 @@ func NewListener(hexPrivKey string, sampler *sampler.Sampler) (*Listener, error)
 
 // Id returns the address of the handler
 func (h *Listener) Id() (string, error) {
-	return h.identity.GetAddressHex().Hex(), nil
+	return h.identity.GetAddress().Hex(), nil
 }
 
 // Sample is a placeholder for implementing sampling logic
@@ -92,7 +92,7 @@ func (l *Listener) Start(addr string) error {
 func (l *Listener) buildHeaders(signature string) http.Header {
 	requestHeader := http.Header{}
 	requestHeader.Add("X-LC-Signature", signature)
-	requestHeader.Add("X-LC-Address", fmt.Sprintf("%x", l.identity.GetAddressHex()))
+	requestHeader.Add("X-LC-Address", l.identity.GetAddress().Hex())
 
 	return requestHeader
 }
