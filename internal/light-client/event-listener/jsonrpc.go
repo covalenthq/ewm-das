@@ -23,13 +23,8 @@ type Listener struct {
 }
 
 // NewListener creates a new Listener with the provided private key in hex format
-func NewListener(hexPrivKey string, sampler *sampler.Sampler) (*Listener, error) {
-	identity, err := utils.NewIdentity(hexPrivKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Listener{identity: identity, sampler: sampler}, nil
+func NewListener(identity *utils.Identity, sampler *sampler.Sampler) *Listener {
+	return &Listener{identity: identity, sampler: sampler}
 }
 
 // Id returns the address of the handler

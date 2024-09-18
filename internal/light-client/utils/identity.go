@@ -13,7 +13,7 @@ type Identity struct {
 }
 
 func NewIdentity(privKeyHex string) (*Identity, error) {
-	privKey, err := StringToPrivateKey(privKeyHex)
+	privKey, err := HexToPrivateKey(privKeyHex)
 	if err != nil {
 		return nil, err
 	}

@@ -8,7 +8,10 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 )
 
-func StringToPrivateKey(key string) (*ecdsa.PrivateKey, error) {
+func HexToPrivateKey(key string) (*ecdsa.PrivateKey, error) {
+	if key[:2] == "0x" {
+		key = key[2:]
+	}
 	return crypto.HexToECDSA(key)
 }
 
