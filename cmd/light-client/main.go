@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	eventlistener "github.com/covalenthq/das-ipfs-pinner/internal/light-client/event-listener"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/events"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
@@ -111,6 +111,6 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	eventlistener := eventlistener.NewListener(identify, sampler)
+	eventlistener := events.NewEventListener(identify, sampler)
 	eventlistener.Start(rpcURL)
 }

@@ -1,4 +1,4 @@
-package eventlistener
+package events
 
 import (
 	"context"
@@ -14,26 +14,29 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/filecoin-project/go-jsonrpc"
+	logging "github.com/ipfs/go-log/v2"
 )
 
-// Listener represents the event listener with a private key and a handler
-type Listener struct {
+var log = logging.Logger("event-listener")
+
+// EventListener represents the event listener with a private key and a handler
+type EventListener struct {
 	identity *utils.Identity
 	sampler  *sampler.Sampler
 }
 
-// NewListener creates a new Listener with the provided private key in hex format
-func NewListener(identity *utils.Identity, sampler *sampler.Sampler) *Listener {
-	return &Listener{identity: identity, sampler: sampler}
+// NewEventListener creates a new Listener with the provided private key in hex format
+func NewEventListener(identity *utils.Identity, sampler *sampler.Sampler) *EventListener {
+	return &EventListener{identity: identity, sampler: sampler}
 }
 
 // Id returns the address of the handler
-func (h *Listener) Id() (string, error) {
+func (h *EventListener) Id() (string, error) {
 	return h.identity.GetAddress().Hex(), nil
 }
 
 // Sample is a placeholder for implementing sampling logic
-func (h *Listener) Sample(clientId, cid string, chainId, blockNum uint64, signature string) error {
+func (h *EventListener) Sample(clientId, cid string, chainId, blockNum uint64, signature string) error {
 	request := &internal.ScheduleRequest{
 		ClientId: clientId,
 		Cid:      cid,
@@ -53,7 +56,7 @@ func (h *Listener) Sample(clientId, cid string, chainId, blockNum uint64, signat
 }
 
 // Start initializes the listener, performs the subscription, and blocks until a shutdown signal is received
-func (l *Listener) Start(addr string) error {
+func (l *EventListener) Start(addr string) error {
 	var client struct {
 		Subscribe func() error
 	}
@@ -84,7 +87,7 @@ func (l *Listener) Start(addr string) error {
 }
 
 // buildHeaders constructs the HTTP headers for the JSON-RPC request
-func (l *Listener) buildHeaders(signature string) http.Header {
+func (l *EventListener) buildHeaders(signature string) http.Header {
 	requestHeader := http.Header{}
 	requestHeader.Add("X-LC-Signature", signature)
 	requestHeader.Add("X-LC-Address", l.identity.GetAddress().Hex())
@@ -93,13 +96,13 @@ func (l *Listener) buildHeaders(signature string) http.Header {
 }
 
 // waitForShutdown blocks the process until an interrupt or termination signal is received
-func (l *Listener) waitForShutdown() {
+func (l *EventListener) waitForShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 }
 
-func (l *Listener) verifyRequest(request *internal.ScheduleRequest, signature string) error {
+func (l *EventListener) verifyRequest(request *internal.ScheduleRequest, signature string) error {
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request: %w", err)
