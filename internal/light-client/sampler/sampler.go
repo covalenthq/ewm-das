@@ -112,15 +112,15 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature strin
 				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, request.Cid)
 
 				storeReq := internal.StoreRequest{
-					SamplingReqest:   request,
-					RequestSignature: signature,
-					Status:           res,
-					Commitment:       base64.StdEncoding.EncodeToString(commitment),
-					Proof:            base64.StdEncoding.EncodeToString(proof),
-					Cell:             base64.StdEncoding.EncodeToString(cell),
-					Version:          fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-					BlobIndex:        blobIndex,
-					CellIndex:        colIndex,
+					SamplingReqest:    request,
+					SamplingSignature: signature,
+					Status:            res,
+					Commitment:        base64.StdEncoding.EncodeToString(commitment),
+					Proof:             base64.StdEncoding.EncodeToString(proof),
+					Cell:              base64.StdEncoding.EncodeToString(cell),
+					Version:           fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+					BlobIndex:         blobIndex,
+					CellIndex:         colIndex,
 				}
 
 				if err := s.pub.SendStoreRequest(&storeReq); err != nil {

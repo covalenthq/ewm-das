@@ -77,14 +77,14 @@ type SamplingRequest struct {
 }
 
 type StoreRequest struct {
-	SamplingReqest   SamplingRequest
-	RequestSignature string    `json:"req_signature"`
-	SignedAt         time.Time `json:"signed_at"`
-	BlobIndex        int       `json:"blob_index"`
-	CellIndex        int       `json:"cell_index"`
-	Status           bool      `json:"status"`
-	Commitment       string    `json:"commitment"`
-	Proof            string    `json:"proof"`
-	Cell             string    `json:"cell"`
-	Version          string    `json:"version"`
+	SamplingReqest    SamplingRequest
+	SamplingSignature string    `json:"sampling_signature"`
+	SignedAt          time.Time `json:"signed_at"`
+	BlobIndex         int       `json:"blob_index"`
+	CellIndex         int       `json:"cell_index"`
+	Status            bool      `json:"status"`
+	Commitment        string    `json:"commitment"`
+	Proof             string    `json:"proof"`
+	Cell              string    `json:"cell"`
+	Version           string    `json:"version"`
 }
