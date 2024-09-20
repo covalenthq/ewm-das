@@ -75,7 +75,6 @@ func init() {
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("private-key")
 	rootCmd.MarkPersistentFlagRequired("collect-url")
-	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
 }
 
 func initConfig() {
