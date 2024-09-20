@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 )
 
 // Link represents a link to another CID in IPFS.
@@ -68,9 +69,22 @@ func ensureBase64Padding(encoded string) string {
 	return encoded
 }
 
-type ScheduleRequest struct {
-	Cid      string
-	ClientId string
-	ChainId  uint64
-	BlockNum uint64
+type SamplingRequest struct {
+	Cid      string `json:"cid"`
+	ClientId string `json:"client_id"`
+	ChainId  uint64 `json:"chain_id"`
+	BlockNum uint64 `json:"block_num"`
+}
+
+type StoreRequest struct {
+	SamplingReqest   SamplingRequest
+	RequestSignature string    `json:"req_signature"`
+	SignedAt         time.Time `json:"signed_at"`
+	BlobIndex        int       `json:"blob_index"`
+	CellIndex        int       `json:"cell_index"`
+	Status           bool      `json:"status"`
+	Commitment       string    `json:"commitment"`
+	Proof            string    `json:"proof"`
+	Cell             string    `json:"cell"`
+	Version          string    `json:"version"`
 }
