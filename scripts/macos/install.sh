@@ -1,9 +1,15 @@
 #!/bin/bash
 
 if [ -z "$1" ]; then
-    echo "Client ID is required."
-    echo "Usage: $0 <client_id>"
+    echo "Private Key is required."
+    echo "Usage: $0 <private-key>"
     exit 1
+fi
+
+# Check if private key is a valid 64-character hexadecimal number
+if ! [[ "$1" =~ ^[0-9a-fA-F]{64}$ ]]; then
+  echo "Error: private key is not a valid 64-character hexadecimal number."
+  exit 1
 fi
 
 # Paths
@@ -97,7 +103,7 @@ cat <<EOF > "$PLIST_FILE"
     <dict>
         <key>PINNER_DIR</key>
         <string>$HOME/.covalent</string>
-        <key>CLIENT_ID</key>
+        <key>PRIVATE_KEY</key>
         <string>$1</string>
     </dict>
     <key>RunAtLoad</key>

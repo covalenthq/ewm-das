@@ -1,8 +1,14 @@
 #!/bin/sh
 
-# Check if CLIENT_ID is set; if not, exit with an error
-if [ -z "$CLIENT_ID" ]; then
-  echo "Error: CLIENT_ID environment variable is not set."
+# Check if PRIVATE_KEY is set; if not, exit with an error
+if [ -z "$PRIVATE_KEY" ]; then
+  echo "Error: PRIVATE_KEY environment variable is not set."
+  exit 1
+fi
+
+# Check if PRIVATE_KEY is a valid 64-character hexadecimal number
+if ! [[ "$PRIVATE_KEY" =~ ^[0-9a-fA-F]{64}$ ]]; then
+  echo "Error: PRIVATE_KEY is not a valid 64-character hexadecimal number."
   exit 1
 fi
 
@@ -18,8 +24,7 @@ done
 # Start light-client with the provided and hardcoded arguments
 light-client \
   --loglevel debug \
-  --rpc-url wss://moonbase-alpha.blastapi.io/618fd77b-a090-457b-b08a-373398006a5e \
-  --contract 0x916B54696A70588a716F899bE1e8f2A5fFd5f135 \
+  --rpc-url ws://34.42.69.93:8080/rpc \
   --topic-id DAS-TO-BQ \
   --gcp-creds-file /gcp-credentials.json \
-  --client-id "$CLIENT_ID"
+  --private-key "$PRIVATE_KEY"

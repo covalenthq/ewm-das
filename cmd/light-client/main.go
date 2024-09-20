@@ -20,7 +20,6 @@ var (
 	privateKey    string
 	gcpTopicId    string
 	gcpCredsFile  string
-	clientId      string
 	samplingDelay uint
 )
 
@@ -42,7 +41,7 @@ var rootCmd = &cobra.Command{
 	Long:    `This client listens for events from a smart contract on a specified chain, retrieves data from IPFS, and sends it to another service.`,
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		logging.SetLogLevel("light-client", loglevel)
+		logging.SetLogLevel("*", loglevel)
 
 		// Load the configuration
 		config := das.LoadConfig()
@@ -73,7 +72,6 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Private key of the client")
 	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
 	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
-	rootCmd.PersistentFlags().StringVar(&clientId, "client-id", "", "arbitrary client ID, used to identify the client")
 	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 10, "Delay between sampling process and the receiving of the event")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
@@ -81,7 +79,6 @@ func init() {
 	rootCmd.MarkPersistentFlagRequired("project-id")
 	rootCmd.MarkPersistentFlagRequired("topic-id")
 	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
-	rootCmd.MarkPersistentFlagRequired("client-id")
 }
 
 func initConfig() {
@@ -99,7 +96,7 @@ func startClient() {
 	}
 	log.Infof("Client idenity: %s", identify.GetAddress().Hex())
 
-	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, clientId)
+	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, identify)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}
@@ -110,5 +107,7 @@ func startClient() {
 	}
 
 	eventlistener := events.NewEventListener(identify, sampler)
-	eventlistener.Start(rpcURL)
+	if err := eventlistener.Start(rpcURL); err != nil {
+		log.Fatalf("Failed to start event listener: %v", err)
+	}
 }

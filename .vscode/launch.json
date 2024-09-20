@@ -64,11 +64,10 @@
         "DAS-TO-BQ",
         "--gcp-creds-file",
         "${workspaceFolder}/test/data/gcp-credentials.json",
-        "--client-id",
-        "4e440d76-4a26-4117-b317-b5b407b0cd54"
       ],
       "env": {
-        "PINNER_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data",
+        // "JSONRPC_ENABLE_DEBUG_TRACE": "1"
       }
     },
     {
@@ -88,11 +87,10 @@
         "DAS-TO-BQ",
         "--gcp-creds-file",
         "${workspaceFolder}/test/data/gcp-credentials.json",
-        "--client-id",
-        "4e440d76-4a26-4117-b317-b5b407b0cd54"
       ],
       "env": {
-        "PINNER_DIR": "${workspaceFolder}/test/data"
+        "PINNER_DIR": "${workspaceFolder}/test/data",
+        // "JSONRPC_ENABLE_DEBUG_TRACE": "1"  
       }
     },
     {
