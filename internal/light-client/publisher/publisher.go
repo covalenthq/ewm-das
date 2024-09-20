@@ -18,25 +18,6 @@ type Publisher struct {
 	identity   *utils.Identity
 }
 
-type message struct {
-	ClientId    string    `json:"client_id"`
-	SignedAt    time.Time `json:"signed_at"`
-	CID         string    `json:"cid"`
-	RowIndex    int       `json:"rowindex"`
-	ColumnIndex int       `json:"columnindex"`
-	Status      bool      `json:"status"`
-	Commitment  string    `json:"commitment"`
-	Proof       string    `json:"proof"`
-	Cell        string    `json:"cell"`
-	BlockHeight uint64    `json:"block_height"`
-	Version     string    `json:"version"`
-}
-
-// Define a struct with only the `project_id` field
-type serviceAccount struct {
-	ProjectID string `json:"project_id"`
-}
-
 // NewPublisher creates a new Publisher instance
 func NewPublisher(collectionApi string, identity *utils.Identity) (*Publisher, error) {
 	return &Publisher{
