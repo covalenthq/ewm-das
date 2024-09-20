@@ -67,7 +67,7 @@
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data",
-        "JSONRPC_ENABLE_DEBUG_TRACE": "1"
+        // "JSONRPC_ENABLE_DEBUG_TRACE": "1"
       }
     },
     {
