@@ -107,5 +107,7 @@ func startClient() {
 	}
 
 	eventlistener := events.NewEventListener(identify, sampler)
-	eventlistener.Start(rpcURL)
+	if err := eventlistener.Start(rpcURL); err != nil {
+		log.Fatalf("Failed to start event listener: %v", err)
+	}
 }

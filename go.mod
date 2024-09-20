@@ -256,3 +256,5 @@ require (
 	lukechampine.com/blake3 v1.3.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect
 )
+
+replace github.com/filecoin-project/go-jsonrpc => github.com/tarassh/go-jsonrpc v0.0.0-20240919233208-e6245149c268

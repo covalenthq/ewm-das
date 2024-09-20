@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
@@ -14,6 +15,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/filecoin-project/go-jsonrpc"
+	"github.com/gorilla/websocket"
 	logging "github.com/ipfs/go-log/v2"
 )
 
@@ -23,11 +25,18 @@ var log = logging.Logger("event-listener")
 type EventListener struct {
 	identity *utils.Identity
 	sampler  *sampler.Sampler
+
+	mu         sync.Mutex // Protects subscription status
+	subscribed bool       // Tracks whether the client is subscribed
 }
 
 // NewEventListener creates a new Listener with the provided private key in hex format
 func NewEventListener(identity *utils.Identity, sampler *sampler.Sampler) *EventListener {
-	return &EventListener{identity: identity, sampler: sampler}
+	return &EventListener{
+		identity:   identity,
+		sampler:    sampler,
+		subscribed: false,
+	}
 }
 
 // Id returns the address of the handler
@@ -49,7 +58,6 @@ func (h *EventListener) Sample(clientId, cid string, chainId, blockNum uint64, s
 		return err
 	}
 
-	// TODO: sign the message and send it to the sampler
 	h.sampler.ProcessEvent(cid, blockNum)
 
 	return nil
@@ -68,16 +76,30 @@ func (l *EventListener) Start(addr string) error {
 
 	requestHeader := l.buildHeaders(signature)
 
-	closer, err := jsonrpc.NewMergeClient(context.Background(), addr, "ServerHandler",
-		[]interface{}{&client}, requestHeader, jsonrpc.WithClientHandler("Client", l))
+	// Channel to notify reconnections
+	reconnectNotify := make(chan struct{})
+
+	clientHandlerOpt := jsonrpc.WithClientHandler("Client", l)
+	proxyConnFactoryOpt := jsonrpc.WithProxyConnFactory(proxyConnFactory(l, reconnectNotify))
+
+	closer, err := jsonrpc.NewMergeClient(
+		context.Background(),
+		addr,
+		"ServerHandler",
+		[]interface{}{&client},
+		requestHeader,
+		clientHandlerOpt,
+		proxyConnFactoryOpt,
+	)
 	if err != nil {
 		return err
 	}
 	defer closer()
 
-	if err := client.Subscribe(); err != nil {
-		return err
-	}
+	// Handle subscription in a goroutine after client is initialized
+	go l.handleSubscription(&client, reconnectNotify)
+
+	log.Info("Client authenticated")
 
 	// Block until a termination signal is received
 	l.waitForShutdown()
@@ -86,12 +108,37 @@ func (l *EventListener) Start(addr string) error {
 	return nil
 }
 
+// handleSubscription manages subscription on reconnection
+func (l *EventListener) handleSubscription(client *struct{ Subscribe func() error }, reconnectNotify <-chan struct{}) {
+	for {
+		<-reconnectNotify // Wait for reconnection notification
+
+		l.mu.Lock()
+		if l.subscribed {
+			log.Info("Already subscribed, skipping resubscription")
+			l.mu.Unlock()
+			continue
+		}
+		l.mu.Unlock()
+
+		// Attempt to subscribe
+		log.Info("Attempting to subscribe after reconnection")
+		if err := client.Subscribe(); err != nil {
+			log.Errorf("Failed to subscribe after reconnection: %v", err)
+		} else {
+			l.mu.Lock()
+			l.subscribed = true
+			l.mu.Unlock()
+			log.Info("Subscription successful after reconnection")
+		}
+	}
+}
+
 // buildHeaders constructs the HTTP headers for the JSON-RPC request
 func (l *EventListener) buildHeaders(signature string) http.Header {
 	requestHeader := http.Header{}
 	requestHeader.Add("X-LC-Signature", signature)
 	requestHeader.Add("X-LC-Address", l.identity.GetAddress().Hex())
-
 	return requestHeader
 }
 
@@ -116,9 +163,31 @@ func (l *EventListener) verifyRequest(request *internal.ScheduleRequest, signatu
 	}
 
 	log.Infof("Verified signature: %v", recoveredAddress.Hex())
-
-	// TODO: verify if recoveredAddress is in the whitelist
-	// TODO: implement a whitelist
-
 	return nil
+}
+
+// proxyConnFactory wraps the connection factory and notifies on reconnection
+func proxyConnFactory(l *EventListener, reconnectNotify chan struct{}) func(func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
+	return func(originalFactory func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
+		return func() (*websocket.Conn, error) {
+			// Call the original connection factory
+			conn, err := originalFactory()
+			if err != nil {
+				log.Debug(fmt.Sprintf("Connection failed: %v", err))
+				l.mu.Lock()
+				l.subscribed = false // Reset subscription status on connection failure
+				l.mu.Unlock()
+				return nil, err
+			}
+
+			log.Debug("Connection established!")
+
+			// Notify that the connection is established
+			go func() {
+				reconnectNotify <- struct{}{}
+			}()
+
+			return conn, nil
+		}
+	}
 }
