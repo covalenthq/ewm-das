@@ -56,7 +56,6 @@ jobs:
         cp bin/light-client das-${{ matrix.os }}/
         cp scripts/macos/* das-${{ matrix.os }}/
         cp test/data/trusted_setup.txt das-${{ matrix.os }}/
-        cp test/data/gcp-credentials.json das-${{ matrix.os }}/
     
     - name: Collect light client artifacts (Ubuntu)
       if: matrix.os == 'ubuntu-latest'
