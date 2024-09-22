@@ -17,7 +17,6 @@ COVALENT_DIR="$HOME/.covalent"
 IPFS_PATH=$(which ipfs)  # Get the actual path of the IPFS binary
 EXECUTABLE="light-client"
 TRUSTED_SETUP="trusted_setup.txt"
-GCP_CREDENTIALS="gcp-credentials.json"
 WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
 PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.light-client.plist"
 IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
@@ -32,7 +31,6 @@ mkdir -p "$COVALENT_DIR"
 # Copy the executable, trusted setup, and wrapper script to the destination directory
 cp "$EXECUTABLE" "$COVALENT_DIR/"
 cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
-cp "$GCP_CREDENTIALS" "$COVALENT_DIR/"
 cp "uninstall.sh" "$COVALENT_DIR/"
 cp "run.sh" "$WRAPPER_SCRIPT"
 
