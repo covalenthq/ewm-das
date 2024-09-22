@@ -2,10 +2,12 @@ package sampler
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
 	"math/rand"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/common"
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
@@ -46,9 +48,9 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
-	go func(cidStr string) {
-		rawCid, err := cid.Decode(cidStr)
+func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature string) {
+	go func(request internal.SamplingRequest) {
+		rawCid, err := cid.Decode(request.Cid)
 		if err != nil {
 			log.Errorf("Invalid CID: %v", err)
 			return
@@ -59,12 +61,12 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 			return
 		}
 
-		log.Debugf("Processing event for CID [%s] is deferred for %d min", cidStr, s.samplingDelay/60)
+		log.Debugf("Processing event for CID [%s] is deferred for %d min", request.Cid, s.samplingDelay/60)
 		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
-		log.Debugf("Processing event for CID [%s] ...", cidStr)
+		log.Debugf("Processing event for CID [%s] ...", request.Cid)
 
 		var rootNode internal.RootNode
-		if err := s.GetData(cidStr, &rootNode); err != nil {
+		if err := s.GetData(request.Cid, &rootNode); err != nil {
 			log.Errorf("Failed to fetch root DAG data: %v", err)
 			return
 		}
@@ -107,15 +109,27 @@ func (s *Sampler) ProcessEvent(cidStr string, blockHeight uint64) {
 					return
 				}
 
-				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
+				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, request.Cid)
 
-				if err := s.pub.PublishToCS(cidStr, blobIndex, colIndex, res, commitment, proof, cell, blockHeight); err != nil {
+				storeReq := internal.StoreRequest{
+					SamplingReqest:    request,
+					SamplingSignature: signature,
+					Status:            res,
+					Commitment:        base64.StdEncoding.EncodeToString(commitment),
+					Proof:             base64.StdEncoding.EncodeToString(proof),
+					Cell:              base64.StdEncoding.EncodeToString(cell),
+					Version:           fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+					BlobIndex:         blobIndex,
+					CellIndex:         colIndex,
+				}
+
+				if err := s.pub.SendStoreRequest(&storeReq); err != nil {
 					log.Errorf("Failed to publish to Cloud Storage: %v", err)
 					return
 				}
 			}
 		}
-	}(cidStr)
+	}(request)
 }
 
 // GetData tries to fetch data from both the IPFS node and gateways simultaneously.

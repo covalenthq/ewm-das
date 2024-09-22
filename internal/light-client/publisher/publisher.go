@@ -1,117 +1,68 @@
 package publisher
 
 import (
+	"bytes"
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
-	"os"
+	"net/http"
 	"time"
 
-	"cloud.google.com/go/pubsub"
-	"github.com/covalenthq/das-ipfs-pinner/common"
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
-	"google.golang.org/api/option"
 )
 
 type Publisher struct {
-	projectID       string
-	topicID         string
-	credentialsFile string
-	identity        *utils.Identity
-}
-
-type message struct {
-	ClientId    string    `json:"client_id"`
-	SignedAt    time.Time `json:"signed_at"`
-	CID         string    `json:"cid"`
-	RowIndex    int       `json:"rowindex"`
-	ColumnIndex int       `json:"columnindex"`
-	Status      bool      `json:"status"`
-	Commitment  string    `json:"commitment"`
-	Proof       string    `json:"proof"`
-	Cell        string    `json:"cell"`
-	BlockHeight uint64    `json:"block_height"`
-	Version     string    `json:"version"`
-}
-
-// Define a struct with only the `project_id` field
-type serviceAccount struct {
-	ProjectID string `json:"project_id"`
+	collectApi string
+	identity   *utils.Identity
 }
 
 // NewPublisher creates a new Publisher instance
-func NewPublisher(topicID, credsFile string, identity *utils.Identity) (*Publisher, error) {
-	file, err := os.Open(credsFile)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	// Read the file contents into a byte slice
-	data, err := io.ReadAll(file)
-	if err != nil {
-		return nil, err
-	}
-
-	// Unmarshal only the project_id field
-	var account serviceAccount
-	err = json.Unmarshal(data, &account)
-	if err != nil {
-		return nil, err
-	}
-
+func NewPublisher(collectionApi string, identity *utils.Identity) (*Publisher, error) {
 	return &Publisher{
-		projectID:       account.ProjectID,
-		topicID:         topicID,
-		credentialsFile: credsFile,
-		identity:        identity,
+		collectApi: collectionApi,
+		identity:   identity,
 	}, nil
 }
 
 // Publish to Pubsub
-func (p *Publisher) PublishToCS(cid string, rowIndex int, colIndex int, status bool, commitment []byte, proof []byte, cell []byte, blockHeight uint64) error {
+func (p *Publisher) SendStoreRequest(request *internal.StoreRequest) error {
 	ctx := context.Background()
 
-	// Create a Pub/Sub client using the credentials
-	client, err := pubsub.NewClient(ctx, p.projectID, option.WithCredentialsFile(p.credentialsFile))
-	if err != nil {
-		return err
-	}
-	defer client.Close()
+	request.SignedAt = time.Now()
 
-	// Get a reference to the topic.
-	topic := client.Topic(p.topicID)
-
-	message := message{
-		ClientId:    p.identity.GetAddress().Hex(),
-		SignedAt:    time.Now(),
-		CID:         cid,
-		RowIndex:    rowIndex,
-		ColumnIndex: colIndex,
-		Status:      status,
-		Commitment:  base64.StdEncoding.EncodeToString(commitment),
-		Proof:       base64.StdEncoding.EncodeToString(proof),
-		Cell:        base64.StdEncoding.EncodeToString(cell),
-		BlockHeight: blockHeight,
-		Version:     fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-	}
-
-	// Marshal the message into JSON.
-	messageData, err := json.Marshal(message)
+	// Marshal the request into JSON.
+	requestData, err := json.Marshal(request)
 	if err != nil {
 		return err
 	}
 
-	// Publish a message.
-	result := topic.Publish(ctx, &pubsub.Message{
-		Data: messageData,
-	})
-
-	// Block until the result is returned and a server-generated ID is returned for the published message.
-	if _, err = result.Get(ctx); err != nil {
+	signature, err := p.identity.SignMessage(requestData)
+	if err != nil {
 		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", p.collectApi, bytes.NewBuffer(requestData))
+	if err != nil {
+		return err
+	}
+
+	// Set the headers
+	req.Header.Set("X-LC-Signature", signature)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		responseBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
 	}
 
 	return nil

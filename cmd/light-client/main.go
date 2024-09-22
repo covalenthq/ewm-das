@@ -18,8 +18,7 @@ var (
 	rpcURL        string
 	ipfsAddr      string
 	privateKey    string
-	gcpTopicId    string
-	gcpCredsFile  string
+	collectUrl    string
 	samplingDelay uint
 )
 
@@ -70,15 +69,12 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
 	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Private key of the client")
-	rootCmd.PersistentFlags().StringVar(&gcpTopicId, "topic-id", "", "Topic name of Pub Sub")
-	rootCmd.PersistentFlags().StringVar(&gcpCredsFile, "gcp-creds-file", "", "Path of GCP credential json file")
+	rootCmd.PersistentFlags().StringVar(&collectUrl, "collect-url", "", "API endpoint to collect the data")
 	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 10, "Delay between sampling process and the receiving of the event")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("private-key")
-	rootCmd.MarkPersistentFlagRequired("project-id")
-	rootCmd.MarkPersistentFlagRequired("topic-id")
-	rootCmd.MarkPersistentFlagRequired("gcp-creds-file")
+	rootCmd.MarkPersistentFlagRequired("collect-url")
 }
 
 func initConfig() {
@@ -96,7 +92,7 @@ func startClient() {
 	}
 	log.Infof("Client idenity: %s", identify.GetAddress().Hex())
 
-	pub, err := publisher.NewPublisher(gcpTopicId, gcpCredsFile, identify)
+	pub, err := publisher.NewPublisher(collectUrl, identify)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}

@@ -46,7 +46,7 @@ func (h *EventListener) Id() (string, error) {
 
 // Sample is a placeholder for implementing sampling logic
 func (h *EventListener) Sample(clientId, cid string, chainId, blockNum uint64, signature string) error {
-	request := &internal.ScheduleRequest{
+	request := &internal.SamplingRequest{
 		ClientId: clientId,
 		Cid:      cid,
 		ChainId:  chainId,
@@ -58,7 +58,7 @@ func (h *EventListener) Sample(clientId, cid string, chainId, blockNum uint64, s
 		return err
 	}
 
-	h.sampler.ProcessEvent(cid, blockNum)
+	h.sampler.ProcessEvent(*request, signature)
 
 	return nil
 }
@@ -149,7 +149,7 @@ func (l *EventListener) waitForShutdown() {
 	<-quit
 }
 
-func (l *EventListener) verifyRequest(request *internal.ScheduleRequest, signature string) error {
+func (l *EventListener) verifyRequest(request *internal.SamplingRequest, signature string) error {
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request: %w", err)
@@ -170,13 +170,15 @@ func (l *EventListener) verifyRequest(request *internal.ScheduleRequest, signatu
 func proxyConnFactory(l *EventListener, reconnectNotify chan struct{}) func(func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
 	return func(originalFactory func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
 		return func() (*websocket.Conn, error) {
+			// If we are here, it means no connection has been established yet and no subscription has been made
+			l.mu.Lock()
+			l.subscribed = false
+			l.mu.Unlock()
+
 			// Call the original connection factory
 			conn, err := originalFactory()
 			if err != nil {
 				log.Debug(fmt.Sprintf("Connection failed: %v", err))
-				l.mu.Lock()
-				l.subscribed = false // Reset subscription status on connection failure
-				l.mu.Unlock()
 				return nil, err
 			}
 
