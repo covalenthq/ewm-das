@@ -170,13 +170,15 @@ func (l *EventListener) verifyRequest(request *internal.SamplingRequest, signatu
 func proxyConnFactory(l *EventListener, reconnectNotify chan struct{}) func(func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
 	return func(originalFactory func() (*websocket.Conn, error)) func() (*websocket.Conn, error) {
 		return func() (*websocket.Conn, error) {
+			// If we are here, it means no connection has been established yet and no subscription has been made
+			l.mu.Lock()
+			l.subscribed = false
+			l.mu.Unlock()
+
 			// Call the original connection factory
 			conn, err := originalFactory()
 			if err != nil {
 				log.Debug(fmt.Sprintf("Connection failed: %v", err))
-				l.mu.Lock()
-				l.subscribed = false // Reset subscription status on connection failure
-				l.mu.Unlock()
 				return nil, err
 			}
 

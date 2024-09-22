@@ -60,10 +60,8 @@
         "ws://localhost:8080/rpc",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077",
-        "--topic-id",
-        "DAS-TO-BQ",
-        "--gcp-creds-file",
-        "${workspaceFolder}/test/data/gcp-credentials.json",
+        "--collect-url",
+        "https://ewm-light-clients-v2-838505730421.us-central1.run.app",
       ],
       "env": {
         "PINNER_DIR": "${workspaceFolder}/test/data",
