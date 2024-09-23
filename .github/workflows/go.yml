@@ -22,12 +22,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version: '1.22'
-    
-    - name: Initialize Git submodules
-      run: |
-        git submodule init
-        git submodule update    
+        go-version: '1.22' 
 
     - name: Install dependencies
       run: make deps
@@ -64,13 +59,15 @@ jobs:
         cp bin/light-client das-${{ matrix.os }}/
             
     - name: Create tarball
-      run: tar -czvf das-${{ matrix.os }}.tar.gz -C das-${{ matrix.os }} .
+      run: |
+        TAG=${GITHUB_REF##*/}  # Extracts the tag from GITHUB_REF (e.g., refs/tags/v1.0.0 -> v1.0.0)
+        tar -czvf das-${{ matrix.os }}-${TAG}.tar.gz -C das-${{ matrix.os }} .
     
     - name: Upload artifact
       uses: actions/upload-artifact@v4
       with:
-        name: das-${{ matrix.os }}
-        path: das-${{ matrix.os }}.tar.gz
+        name: das-${{ matrix.os }}-${{ github.ref_name }}  # Use the tag name for the artifact
+        path: das-${{ matrix.os }}-${{ github.ref_name }}.tar.gz
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
@@ -86,13 +83,13 @@ jobs:
     - name: Download Ubuntu artifacts
       uses: actions/download-artifact@v4
       with:
-        name: das-ubuntu-latest
+        name: das-ubuntu-latest-${{ github.ref_name }}
         path: .
 
     - name: Download macOS artifacts
       uses: actions/download-artifact@v4
       with:
-        name: das-macos-latest
+        name: das-macos-latest-${{ github.ref_name }}
         path: .
 
     - name: Upload release asset
@@ -102,5 +99,5 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          das-ubuntu-latest.tar.gz
-          das-macos-latest.tar.gz
+          das-ubuntu-latest-${{ github.ref_name }}.tar.gz
+          das-macos-latest-${{ github.ref_name }}.tar.gz
