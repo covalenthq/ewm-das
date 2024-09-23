@@ -49,8 +49,7 @@ To run the light-client, use the following command:
 
 ```sh
 ./bin/light-client --rpc-url <rpc-url> \
-    --topic-id <topic-id> \
-    --gcp-creds-file <gcp-creds-file> \
+    --collect-url <collect-url> \
     --private-key <private-key> 
 ```
 
@@ -61,5 +60,5 @@ Note: Private key is the identity of your client. To generate a private key, use
 - [Eth-vanity](https://eth-vanity.io/#calc)
 
 ```sh
-./bin/light-client --rpc-url ws://34.42.69.93:8080/rpc --topic-id DAS-TO-BQ --gcp-creds-file gcp-creds.json --private-key ${PRIVATE_KEY}
+./bin/light-client --rpc-url ws://34.42.69.93:8080/rpc --collect-url https://ewm-light-clients-v2-838505730421.us-central1.run.app --private-key ${PRIVATE_KEY}
 ```

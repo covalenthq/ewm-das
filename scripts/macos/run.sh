@@ -3,7 +3,6 @@
 # Define the directory again in the wrapper script, it will use the value assigned during installation
 COVALENT_DIR="${COVALENT_DIR:-$HOME/.covalent}"  # Default to ~/.covalent if not set
 SERVICE_NAME="${EXECUTABLE:-light-client}"        # Default to light-client if not set
-GCP_CREDENTIALS="${GCP_CREDENTIALS:-gcp-credentials.json}"  # Default to gcp-credentials.json if not set
 
 # Check if PRIVATE_KEY is set; if not, exit with an error
 if [ -z "$PRIVATE_KEY" ]; then
@@ -35,6 +34,5 @@ echo "IPFS daemon has started."
 "$COVALENT_DIR/$SERVICE_NAME" \
     --loglevel debug \
     --rpc-url ws://34.42.69.93:8080/rpc \
-    --topic-id DAS-TO-BQ \
-    --gcp-creds-file "$COVALENT_DIR/$GCP_CREDENTIALS" \
+    --collect-url https://ewm-light-clients-v2-838505730421.us-central1.run.app \
     --private-key "$PRIVATE_KEY"

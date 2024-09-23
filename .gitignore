@@ -30,6 +30,3 @@ go.work.sum
 settings.json
 c_cpp_properties.json
 *.log
-
-# disable for testign
-# gcp-credentials.json

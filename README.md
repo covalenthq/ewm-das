@@ -123,11 +123,11 @@ make test-cover
 
 ### TESTNET (WIP)
 
-- [ ]  LC workload management - verify only 1 validated (post consensus) block specimen cid per block height
-- [ ]  DAS-pinner parity development to replace ipfs-pinner
+- [x]  LC workload management - verify only 1 validated (post consensus) block specimen cid per block height
+- [x]  DAS-pinner parity development to replace ipfs-pinner
 - [ ]  Guarantee LCs perform minimum sampling for availability
-- [ ]  Workload distribution system v1
-- [ ]  Authorization layer for LC proof submission v1 (PoA)
+- [x]  Workload distribution system v1
+- [x]  Authorization layer for LC proof submission v1 (PoA)
 - [ ]  Collection-Reward distribution system v1
 - [ ]  Client node profiling
 - [ ]  Network stress test

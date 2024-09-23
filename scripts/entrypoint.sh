@@ -25,6 +25,5 @@ done
 light-client \
   --loglevel debug \
   --rpc-url ws://34.42.69.93:8080/rpc \
-  --topic-id DAS-TO-BQ \
-  --gcp-creds-file /gcp-credentials.json \
+  --collect-url https://ewm-light-clients-v2-838505730421.us-central1.run.app \
   --private-key "$PRIVATE_KEY"

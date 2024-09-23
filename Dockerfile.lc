@@ -39,9 +39,6 @@ COPY --from=builder /go/src/ipfs-kubo/cmd/ipfs/ipfs /usr/local/bin/ipfs
 # Copy the built light-client binary
 COPY --from=builder /go/src/light-client/bin/light-client /usr/local/bin/light-client
 
-# Copy the GCP credentials file
-COPY --from=builder /go/src/light-client/test/data/gcp-credentials.json /gcp-credentials.json
-
 # Copy trusted setup files
 COPY --from=builder /go/src/light-client/test/data/trusted_setup.txt /root/.pinner/trusted_setup.txt
 
