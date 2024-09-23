@@ -32,7 +32,7 @@ Single command to install and launch the Light Client:
 curl -sSf https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/installv2.sh | bash -s <YOUR PRIVATE KEY>
 ```
 
-Or go to the [Light Client Releases](https://github.com/covalenthq/das-ipfs-pinner/releases) page and download the latest release.
+Or go to the [Light Client Releases](https://github.com/covalenthq/ewm-das/releases) page and download the latest release.
 
 Unzip the downloaded archive and navigate to the directory:
 
