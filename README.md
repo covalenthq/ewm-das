@@ -127,7 +127,7 @@ make test-cover
 - [x] DAS-pinner parity development to replace ipfs-pinner
 - [ ] Guarantee LCs perform minimum sampling for availability
 - [x] Workload distribution system v1
-- [-] Authorization layer for LC proof submission v1 (PoA)
+- [x] Authorization layer for LC proof submission v1 (PoA)
 - [ ] Collection-Reward distribution system v1
 - [ ] Client node profiling
 - [ ] Network stress test

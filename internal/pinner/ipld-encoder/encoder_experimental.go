@@ -18,6 +18,8 @@ import (
 	mh "github.com/multiformats/go-multihash"
 )
 
+var stackSize = 64
+
 // EncodeDatablock encodes the given DataBlock into an IPLDDataBlock.
 func EncodeDatablock(block internal.DataBlock) (*IPLDDataBlock, error) {
 	datablock := &IPLDDataBlock{
@@ -59,7 +61,7 @@ func (b *IPLDDataBlock) Encode(block internal.DataBlock) error {
 
 func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 	_, nBlobs, nCells := block.Describe()
-	cellsInNode := nCells / 64
+	cellsInNode := nCells / stackSize
 
 	b.DataNodes = make([][]datamodel.Node, nBlobs)
 	for nBlob := uint64(0); nBlob < nBlobs; nBlob++ {
@@ -69,8 +71,8 @@ func (b *IPLDDataBlock) encodeDataNodes(block internal.DataBlock) error {
 			var stackedProof []byte
 			var stackedCell []byte
 
-			for i := uint64(0); i < 64; i++ {
-				proof, cell, err := block.ProofAndCell(nBlob, nCellStack*64+i)
+			for i := uint64(0); i < stackSize; i++ {
+				proof, cell, err := block.ProofAndCell(nBlob, nCellStack*stackSize+i)
 				if err != nil {
 					return err
 				}
@@ -136,7 +138,7 @@ func (b *IPLDDataBlock) encodeRoot(lsys *linking.LinkSystem, block internal.Data
 	// Create the root DAG-CBOR object
 	rootNode, err := qp.BuildMap(basicnode.Prototype.Map, -1, func(ma datamodel.MapAssembler) {
 		qp.MapEntry(ma, "version", qp.String("v0.2.0"))
-		qp.MapEntry(ma, "length", qp.Int(int64(nCell/64)))
+		qp.MapEntry(ma, "length", qp.Int(int64(nCell/stackSize)))
 		qp.MapEntry(ma, "size", qp.Int(int64(size)))
 		qp.MapEntry(ma, "commitments", qp.List(int64(nBlob), func(la ipld.ListAssembler) {
 			for i := uint64(0); i < nBlob; i++ {
