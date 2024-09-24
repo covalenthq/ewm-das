@@ -2,6 +2,16 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "bashdb",
+      "request": "launch",
+      "name": "Bash-Debug (hardcoded script name)",
+      "cwd": "${workspaceFolder}",
+      "program": "${workspaceFolder}/scripts/macos/installv2.sh",
+      "args": [
+        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077"
+      ]
+    },
+    {
       "name": "Pinner",
       "type": "go",
       "request": "launch",

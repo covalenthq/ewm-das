@@ -33,15 +33,97 @@ define_paths() {
 
   EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/light-client"
   TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/trusted_setup.txt"
-  UNINSTALL_SCRIPT_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/uninstall.sh"
   RUN_SCRIPT_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/run.sh"
 }
 
 # Uninstall previous versions
 uninstall_previous() {
-  if [ -f uninstall.sh ]; then
-    bash uninstall.sh
+  # Paths for the old setup
+  OLD_COVALENT_DIR="$HOME/.covalenthq"
+  OLD_PLIST_FILE="com.covalenthq.light-client.plist"
+  OLD_IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
+
+  # Paths for the new setup
+  COVALENT_DIR="$HOME/.covalent"
+  PLIST_FILE="com.covalent.light-client.plist"
+  IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+
+  # Function to unload and remove plist files
+  remove_plist() {
+    local plist_file="$1"
+    if [ -f "$HOME/Library/LaunchAgents/$plist_file" ]; then
+      launchctl unload "$HOME/Library/LaunchAgents/$plist_file" || echo "Failed to unload $plist_file"
+      rm "$HOME/Library/LaunchAgents/$plist_file" || echo "Failed to remove $plist_file"
+    fi
+  }
+
+  # Function to remove directories
+  remove_directory() {
+    local dir="$1"
+    if [ -d "$dir" ]; then
+      rm -rf "$dir" || echo "Failed to remove directory $dir"
+    fi
+  }
+
+  # Unload and remove plist files for both old and new setups
+  remove_plist "$PLIST_FILE"
+  remove_plist "$IPFS_PLIST_FILE"
+  remove_plist "$OLD_PLIST_FILE"
+  remove_plist "$OLD_IPFS_PLIST_FILE"
+
+  # Remove the .covalent and .covalenthq directories and their contents
+  remove_directory "$COVALENT_DIR"
+  remove_directory "$OLD_COVALENT_DIR"
+
+  echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+}
+
+# Create uninstall script in the covalent directory
+create_uninstall_script() {
+  cat <<EOF > "$COVALENT_DIR/uninstall.sh"
+#!/bin/bash
+
+# Paths for the old setup
+OLD_COVALENT_DIR="\$HOME/.covalenthq"
+OLD_PLIST_FILE="com.covalenthq.light-client.plist"
+OLD_IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
+
+# Paths for the new setup
+COVALENT_DIR="\$HOME/.covalent"
+PLIST_FILE="com.covalent.light-client.plist"
+IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+
+# Function to unload and remove plist files
+remove_plist() {
+  local plist_file="\$1"
+  if [ -f "\$HOME/Library/LaunchAgents/\$plist_file" ]; then
+    launchctl unload "\$HOME/Library/LaunchAgents/\$plist_file" || echo "Failed to unload \$plist_file"
+    rm "\$HOME/Library/LaunchAgents/\$plist_file" || echo "Failed to remove \$plist_file"
   fi
+}
+
+# Function to remove directories
+remove_directory() {
+  local dir="\$1"
+  if [ -d "\$dir" ]; then
+    rm -rf "\$dir" || echo "Failed to remove directory \$dir"
+  fi
+}
+
+# Unload and remove plist files for both old and new setups
+remove_plist "\$PLIST_FILE"
+remove_plist "\$IPFS_PLIST_FILE"
+remove_plist "\$OLD_PLIST_FILE"
+remove_plist "\$OLD_IPFS_PLIST_FILE"
+
+# Remove the .covalent and .covalenthq directories and their contents
+remove_directory "\$COVALENT_DIR"
+remove_directory "\$OLD_COVALENT_DIR"
+
+echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+EOF
+
+  chmod +x "$COVALENT_DIR/uninstall.sh"
 }
 
 # Download and install files
@@ -50,11 +132,9 @@ download_files() {
   
   curl -o "$COVALENT_DIR/light-client" "$EXECUTABLE_URL"
   curl -o "$COVALENT_DIR/trusted_setup.txt" "$TRUSTED_SETUP_URL"
-  curl -o "$COVALENT_DIR/uninstall.sh" "$UNINSTALL_SCRIPT_URL"
   curl -o "$WRAPPER_SCRIPT" "$RUN_SCRIPT_URL"
   
   chmod +x "$COVALENT_DIR/light-client"
-  chmod +x "$COVALENT_DIR/uninstall.sh"
   chmod +x "$WRAPPER_SCRIPT"
 
   # Bypass Gatekeeper for the executable
@@ -97,8 +177,12 @@ create_ipfs_plist() {
 EOF
 
   plutil -lint "$IPFS_PLIST_FILE"
-  launchctl unload "$IPFS_PLIST_FILE"
-  launchctl load "$IPFS_PLIST_FILE"
+
+  # Unload IPFS service using bootout (modern equivalent of unload)
+  launchctl bootout gui/"$(id -u)" "$IPFS_PLIST_FILE" || echo "Failed to unload $IPFS_PLIST_FILE"
+
+  # Load IPFS service using bootstrap (modern equivalent of load)
+  launchctl bootstrap gui/"$(id -u)" "$IPFS_PLIST_FILE" || echo "Failed to load $IPFS_PLIST_FILE"
 }
 
 # Create and configure Light Client plist
@@ -136,8 +220,12 @@ create_light_client_plist() {
 EOF
 
   plutil -lint "$PLIST_FILE"
-  launchctl unload "$PLIST_FILE"
-  launchctl load "$PLIST_FILE"
+
+  # Unload Light Client service using bootout
+  launchctl bootout gui/"$(id -u)" "$PLIST_FILE" || echo "Failed to unload $PLIST_FILE"
+
+  # Load Light Client service using bootstrap
+  launchctl bootstrap gui/"$(id -u)" "$PLIST_FILE" || echo "Failed to load $PLIST_FILE"
 }
 
 # Main installation function
@@ -149,6 +237,7 @@ install() {
   download_files
   create_ipfs_plist
   create_light_client_plist "$1"
+  create_uninstall_script
 
   echo "Installation completed. The IPFS daemon and light client are now running."
 }
