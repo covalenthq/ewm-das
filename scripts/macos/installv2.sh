@@ -228,6 +228,12 @@ EOF
   launchctl bootstrap gui/"$(id -u)" "$PLIST_FILE" || echo "Failed to load $PLIST_FILE"
 }
 
+cleanup() {
+  CWD=$(pwd)  # Get the current working directory
+  rm -f "$CWD/$PLIST_FILE"
+  rm -f "$CWD/$IPFS_PLIST_FILE"
+}
+
 # Main installation function
 install() {
   check_os
@@ -238,6 +244,7 @@ install() {
   create_ipfs_plist
   create_light_client_plist "$1"
   create_uninstall_script
+  cleanup
 
   echo "Installation completed. The IPFS daemon and light client are now running."
 }
