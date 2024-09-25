@@ -200,7 +200,7 @@ create_light_client_plist() {
   </array>
   <key>EnvironmentVariables</key>
   <dict>
-    <key>PINNER_DIR</key>
+    <key>COVALENT_DIR</key>
     <string>$COVALENT_DIR</string>
     <key>PRIVATE_KEY</key>
     <string>$1</string>

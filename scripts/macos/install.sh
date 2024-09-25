@@ -99,7 +99,7 @@ cat <<EOF > "$PLIST_FILE"
     </array>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>PINNER_DIR</key>
+        <key>COVALENT_DIR</key>
         <string>$HOME/.covalent</string>
         <key>PRIVATE_KEY</key>
         <string>$1</string>
