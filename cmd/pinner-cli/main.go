@@ -24,7 +24,7 @@ func main() {
 	}
 
 	// Set addr flag as a persistent flag so it can be used across all commands
-	rootCmd.PersistentFlags().StringVarP(&addr, "addr", "a", getEnv("DAEMON_ADDR", "http://localhost:5080"), "Address of the daemon")
+	rootCmd.PersistentFlags().StringVarP(&addr, "addr", "a", getEnv("DAEMON_ADDR", ":5080"), "Address of the daemon")
 
 	uploadCmd := &cobra.Command{
 		Use:   "upload",

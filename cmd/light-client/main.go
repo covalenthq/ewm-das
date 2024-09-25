@@ -67,7 +67,7 @@ func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&loglevel, "loglevel", "info", "Log level (debug, info, warn, error, fatal, panic)")
 	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
-	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", "http://localhost:5001", "IPFS node address")
+	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", ":5001", "IPFS node address")
 	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Private key of the client")
 	rootCmd.PersistentFlags().StringVar(&collectUrl, "collect-url", "", "API endpoint to collect the data")
 	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 10, "Delay between sampling process and the receiving of the event")

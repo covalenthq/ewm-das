@@ -71,7 +71,7 @@ func main() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
-	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", "localhost:5080"), "Address to run the pinner service on")
+	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", ":5080"), "Address to run the pinner service on")
 
 	// W3 agent flags
 	rootCmd.PersistentFlags().StringVar(&w3AgentKey, "w3-agent-key", "", "Key for the W3 agent")
