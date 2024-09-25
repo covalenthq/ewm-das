@@ -45,20 +45,17 @@ func (h *EventListener) Id() (string, error) {
 }
 
 // Sample is a placeholder for implementing sampling logic
-func (h *EventListener) Sample(clientId, cid string, chainId, blockNum uint64, signature string) error {
-	request := &internal.SamplingRequest{
-		ClientId: clientId,
-		Cid:      cid,
-		ChainId:  chainId,
-		BlockNum: blockNum,
+func (h *EventListener) Sample(requestBytes []byte, signature string) error {
+	var request internal.SamplingRequest
+	if err := json.Unmarshal(requestBytes, &request); err != nil {
+		return fmt.Errorf("failed to unmarshal request: %w", err)
 	}
 
-	err := h.verifyRequest(request, signature)
-	if err != nil {
+	if err := h.verifyRequest(&request, signature); err != nil {
 		return err
 	}
 
-	h.sampler.ProcessEvent(*request, signature)
+	h.sampler.ProcessEvent(request, signature)
 
 	return nil
 }
