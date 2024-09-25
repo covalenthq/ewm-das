@@ -49,7 +49,7 @@ func (p *Publisher) SendStoreRequest(request *internal.StoreRequest) error {
 	}
 
 	// Set the headers
-	req.Header.Set("X-LC-Signature", signature)
+	req.Header.Set("X-LC-Signature", fmt.Sprintf("%x", signature))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
