@@ -13,7 +13,6 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/filecoin-project/go-jsonrpc"
 	"github.com/gorilla/websocket"
 	logging "github.com/ipfs/go-log/v2"
@@ -45,7 +44,7 @@ func (h *EventListener) Id() (string, error) {
 }
 
 // Sample is a placeholder for implementing sampling logic
-func (h *EventListener) Sample(requestBytes []byte, signature string) error {
+func (h *EventListener) Sample(requestBytes []byte, signature []byte) error {
 	var request internal.SamplingRequest
 	if err := json.Unmarshal(requestBytes, &request); err != nil {
 		return fmt.Errorf("failed to unmarshal request: %w", err)
@@ -132,9 +131,9 @@ func (l *EventListener) handleSubscription(client *struct{ Subscribe func() erro
 }
 
 // buildHeaders constructs the HTTP headers for the JSON-RPC request
-func (l *EventListener) buildHeaders(signature string) http.Header {
+func (l *EventListener) buildHeaders(signature []byte) http.Header {
 	requestHeader := http.Header{}
-	requestHeader.Add("X-LC-Signature", signature)
+	requestHeader.Add("X-LC-Signature", fmt.Sprintf("%x", signature))
 	requestHeader.Add("X-LC-Address", l.identity.GetAddress().Hex())
 	return requestHeader
 }
@@ -146,15 +145,13 @@ func (l *EventListener) waitForShutdown() {
 	<-quit
 }
 
-func (l *EventListener) verifyRequest(request *internal.SamplingRequest, signature string) error {
+func (l *EventListener) verifyRequest(request *internal.SamplingRequest, signature []byte) error {
 	requestBytes, err := json.Marshal(request)
 	if err != nil {
 		return fmt.Errorf("failed to marshal request: %w", err)
 	}
 
-	signatureBytes := common.Hex2Bytes(signature)
-
-	ok, recoveredAddress := utils.VerifySignature(requestBytes, signatureBytes)
+	ok, recoveredAddress := utils.VerifySignature(requestBytes, signature)
 	if !ok {
 		return fmt.Errorf("failed to verify signature")
 	}

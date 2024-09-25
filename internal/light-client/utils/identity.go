@@ -2,7 +2,6 @@ package utils
 
 import (
 	"crypto/ecdsa"
-	"fmt"
 
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -28,10 +27,6 @@ func (i *Identity) GetAddress() common.Address {
 	return crypto.PubkeyToAddress(*i.GetPublicKey())
 }
 
-func (i *Identity) SignMessage(message []byte) (string, error) {
-	signBytes, err := SignMessage(i.privKey, message)
-	if err != nil {
-		return "", err
-	}
-	return fmt.Sprintf("%x", signBytes), nil
+func (i *Identity) SignMessage(message []byte) ([]byte, error) {
+	return SignMessage(i.privKey, message)
 }

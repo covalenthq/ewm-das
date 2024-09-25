@@ -48,7 +48,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 }
 
 // ProcessEvent handles events asynchronously by processing the provided CID.
-func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature string) {
+func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byte) {
 	go func(request internal.SamplingRequest) {
 		rawCid, err := cid.Decode(request.Cid)
 		if err != nil {
@@ -113,7 +113,7 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature strin
 
 				storeReq := internal.StoreRequest{
 					SamplingReqest:    request,
-					SamplingSignature: signature,
+					SamplingSignature: fmt.Sprintf("%x", signature),
 					Status:            res,
 					Commitment:        base64.StdEncoding.EncodeToString(commitment),
 					Proof:             base64.StdEncoding.EncodeToString(proof),
