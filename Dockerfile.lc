@@ -40,7 +40,7 @@ COPY --from=builder /go/src/ipfs-kubo/cmd/ipfs/ipfs /usr/local/bin/ipfs
 COPY --from=builder /go/src/light-client/bin/light-client /usr/local/bin/light-client
 
 # Copy trusted setup files
-COPY --from=builder /go/src/light-client/test/data/trusted_setup.txt /root/.pinner/trusted_setup.txt
+COPY --from=builder /go/src/light-client/test/data/trusted_setup.txt /root/.covalent/trusted_setup.txt
 
 # Expose the default IPFS port
 EXPOSE 4001

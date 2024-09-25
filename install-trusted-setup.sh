@@ -2,7 +2,7 @@
 
 # Define the source file and destination directory
 SOURCE_FILE="test/data/trusted_setup.txt"
-DEST_DIR="$HOME/.pinner"
+DEST_DIR="$HOME/.covalent"
 DEST_FILE="$DEST_DIR/$(basename $SOURCE_FILE)"
 
 # Check if the source file exists
