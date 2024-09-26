@@ -31,21 +31,16 @@ define_paths() {
   WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
   IPFS_REPO_DIR="$HOME/.ipfs"
 
-  EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/light-client"
-  TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/trusted_setup.txt"
+  EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.8.0/macos/light-client"
+  TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.8.0/macos/trusted_setup.txt"
 }
 
 # Uninstall previous versions
 uninstall_previous() {
-  # Paths for the old setup
-  OLD_COVALENT_DIR="$HOME/.covalenthq"
-  OLD_PLIST_FILE="com.covalenthq.light-client.plist"
-  OLD_IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
-
-  # Paths for the new setup
+  # Paths for the setup
   COVALENT_DIR="$HOME/.covalent"
-  PLIST_FILE="com.covalent.light-client.plist"
-  IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+  PLIST_FILE_NAME="com.covalent.light-client.plist"
+  IPFS_PLIST_FILE_NAME="com.covalent.ipfs.plist"
 
   # Function to unload and remove plist files
   remove_plist() {
@@ -65,16 +60,13 @@ uninstall_previous() {
   }
 
   # Unload and remove plist files for both old and new setups
-  remove_plist "$PLIST_FILE"
-  remove_plist "$IPFS_PLIST_FILE"
-  remove_plist "$OLD_PLIST_FILE"
-  remove_plist "$OLD_IPFS_PLIST_FILE"
+  remove_plist "$PLIST_FILE_NAME"
+  remove_plist "$IPFS_PLIST_FILE_NAME"
 
   # Remove the .covalent and .covalenthq directories and their contents
   remove_directory "$COVALENT_DIR"
-  remove_directory "$OLD_COVALENT_DIR"
 
-  echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+  echo "Uninstallation completed. The light client and IPFS daemons have been removed."
 }
 
 # Create uninstall script in the covalent directory
@@ -82,15 +74,10 @@ create_uninstall_script() {
   cat <<EOF > "$COVALENT_DIR/uninstall.sh"
 #!/bin/bash
 
-# Paths for the old setup
-OLD_COVALENT_DIR="\$HOME/.covalenthq"
-OLD_PLIST_FILE="com.covalenthq.light-client.plist"
-OLD_IPFS_PLIST_FILE="com.covalenthq.ipfs.plist"
-
 # Paths for the new setup
 COVALENT_DIR="\$HOME/.covalent"
-PLIST_FILE="com.covalent.light-client.plist"
-IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+PLIST_FILE_NAME="com.covalent.light-client.plist"
+IPFS_PLIST_FILE_NAME="com.covalent.ipfs.plist"
 
 # Function to unload and remove plist files
 remove_plist() {
@@ -110,16 +97,13 @@ remove_directory() {
 }
 
 # Unload and remove plist files for both old and new setups
-remove_plist "\$PLIST_FILE"
-remove_plist "\$IPFS_PLIST_FILE"
-remove_plist "\$OLD_PLIST_FILE"
-remove_plist "\$OLD_IPFS_PLIST_FILE"
+remove_plist "\$PLIST_FILE_NAME"
+remove_plist "\$IPFS_PLIST_FILE_NAME"
 
 # Remove the .covalent and .covalenthq directories and their contents
 remove_directory "\$COVALENT_DIR"
-remove_directory "\$OLD_COVALENT_DIR"
 
-echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+echo "Uninstallation completed. The light client and IPFS daemons have been removed."
 EOF
 
   chmod +x "$COVALENT_DIR/uninstall.sh"
