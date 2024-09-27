@@ -88,7 +88,7 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "ws://34.42.69.93:8080/rpc",
+        "wss://coordinator.das.test.covalentnetwork.org/rpc",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077",
         "--collect-url",
@@ -98,14 +98,6 @@
         "COVALENT_DIR": "${workspaceFolder}/test/data",
         // "JSONRPC_ENABLE_DEBUG_TRACE": "1"  
       }
-    },
-    {
-      "name": "C/C++ Runner: Debug Session",
-      "type": "lldb",
-      "request": "launch",
-      "args": [],
-      "cwd": "${workspaceFolder}/c-kzg-4844",
-      "program": "${workspaceFolder}/c-kzg-4844/build/Debug/outDebug"
     }
   ]
 }

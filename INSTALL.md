@@ -29,7 +29,7 @@ ipfs init
 Single command to install and launch the Light Client:
 
 ```bash
-curl -sSf https://storage.googleapis.com/ewm-release-artefacts/v0.7.0/macos/installv2.sh | bash -s <YOUR PRIVATE KEY>
+curl -sSf https://storage.googleapis.com/ewm-release-artefacts/v0.8.0/macos/installv2.sh | bash -s <YOUR PRIVATE KEY>
 ```
 
 Or go to the [Light Client Releases](https://github.com/covalenthq/ewm-das/releases) page and download the latest release.
@@ -79,7 +79,7 @@ Result:
 ███████  ███ ███  ██      ██      ██████ ███████ ██ ███████ ██   ████    ██    
                                                                                
 
-Version: v0.7.0, commit: 8d6709bee9e79d3c4e6ece35fed65da02f3850f4
+Version: v0.8.0, commit: 8d6709bee9e79d3c4e6ece35fed65da02f3850f4
 2024-09-18T15:45:01.238-0700	INFO	light-client	light-client/main.go:91	Starting client...
 2024-09-18T15:45:01.238-0700	INFO	light-client	light-client/main.go:97	Client idenity: 0x51b6D674514849aF97FB77BCac51bcdD7799842C
 ...
