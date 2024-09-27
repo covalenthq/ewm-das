@@ -8,7 +8,7 @@
       "cwd": "${workspaceFolder}",
       "program": "${workspaceFolder}/scripts/macos/installv2.sh",
       "args": [
-        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077"
+        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077" // sample key - change to your key
       ]
     },
     {
@@ -20,7 +20,7 @@
       "buildFlags": ["-tags", "experimental"],
       "args": [
         "--w3-agent-key",
-        "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=",
+        "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=", // sample key - change to your key
         "--w3-delegation-proof-path",
         "${workspaceFolder}/delegation.proof"
       ],
@@ -69,9 +69,9 @@
         "--rpc-url",
         "ws://localhost:8080/rpc",
         "--private-key",
-        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077",
+        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
-        "https://ewm-light-clients-v2-838505730421.us-central1.run.app",
+        "https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector",
       ],
       "env": {
         "COVALENT_DIR": "${workspaceFolder}/test/data",
@@ -88,11 +88,11 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "ws://34.42.69.93:8080/rpc",
+        "ws://coordinator.das.test.covalentnetwork.org/rpc",
         "--private-key",
-        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077",
+        "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
-        "https://ewm-light-clients-v2-838505730421.us-central1.run.app",
+        "https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector",
       ], 
       "env": {
         "COVALENT_DIR": "${workspaceFolder}/test/data",

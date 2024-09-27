@@ -147,8 +147,8 @@ echo "IPFS daemon has started."
 # Run your service binary with all the arguments
 "\$COVALENT_DIR/\$SERVICE_NAME" \\
     --loglevel debug \\
-    --rpc-url ws://34.42.69.93:8080/rpc \\
-    --collect-url https://ewm-light-clients-v2-838505730421.us-central1.run.app \\
+    --rpc-url ws://coordinator.das.test.covalentnetwork.org/rpc \\
+    --collect-url https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector \\
     --private-key "\$PRIVATE_KEY"
 EOF
 
