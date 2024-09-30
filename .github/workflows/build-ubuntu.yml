@@ -1,0 +1,82 @@
+name: Build and Release - Ubuntu
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ v*.*.* ]  # Trigger on tag pushes for releases
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-ubuntu:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Install dependencies
+      run: make deps
+
+    - name: Run go fmt
+      run: make fmt
+
+    - name: Run go vet
+      run: make vet
+
+    - name: Run staticcheck
+      run: |
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        staticcheck ./...
+
+    - name: Run tests
+      run: make test
+
+    - name: Build binaries
+      run: make build
+
+    - name: Collect light client artifacts
+      run: |
+        mkdir -p das-ubuntu
+        cp bin/light-client das-ubuntu/
+
+    - name: Create tarball
+      run: |
+        TAG=${GITHUB_REF##*/}  # Extracts the tag from GITHUB_REF (e.g., refs/tags/v1.0.0 -> v1.0.0)
+        tar -czvf das-ubuntu-${TAG}.tar.gz -C das-ubuntu .
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: das-ubuntu-${{ github.ref_name }}  # Use the tag name for the artifact
+        path: das-ubuntu-${{ github.ref_name }}.tar.gz
+
+  release-ubuntu:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+
+    needs: build-ubuntu
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Download Ubuntu artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: das-ubuntu-${{ github.ref_name }}
+        path: .
+
+    - name: Upload release asset
+      uses: marvinpinto/action-automatic-releases@latest
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        draft: false
+        prerelease: false
+        files: |
+          das-ubuntu-${{ github.ref_name }}.tar.gz
