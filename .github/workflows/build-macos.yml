@@ -56,7 +56,9 @@ jobs:
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       run: |
-        echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+        cat <<EOF > gcp-key.json
+        ${{ secrets.GCP_SA_KEY }}
+        EOF
         gcloud auth activate-service-account --key-file=gcp-key.json
 
     - name: Update `installv2.sh` with version number
