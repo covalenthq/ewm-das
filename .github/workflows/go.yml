@@ -74,11 +74,7 @@ jobs:
 
     needs: build
 
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest]  # Run the release job on both OSes
-
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
 
     steps:
     - name: Checkout code
@@ -87,23 +83,17 @@ jobs:
     - name: Download artifacts
       uses: actions/download-artifact@v4
       with:
-        name: das-${{ matrix.os }}-${{ github.ref_name }}  # Download artifacts based on the OS
+        name: das-${{ runner.os }}-${{ github.ref_name }}  # Download artifacts based on the OS
         path: .
 
     - name: Install Google Cloud SDK (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install --cask google-cloud-sdk
-
-    - name: Install Google Cloud SDK (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
       run: |
         sudo apt-get update && sudo apt-get install -y apt-transport-https ca-certificates gnupg
         echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] http://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
         curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo apt-key add -
         sudo apt-get update && sudo apt-get install -y google-cloud-sdk
 
-    - name: Authenticate with Google Cloud
+    - name: Authenticate with Google Cloud (macOS)
       env:
         GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
       run: |
@@ -111,13 +101,11 @@ jobs:
         gcloud auth activate-service-account --key-file=gcp-key.json
 
     - name: Update `installv2.sh` with version number (macOS)
-      if: matrix.os == 'macos-latest'
       run: |
         VERSION=${GITHUB_REF##*/}
         sed -i.bak "s/{{VERSION}}/${VERSION}/g" scripts/macos/installv2.sh  # Replace the {{VERSION}} placeholder with the actual version
 
     - name: Upload to Google Cloud Storage (macOS)
-      if: matrix.os == 'macos-latest'
       run: |
         # Define version from the GitHub tag
         VERSION=${GITHUB_REF##*/}
