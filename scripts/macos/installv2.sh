@@ -31,8 +31,9 @@ define_paths() {
   WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
   IPFS_REPO_DIR="$HOME/.ipfs"
 
-  EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.9.0/macos/light-client"
-  TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/v0.9.0/macos/trusted_setup.txt"
+  # Define the executable URL and trusted setup URL using placeholders
+  EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/{{VERSION}}/macos/light-client"
+  TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/{{VERSION}}/macos/trusted_setup.txt"
 }
 
 # Uninstall previous versions

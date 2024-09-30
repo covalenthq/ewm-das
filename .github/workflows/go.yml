@@ -86,6 +86,41 @@ jobs:
         name: das-ubuntu-latest-${{ github.ref_name }}
         path: .
 
+    - name: Install Google Cloud SDK (macOS)
+      if: runner.os == 'macos-latest'
+      run: |
+        brew install --cask google-cloud-sdk
+
+    - name: Authenticate with Google Cloud
+      if: runner.os == 'macos-latest'
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      run: |
+        echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+        gcloud auth activate-service-account --key-file=gcp-key.json
+
+    - name: Update `installv2.sh` with version number
+      if: runner.os == 'macos-latest'
+      run: |
+        VERSION=${GITHUB_REF##*/}
+        sed -i.bak "s/{{VERSION}}/${VERSION}/g" scripts/macos/installv2.sh  # Replace the {{VERSION}} placeholder with the actual version
+
+    - name: Upload to Google Cloud Storage (macOS)
+      if: runner.os == 'macos-latest'
+      run: |
+        # Define version from the GitHub tag
+        VERSION=${GITHUB_REF##*/}
+
+        # Define GCP bucket paths
+        GCS_BUCKET_PATH_BIN="gs://ewm-release-artefacts/${VERSION}/macos/light-client"
+        GCS_BUCKET_PATH_SETUP="gs://ewm-release-artefacts/${VERSION}/macos/trusted_setup.txt"
+        GCS_BUCKET_INSTALL="gs://ewm-release-artefacts/${VERSION}/macos/installv2.sh"
+
+        # Copy the files to Google Cloud Storage
+        gsutil cp bin/light-client $GCS_BUCKET_PATH_BIN
+        gsutil cp test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
+        gsutil cp scripts/macos/installv2.sh $GCS_BUCKET_INSTALL
+
     - name: Download macOS artifacts
       uses: actions/download-artifact@v4
       with:
