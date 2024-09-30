@@ -22,20 +22,22 @@ validate_private_key() {
   fi
 }
 
+# Define variables and paths
 define_paths() {
   COVALENT_DIR="$HOME/.covalent"
-  IPFS_PATH=$(which ipfs)  # Get the actual path of the IPFS binary
-  EXECUTABLE="light-client"
-  TRUSTED_SETUP="trusted_setup.txt"
-  WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
   PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.light-client.plist"
   IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
+  IPFS_PATH=$(which ipfs)
+  WRAPPER_SCRIPT="$COVALENT_DIR/run.sh"
   IPFS_REPO_DIR="$HOME/.ipfs"
+
+  EXECUTABLE_URL="https://storage.googleapis.com/ewm-release-artefacts/{{VERSION}}/macos/light-client"
+  TRUSTED_SETUP_URL="https://storage.googleapis.com/ewm-release-artefacts/{{VERSION}}/macos/trusted_setup.txt"
 }
 
 # Uninstall previous versions
 uninstall_previous() {
-  # Paths for the new setup
+  # Paths for the setup
   COVALENT_DIR="$HOME/.covalent"
   PLIST_FILE_NAME="com.covalent.light-client.plist"
   IPFS_PLIST_FILE_NAME="com.covalent.ipfs.plist"
@@ -61,10 +63,10 @@ uninstall_previous() {
   remove_plist "$PLIST_FILE_NAME"
   remove_plist "$IPFS_PLIST_FILE_NAME"
 
-  # Remove the .covalent
+  # Remove the .covalent and .covalenthq directories and their contents
   remove_directory "$COVALENT_DIR"
 
-  echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+  echo "Uninstallation completed. The light client and IPFS daemons have been removed."
 }
 
 # Create uninstall script in the covalent directory
@@ -74,8 +76,8 @@ create_uninstall_script() {
 
 # Paths for the new setup
 COVALENT_DIR="\$HOME/.covalent"
-PLIST_FILE="com.covalent.light-client.plist"
-IPFS_PLIST_FILE="com.covalent.ipfs.plist"
+PLIST_FILE_NAME="com.covalent.light-client.plist"
+IPFS_PLIST_FILE_NAME="com.covalent.ipfs.plist"
 
 # Function to unload and remove plist files
 remove_plist() {
@@ -95,13 +97,13 @@ remove_directory() {
 }
 
 # Unload and remove plist files for both old and new setups
-remove_plist "\$PLIST_FILE"
-remove_plist "\$IPFS_PLIST_FILE"
+remove_plist "\$PLIST_FILE_NAME"
+remove_plist "\$IPFS_PLIST_FILE_NAME"
 
 # Remove the .covalent and .covalenthq directories and their contents
 remove_directory "\$COVALENT_DIR"
 
-echo "Uninstallation completed. The light client and IPFS daemons for both old and new versions have been removed."
+echo "Uninstallation completed. The light client and IPFS daemons have been removed."
 EOF
 
   chmod +x "$COVALENT_DIR/uninstall.sh"
@@ -153,17 +155,17 @@ EOF
   chmod +x "$WRAPPER_SCRIPT"
 }
 
-# Copy files
-copy_files() {
+# Download and install files
+download_files() {
   mkdir -p "$COVALENT_DIR"
   
-  cp "$EXECUTABLE" "$COVALENT_DIR/"
-  cp "$TRUSTED_SETUP" "$COVALENT_DIR/"
+  curl -o "$COVALENT_DIR/light-client" "$EXECUTABLE_URL"
+  curl -o "$COVALENT_DIR/trusted_setup.txt" "$TRUSTED_SETUP_URL"
   
-  chmod +x "$COVALENT_DIR/$EXECUTABLE"
+  chmod +x "$COVALENT_DIR/light-client"
 
   # Bypass Gatekeeper for the executable
-  xattr -rd com.apple.quarantine "$COVALENT_DIR/$EXECUTABLE"
+  xattr -rd com.apple.quarantine "$COVALENT_DIR/light-client"
 }
 
 # Create and configure IPFS plist
@@ -258,21 +260,21 @@ cleanup() {
   rm -f "$CWD/$IPFS_PLIST_FILE"
 }
 
-# Main function
-main() {
+# Main installation function
+install() {
   check_os
   validate_private_key "$1"
   define_paths
   uninstall_previous
-  copy_files
-  create_uninstall_script
-  create_run_script
+  download_files
   create_ipfs_plist
+  create_run_script
   create_light_client_plist "$1"
+  create_uninstall_script
   cleanup
 
-  echo "Installation completed. The IPFS daemon and the light client daemon are now running."
+  echo "Installation completed. The IPFS daemon and light client are now running."
 }
 
-# Execute the main function
-main "$1"
+# Execute the installation
+install "$1"
