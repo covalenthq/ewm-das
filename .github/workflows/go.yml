@@ -82,7 +82,7 @@ jobs:
         cat <<EOF > gcp-key.json
         ${{ secrets.GCP_SA_KEY }}
         EOF
-        
+
         gcloud auth activate-service-account --key-file=gcp-key.json
 
     - name: Update `installv2.sh` with version number (macOS)
@@ -103,9 +103,9 @@ jobs:
         GCS_BUCKET_PATH_INSTALL="gs://ewm-release-artefacts/${VERSION}/macos/installv2.sh"
 
         # Copy the files to Google Cloud Storage
-        gsutil cp bin/light-client $GCS_BUCKET_PATH_BIN
-        gsutil cp test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
-        gsutil cp scripts/macos/installv2.sh $GCS_BUCKET_PATH_INSTALL
+        gsutil cp -a public-read bin/light-client $GCS_BUCKET_PATH_BIN
+        gsutil cp -a public-read test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
+        gsutil cp -a public-read scripts/macos/installv2.sh $GCS_BUCKET_PATH_INSTALL
 
   release:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
