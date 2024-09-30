@@ -1,0 +1,77 @@
+name: Build and Release - macOS
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ v*.*.* ]  # Trigger on tag pushes for releases
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-macos:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.22'
+
+    - name: Install dependencies
+      run: make deps
+
+    - name: Run go fmt
+      run: make fmt
+
+    - name: Run go vet
+      run: make vet
+
+    - name: Run staticcheck
+      run: |
+        go install honnef.co/go/tools/cmd/staticcheck@latest
+        staticcheck ./...
+
+    - name: Run tests
+      run: make test
+
+    - name: Build binaries
+      run: make build
+
+    - name: Collect light client artifacts
+      run: |
+        mkdir -p das-macos
+        cp bin/light-client das-macos/
+        cp scripts/macos/* das-macos/
+        cp test/data/trusted_setup.txt das-macos/
+
+    - name: Install Google Cloud SDK
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: brew install --cask google-cloud-sdk
+
+    - name: Authenticate with Google Cloud
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+      run: |
+        echo "${{ secrets.GCP_SA_KEY }}" > gcp-key.json
+        gcloud auth activate-service-account --key-file=gcp-key.json
+
+    - name: Update `installv2.sh` with version number
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        VERSION=${GITHUB_REF##*/}
+        sed -i.bak "s/{{VERSION}}/${VERSION}/g" scripts/macos/installv2.sh
+
+    - name: Upload to Google Cloud Storage
+      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+      run: |
+        VERSION=${GITHUB_REF##*/}
+        GCS_BUCKET_PATH_BIN="gs://ewm-release-artefacts/${VERSION}/macos/light-client"
+        GCS_BUCKET_PATH_SETUP="gs://ewm-release-artefacts/${VERSION}/macos/trusted_setup.txt"
+        GCS_BUCKET_PATH_INSTALL="gs://ewm-release-artefacts/${VERSION}/macos/installv2.sh"
+        gsutil cp -a public-read bin/light-client $GCS_BUCKET_PATH_BIN
+        gsutil cp -a public-read test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
+        gsutil cp -a public-read scripts/macos/installv2.sh $GCS_BUCKET_PATH_INSTALL
