@@ -14,6 +14,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/filecoin-project/go-jsonrpc"
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 	logging "github.com/ipfs/go-log/v2"
 )
@@ -24,6 +25,7 @@ var log = logging.Logger("event-listener")
 type EventListener struct {
 	identity *utils.Identity
 	sampler  *sampler.Sampler
+	id       uuid.UUID
 
 	mu         sync.Mutex // Protects subscription status
 	subscribed bool       // Tracks whether the client is subscribed
@@ -31,15 +33,24 @@ type EventListener struct {
 
 // NewEventListener creates a new Listener with the provided private key in hex format
 func NewEventListener(identity *utils.Identity, sampler *sampler.Sampler) *EventListener {
+	id := uuid.New()
+	log.Infof("New listener created with ID: %v", id)
 	return &EventListener{
 		identity:   identity,
 		sampler:    sampler,
 		subscribed: false,
+		id:         id,
 	}
 }
 
-// Id returns the address of the handler
+// Id returns the unique identifier of the handler
 func (h *EventListener) Id() (string, error) {
+	// return h.identity.GetAddress().Hex(), nil
+	return h.id.String(), nil
+}
+
+// Address returns the address of the identity
+func (h *EventListener) Address() (string, error) {
 	return h.identity.GetAddress().Hex(), nil
 }
 
@@ -61,11 +72,11 @@ func (h *EventListener) Sample(requestBytes []byte, signature []byte) error {
 
 // Start initializes the listener, performs the subscription, and blocks until a shutdown signal is received
 func (l *EventListener) Start(addr string) error {
-	var client struct {
+	var rpcServer struct {
 		Subscribe func() error
 	}
 
-	signature, err := l.identity.SignMessage([]byte("hello"))
+	signature, err := l.identity.SignMessage([]byte(l.id.String()))
 	if err != nil {
 		return err
 	}
@@ -82,7 +93,7 @@ func (l *EventListener) Start(addr string) error {
 		context.Background(),
 		addr,
 		"ServerHandler",
-		[]interface{}{&client},
+		[]interface{}{&rpcServer},
 		requestHeader,
 		clientHandlerOpt,
 		proxyConnFactoryOpt,
@@ -93,7 +104,7 @@ func (l *EventListener) Start(addr string) error {
 	defer closer()
 
 	// Handle subscription in a goroutine after client is initialized
-	go l.handleSubscription(&client, reconnectNotify)
+	go l.handleSubscription(&rpcServer, reconnectNotify)
 
 	log.Info("Client authenticated")
 
@@ -105,7 +116,7 @@ func (l *EventListener) Start(addr string) error {
 }
 
 // handleSubscription manages subscription on reconnection
-func (l *EventListener) handleSubscription(client *struct{ Subscribe func() error }, reconnectNotify <-chan struct{}) {
+func (l *EventListener) handleSubscription(rpcServer *struct{ Subscribe func() error }, reconnectNotify <-chan struct{}) {
 	for {
 		<-reconnectNotify // Wait for reconnection notification
 
@@ -119,7 +130,7 @@ func (l *EventListener) handleSubscription(client *struct{ Subscribe func() erro
 
 		// Attempt to subscribe
 		log.Info("Attempting to subscribe after reconnection")
-		if err := client.Subscribe(); err != nil {
+		if err := rpcServer.Subscribe(); err != nil {
 			log.Errorf("Failed to subscribe after reconnection: %v", err)
 		} else {
 			l.mu.Lock()
@@ -135,6 +146,7 @@ func (l *EventListener) buildHeaders(signature []byte) http.Header {
 	requestHeader := http.Header{}
 	requestHeader.Add("X-LC-Signature", fmt.Sprintf("%x", signature))
 	requestHeader.Add("X-LC-Address", l.identity.GetAddress().Hex())
+	requestHeader.Add("X-LC-ID", l.id.String())
 	return requestHeader
 }
 
