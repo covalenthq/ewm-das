@@ -33,19 +33,16 @@ type EventListener struct {
 
 // NewEventListener creates a new Listener with the provided private key in hex format
 func NewEventListener(identity *utils.Identity, sampler *sampler.Sampler) *EventListener {
-	id := uuid.New()
-	log.Infof("New listener created with ID: %v", id)
 	return &EventListener{
 		identity:   identity,
 		sampler:    sampler,
 		subscribed: false,
-		id:         id,
+		id:         uuid.New(),
 	}
 }
 
 // Id returns the unique identifier of the handler
 func (h *EventListener) Id() (string, error) {
-	// return h.identity.GetAddress().Hex(), nil
 	return h.id.String(), nil
 }
 
