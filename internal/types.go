@@ -70,10 +70,10 @@ func ensureBase64Padding(encoded string) string {
 }
 
 type SamplingRequest struct {
-	Cid      string `json:"cid"`
-	ClientId string `json:"client_id"`
-	ChainId  uint64 `json:"chain_id"`
-	BlockNum uint64 `json:"block_num"`
+	Cid            string `json:"cid"`
+	ClientIdentity string `json:"client_identity"`
+	ChainId        uint64 `json:"chain_id"`
+	BlockNum       uint64 `json:"block_num"`
 }
 
 type StoreRequest struct {

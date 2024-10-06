@@ -102,8 +102,13 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	eventlistener := events.NewEventListener(identify, sampler)
-	if err := eventlistener.Start(rpcURL); err != nil {
+	eventListener := events.NewEventListener(identify, sampler)
+	id, err := eventListener.SessionId()
+	if err != nil {
+		log.Fatalf("Failed to get listener ID: %v", id)
+	}
+	log.Infof("New listener created with ID: %v", id)
+	if err := eventListener.Start(rpcURL); err != nil {
 		log.Fatalf("Failed to start event listener: %v", err)
 	}
 }
