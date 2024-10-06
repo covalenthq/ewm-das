@@ -18,7 +18,7 @@ import (
 	mh "github.com/multiformats/go-multihash"
 )
 
-var stackSize = uint64(64)
+var stackSize = uint64(32)
 
 // EncodeDatablock encodes the given DataBlock into an IPLDDataBlock.
 func EncodeDatablock(block internal.DataBlock) (*IPLDDataBlock, error) {
