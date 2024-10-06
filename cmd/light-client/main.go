@@ -103,7 +103,7 @@ func startClient() {
 	}
 
 	eventListener := events.NewEventListener(identify, sampler)
-	id, err := eventListener.Id()
+	id, err := eventListener.SessionId()
 	if err != nil {
 		log.Fatalf("Failed to get listener ID: %v", id)
 	}

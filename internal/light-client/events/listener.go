@@ -41,14 +41,14 @@ func NewEventListener(identity *utils.Identity, sampler *sampler.Sampler) *Event
 	}
 }
 
-// Id returns the unique identifier of the handler
-func (h *EventListener) Id() (string, error) {
+// SessionId returns the unique identifier of the handler
+func (h *EventListener) SessionId() (string, error) {
 	return h.id.String(), nil
 }
 
-// Address returns the address of the identity
-func (h *EventListener) Address() (string, error) {
-	return h.identity.GetAddress().Hex(), nil
+// Identity returns the address of the identity
+func (h *EventListener) Identity() ([]byte, error) {
+	return h.identity.GetAddress().Bytes(), nil
 }
 
 // Sample is a placeholder for implementing sampling logic
