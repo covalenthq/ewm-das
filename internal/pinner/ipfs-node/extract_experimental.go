@@ -11,6 +11,8 @@ import (
 	ckzgencoder "github.com/covalenthq/das-ipfs-pinner/internal/pinner/c-kzg-encoder"
 )
 
+var stackSize = uint64(32)
+
 // ExtractData extracts the block from IPFS and downloads all cells.
 func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byte, error) {
 	var root internal.RootNode
@@ -113,7 +115,7 @@ func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode
 			if count < limit {
 				for z := 0; z < len(cellBytes); z++ {
 					copy(cellBytes[z][:], cell.Cell.Nested.Bytes[z*2048:(z+1)*2048])
-					byteCells[blobIndex][i*32+z] = cellBytes[z][:]
+					byteCells[blobIndex][i*stackSize+z] = cellBytes[z][:]
 
 					count++
 				}
