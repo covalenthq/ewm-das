@@ -32,20 +32,6 @@ Single command to install and launch the Light Client:
 curl -sSf https://storage.googleapis.com/ewm-release-artefacts/{{VERSION}}/macos/install.sh | bash -s <YOUR PRIVATE KEY>
 ```
 
-Or go to the [Light Client Releases](https://github.com/covalenthq/ewm-das/releases) page and download the latest release.
-
-Unzip the downloaded archive and navigate to the directory:
-
-```bash
-cd das-macos-latest
-```
-
-Run the following command to install the Light Client:
-
-```bash
-./install.sh <YOUR PRIVATE KEY>
-```
-
 To generate a private key, use can use following resources:
 
 - [Visual-key](https://visualkey.link/)
