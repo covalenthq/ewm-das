@@ -38,7 +38,7 @@
       "args": [
         "upload",
         "--data",
-        "${workspaceFolder}/test/data/specimen-result.json",
+        "${workspaceFolder}/test/data/specimen.bin",
         "--addr",
         "http://127.0.0.1:5080"
       ]
@@ -67,7 +67,7 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "ws://localhost:8080/rpc",
+        "ws://localhost:8080/v1/rpc",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
@@ -88,7 +88,7 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "wss://coordinator.das.test.covalentnetwork.org/rpc",
+        "wss://coordinator.das.test.covalentnetwork.org/v1/rpc",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
