@@ -10,8 +10,8 @@ WORKDIR /go/src/ipfs-kubo
 # Clone the IPFS Kubo repository
 RUN git clone https://github.com/ipfs/kubo.git .
 
-# Checkout the specific version v0.29.0
-RUN git checkout v0.29.0
+# Checkout the specific version v0.30.0
+RUN git checkout v0.30.0
 
 # Build IPFS Kubo
 RUN make build
@@ -23,9 +23,6 @@ RUN apk add --no-cache gcc musl-dev
 
 # Clone the light-client repository
 COPY . .
-
-# Initialize submodules
-RUN git submodule update --init --recursive
 
 # Build the light-client
 RUN make build-light
