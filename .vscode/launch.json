@@ -67,7 +67,7 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "ws://localhost:8080/v1/rpc",
+        "ws://localhost:8088/v1/rpc",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
