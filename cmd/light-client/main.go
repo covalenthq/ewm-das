@@ -41,6 +41,7 @@ var rootCmd = &cobra.Command{
 	Version: fmt.Sprintf("%s, commit %s", common.Version, common.GitCommit),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		logging.SetLogLevel("*", loglevel)
+		logging.SetLogLevel("rpc", "error")
 
 		// Load the configuration
 		config := das.LoadConfig()
