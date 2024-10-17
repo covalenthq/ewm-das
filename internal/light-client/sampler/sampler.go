@@ -12,6 +12,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
+	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
 	logging "github.com/ipfs/go-log/v2"
@@ -72,6 +73,9 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byt
 		}
 
 		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
+		stackSize := ckzg4844.CellsPerExtBlob / rootNode.Length
+
+		log.Debugf("Sampling %d cells from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
 
 		for blobIndex, blobLink := range rootNode.Links {
 			var links []internal.Link
@@ -103,7 +107,7 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byt
 				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), internal.StackSize).VerifyBatch()
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch()
 				if err != nil {
 					log.Errorf("Failed to verify proof and cell: %v", err)
 					return
