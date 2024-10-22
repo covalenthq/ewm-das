@@ -4,7 +4,7 @@ import "math"
 
 // CalculateSamplesNeeded calculates the minimum number of samples needed to achieve the desired confidence level.
 func CalculateSamplesNeeded(R, E int, C float64) int {
-	if R == 2 && E == 1 && C < 1 {
+	if R <= 8 && E <= 4 && C < 1 {
 		return 1
 	}
 
