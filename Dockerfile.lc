@@ -1,5 +1,5 @@
 # Use an official Golang image as a base image
-FROM golang:1.22-alpine AS builder
+FROM golang:1.23-alpine AS builder
 
 # Install necessary dependencies
 RUN apk add --no-cache git make bash curl
@@ -9,9 +9,10 @@ WORKDIR /go/src/ipfs-kubo
 
 # Clone the IPFS Kubo repository
 RUN git clone https://github.com/ipfs/kubo.git .
+RUN git fetch --all --tags
 
-# Checkout the specific version v0.30.0
-RUN git checkout v0.30.0
+# Checkout the specific version v0.31.0
+RUN git checkout v0.31.0
 
 # Build IPFS Kubo
 RUN make build
