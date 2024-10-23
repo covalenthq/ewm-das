@@ -3,6 +3,7 @@ package events
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"net/http"
@@ -207,7 +208,11 @@ func proxyConnFactory(l *EventListener, reconnectNotify chan struct{}) func(func
 			// Call the original connection factory
 			conn, err := originalFactory()
 			if err != nil {
-				log.Debugw("Connection failed: %v", err)
+				if errors.Is(err, websocket.ErrBadHandshake) {
+					return nil, errors.New("authorization or authentication failed")
+				}
+
+				log.Debugw("%v", err)
 				return nil, err
 			}
 
