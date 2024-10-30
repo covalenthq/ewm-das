@@ -30,3 +30,6 @@ go.work.sum
 settings.json
 c_cpp_properties.json
 *.log
+
+# python
+.venv/
