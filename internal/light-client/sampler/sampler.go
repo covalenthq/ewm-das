@@ -62,7 +62,7 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byt
 			return
 		}
 
-		log.Debugf("Processing event for CID [%s] is deferred for %d min", request.Cid, s.samplingDelay/60)
+		log.Debugf("Processing event for CID [%s] is deferred for %d sec", request.Cid, s.samplingDelay)
 		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
 		log.Debugf("Processing event for CID [%s] ...", request.Cid)
 
@@ -75,7 +75,8 @@ func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byt
 		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
 		stackSize := ckzg4844.CellsPerExtBlob / rootNode.Length
 
-		log.Debugf("Sampling %d cells from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
+		log.Debugf("Root CID=%s version=%s, length=%d, size=%d, links=%d", request.Cid, rootNode.Version, rootNode.Length, rootNode.Size, len(rootNode.Links))
+		log.Debugf("Select %d cell[s] from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
 
 		for blobIndex, blobLink := range rootNode.Links {
 			var links []internal.Link
