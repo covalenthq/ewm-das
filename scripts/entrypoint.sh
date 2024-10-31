@@ -23,7 +23,7 @@ done
 
 # Start light-client with the provided and hardcoded arguments
 light-client \
-  --loglevel debug \
+  --loglevel info \
   --rpc-url wss://coordinator.das.test.covalentnetwork.org/v1/rpc \
   --collect-url https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector \
   --private-key "$PRIVATE_KEY"
