@@ -13,6 +13,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/common"
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
@@ -55,6 +56,11 @@ func (h *EventListener) SessionId() (string, error) {
 // Identity returns the address of the identity
 func (h *EventListener) Identity() ([]byte, error) {
 	return h.identity.GetAddress().Bytes(), nil
+}
+
+// Version returns the version of the handler
+func (h *EventListener) Version() (string, error) {
+	return fmt.Sprintf("%s-%s", common.Version, common.GitCommit), nil
 }
 
 // Sample is a placeholder for implementing sampling logic
