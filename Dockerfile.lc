@@ -1,6 +1,11 @@
 # Use an official Golang image as a base image
 FROM golang:1.23-alpine AS builder
 
+# Set environment variables for CGO flags
+ENV CGO_CFLAGS="-O2 -D__BLST_PORTABLE__"
+ENV CGO_CXXFLAGS="-O2 -D__BLST_PORTABLE__"
+ENV CGO_LDFLAGS="-O2 -D__BLST_PORTABLE__"
+
 # Install necessary dependencies
 RUN apk add --no-cache git make bash curl
 
