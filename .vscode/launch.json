@@ -98,6 +98,25 @@
         "COVALENT_DIR": "${workspaceFolder}/test/data",
         // "JSONRPC_ENABLE_DEBUG_TRACE": "1"  
       }
-    }
+    },
+    {
+      "name": "Verifier-cli",
+      "type": "go",
+      "request": "launch",
+      "mode": "auto",
+      "program": "${workspaceFolder}/cmd/verifier-cli/main.go",
+      "args": [
+        "--cid",
+        "bafyreigvlvmbwn2q6qxsgbiec2446sj5zfzjmzlrmlbnh4fysxkeafzf6u",
+        "--blob-index",
+        "15",
+        "--cell-index",
+        "2"
+      ],
+      "env": {
+        "COVALENT_DIR": "${workspaceFolder}/test/data",
+        // "IPFS_LOGGING": "info",
+      }
+    },
   ]
 }
