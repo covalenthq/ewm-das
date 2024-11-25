@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/events"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/poller"
 	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
@@ -103,13 +103,10 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	eventListener := events.NewEventListener(identify, sampler)
-	id, err := eventListener.SessionId()
+	poll, err := poller.NewPoller(identify, sampler, rpcURL)
 	if err != nil {
-		log.Fatalf("Failed to get listener ID: %v", id)
+		log.Fatalf("Failed to create poller: %v", err)
 	}
-	log.Infof("New listener created with ID: %v", id)
-	if err := eventListener.Start(rpcURL); err != nil {
-		log.Fatalf("Failed to start event listener: %v", err)
-	}
+
+	poll.Start()
 }
