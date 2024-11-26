@@ -103,3 +103,14 @@ type WorkloadResponse struct {
 	NextUpdate time.Time  `json:"next_update"`
 	Workloads  []Workload `json:"workloads"`
 }
+
+type StoreRequest2 struct {
+	WorkloadRequest Workload  `json:"workload"`
+	Timestamp       time.Time `json:"timestamp"`
+	BlobIndex       int       `json:"blob_index"`
+	CellIndex       int       `json:"cell_index"`
+	Commitment      string    `json:"commitment"`
+	Proof           string    `json:"proof"`
+	Cell            string    `json:"cell"`
+	Version         string    `json:"version"`
+}

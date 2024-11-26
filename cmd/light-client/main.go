@@ -93,7 +93,7 @@ func startClient() {
 	}
 	log.Infof("Client idenity: %s", identify.GetAddress().Hex())
 
-	pub, err := publisher.NewPublisher(collectUrl, identify)
+	pub, err := publisher.NewPublisher(rpcURL, identify)
 	if err != nil {
 		log.Fatalf("Failed to create publisher: %v", err)
 	}

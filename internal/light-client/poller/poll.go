@@ -20,9 +20,9 @@ var log = logging.Logger("workload-poller")
 
 // WorkloadPoller represents the poller with a private key and a handler
 type WorkloadPoller struct {
-	identity *utils.Identity
-	sampler  *sampler.Sampler
-	endpoint string
+	identity    *utils.Identity
+	sampler     *sampler.Sampler
+	endpointUrl string
 }
 
 // NewWorkloadPoller creates a new Poller with the provided private key in hex format
@@ -32,10 +32,16 @@ func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, endpo
 		return nil, err
 	}
 
+	// append the path to the URL
+	endpointUrl, err := url.JoinPath(endpoint, "/workloads")
+	if err != nil {
+		return nil, err
+	}
+
 	return &WorkloadPoller{
-		identity: identity,
-		sampler:  sampler,
-		endpoint: endpoint,
+		identity:    identity,
+		sampler:     sampler,
+		endpointUrl: endpointUrl,
 	}, nil
 }
 
@@ -51,7 +57,7 @@ func (p *WorkloadPoller) periodicPoll() {
 
 		// Poll the endpoint
 		httpClient := &http.Client{}
-		req, err := http.NewRequest("GET", p.endpoint, nil)
+		req, err := http.NewRequest("GET", p.endpointUrl, nil)
 		if err != nil {
 			log.Errorf("failed to create request: %s", err)
 		}

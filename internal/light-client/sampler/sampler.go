@@ -120,23 +120,20 @@ func (s *Sampler) ProcessEvent2(workload *internal.Workload) {
 
 				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
 
-				// TODO: Publish the result to storage
-				// storeReq := internal.StoreRequest{
-				// 	SamplingReqest:    request,
-				// 	SamplingSignature: fmt.Sprintf("%x", signature),
-				// 	Status:            res,
-				// 	Commitment:        base64.StdEncoding.EncodeToString(commitment),
-				// 	Proof:             base64.StdEncoding.EncodeToString(proof),
-				// 	Cell:              base64.StdEncoding.EncodeToString(cell),
-				// 	Version:           fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-				// 	BlobIndex:         blobIndex,
-				// 	CellIndex:         colIndex,
-				// }
+				storeReq := internal.StoreRequest2{
+					WorkloadRequest: *workload,
+					Commitment:      base64.StdEncoding.EncodeToString(commitment),
+					Proof:           base64.StdEncoding.EncodeToString(proof),
+					Cell:            base64.StdEncoding.EncodeToString(cell),
+					Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+					BlobIndex:       blobIndex,
+					CellIndex:       colIndex,
+				}
 
-				// if err := s.pub.SendStoreRequest(&storeReq); err != nil {
-				// 	log.Errorf("Failed to publish to Cloud Storage: %v", err)
-				// 	return
-				// }
+				if err := s.pub.SendStoreRequest2(&storeReq); err != nil {
+					log.Errorf("Failed to publish to Cloud Storage: %v", err)
+					return
+				}
 			}
 		}
 	}(workload)
