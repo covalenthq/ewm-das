@@ -95,7 +95,12 @@ func (p *WorkloadPoller) periodicPoll() {
 				log.Errorf("failed to decode challenge: %s", err)
 			}
 
-			challenge.Solve(&workload, p.identity)
+			eligible, err := challenge.Solve(&workload, p.identity)
+			if err != nil {
+				log.Errorf("failed to solve challenge: %s", err)
+			}
+
+			log.Infof("workload is eligible: %v", eligible)
 		}
 
 		time.Sleep(time.Until(response.NextUpdate))

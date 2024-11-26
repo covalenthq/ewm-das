@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"math/big"
 	"strings"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
@@ -16,12 +17,12 @@ import (
 // ClauseType defines the various clause types
 type ClauseType struct {
 	Type    string
-	M       uint64
-	K       uint64
-	H       uint64
-	T       uint64
-	Delta   uint64
-	Prefix  uint64
+	M       *big.Int
+	K       *big.Int
+	H       *big.Int
+	T       *big.Int
+	Delta   *big.Int
+	Prefix  *big.Int
 	Unknown bool
 }
 
@@ -34,7 +35,7 @@ type Challenge struct {
 
 // Decode a Base32 encoded string into a Challenge
 func Decode(encoded string) (*Challenge, error) {
-	// Validate prefix
+	// Validate the prefix
 	if !strings.HasPrefix(encoded, "ewm") {
 		return nil, errors.New("invalid prefix: must start with 'ewm'")
 	}
@@ -56,56 +57,65 @@ func Decode(encoded string) (*Challenge, error) {
 		return nil, fmt.Errorf("failed to read version: %w", err)
 	}
 
-	// Read hash_function
+	// Read hash function
 	var hashFunction uint8
 	if err := binary.Read(reader, binary.BigEndian, &hashFunction); err != nil {
-		return nil, fmt.Errorf("failed to read hash_function: %w", err)
+		return nil, fmt.Errorf("failed to read hash function: %w", err)
 	}
 
-	// Read clause_type
+	// Read clause type
 	var clauseTypeByte uint8
 	if err := binary.Read(reader, binary.BigEndian, &clauseTypeByte); err != nil {
-		return nil, fmt.Errorf("failed to read clause_type: %w", err)
+		return nil, fmt.Errorf("failed to read clause type: %w", err)
 	}
 
-	// Decode clause_type and its parameters
+	// Decode clause type and parameters
 	var clauseType ClauseType
 	switch clauseTypeByte {
 	case 1:
-		// Modulo
-		var m, k uint64
-		if err := binary.Read(reader, binary.BigEndian, &m); err != nil {
-			return nil, fmt.Errorf("failed to read modulo m: %w", err)
+		// Modulo Clause
+		m, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read Modulo parameter m: %w", err)
 		}
-		if err := binary.Read(reader, binary.BigEndian, &k); err != nil {
-			return nil, fmt.Errorf("failed to read modulo k: %w", err)
+		k, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read Modulo parameter k: %w", err)
 		}
 		clauseType = ClauseType{Type: "Modulo", M: m, K: k}
 
 	case 2:
-		// XOR
-		var h, t, delta uint64
-		if err := binary.Read(reader, binary.BigEndian, &h); err != nil {
-			return nil, fmt.Errorf("failed to read XOR h: %w", err)
+		// XOR Clause
+		h, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read XOR parameter h: %w", err)
 		}
-		if err := binary.Read(reader, binary.BigEndian, &t); err != nil {
-			return nil, fmt.Errorf("failed to read XOR t: %w", err)
+		t, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read XOR parameter t: %w", err)
 		}
-		if err := binary.Read(reader, binary.BigEndian, &delta); err != nil {
-			return nil, fmt.Errorf("failed to read XOR delta: %w", err)
+		delta, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read XOR parameter delta: %w", err)
 		}
 		clauseType = ClauseType{Type: "Xor", H: h, T: t, Delta: delta}
 
 	case 3:
-		// Hash Prefix
-		var prefix uint64
-		if err := binary.Read(reader, binary.BigEndian, &prefix); err != nil {
-			return nil, fmt.Errorf("failed to read hash prefix: %w", err)
+		// Hash Prefix Clause
+		prefix, err := readBigInt(reader)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read Hash Prefix parameter: %w", err)
 		}
 		clauseType = ClauseType{Type: "HashPrefix", Prefix: prefix}
 
 	default:
+		// Unknown Clause
 		clauseType = ClauseType{Unknown: true}
+	}
+
+	// Ensure no leftover bytes in the stream
+	if reader.Len() > 0 {
+		return nil, errors.New("extra unexpected bytes in the encoded challenge")
 	}
 
 	return &Challenge{
@@ -115,6 +125,16 @@ func Decode(encoded string) (*Challenge, error) {
 	}, nil
 }
 
+// Helper to read a big.Int from a binary reader
+func readBigInt(reader *bytes.Reader) (*big.Int, error) {
+	buf := make([]byte, 32) // U256 is 32 bytes
+	if _, err := reader.Read(buf); err != nil {
+		return nil, err
+	}
+	return new(big.Int).SetBytes(buf), nil
+}
+
+// Solve solves a challenge for a given workload and identity
 func (c *Challenge) Solve(workload *Workload, identity *utils.Identity) (bool, error) {
 	// Calculate the target
 	target, err := c.computeTarget(workload, identity)
@@ -125,6 +145,7 @@ func (c *Challenge) Solve(workload *Workload, identity *utils.Identity) (bool, e
 	// Compare the target
 	switch c.ClauseType.Type {
 	case "Modulo":
+		log.Infof("Solving Modulo challenge M=%s, K=%s", c.ClauseType.M, c.ClauseType.K)
 		return c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
 	default:
 		return false, fmt.Errorf("unsupported clause type: %s", c.ClauseType.Type)
@@ -145,19 +166,16 @@ func (c *Challenge) computeTarget(workload *Workload, identity *utils.Identity) 
 		hash.Write(data)
 		hash.Write(identity.GetAddress().Bytes())
 
-		// Compare the hash
 		return hash.Sum(nil), nil
 	default:
 		return nil, fmt.Errorf("unsupported hash function: %d", c.HashFunction)
 	}
 }
 
-func (c *Challenge) solveModulo(target []byte, m, k uint64) (bool, error) {
+func (c *Challenge) solveModulo(target []byte, m, k *big.Int) (bool, error) {
 	// Compute the modulo
-	var value uint64
-	if err := binary.Read(bytes.NewReader(target), binary.BigEndian, &value); err != nil {
-		return false, fmt.Errorf("failed to read target: %w", err)
-	}
+	targetInt := new(big.Int).SetBytes(target)
+	remainder := new(big.Int).Mod(targetInt, m)
 
-	return value%m < k, nil
+	return remainder.Cmp(k) < 0, nil
 }
