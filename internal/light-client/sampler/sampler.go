@@ -48,6 +48,100 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (
 	}, nil
 }
 
+func (s *Sampler) ProcessEvent2(workload *internal.Workload) {
+	go func(workload *internal.Workload) {
+		log.Infof("Processing workload: %+v", workload)
+
+		// extract CID from StorageURL ipfs://<cid>
+		cidStr := workload.StorageURL[7:]
+
+		rawCid, err := cid.Decode(cidStr)
+		if err != nil {
+			log.Errorf("Invalid CID: %v", err)
+			return
+		}
+
+		if rawCid.Prefix().Codec != cid.DagCBOR {
+			log.Debugf("Unsupported CID codec: %v. Skipping", rawCid.Prefix().Codec)
+			return
+		}
+
+		log.Debugf("Processing event for CID [%s] is deferred for %d sec", cidStr, s.samplingDelay)
+		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
+		log.Debugf("Processing event for CID [%s] ...", cidStr)
+
+		var rootNode internal.RootNode
+		if err := s.GetData(cidStr, &rootNode); err != nil {
+			log.Errorf("Failed to fetch root DAG data: %v", err)
+			return
+		}
+
+		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
+		stackSize := ckzg4844.CellsPerExtBlob / rootNode.Length
+
+		log.Infof("Root CID=%s version=%s, length=%d, size=%d, links=%d", cidStr, rootNode.Version, rootNode.Length, rootNode.Size, len(rootNode.Links))
+		log.Debugf("Select %d cell[s] from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
+
+		for blobIndex, blobLink := range rootNode.Links {
+			var links []internal.Link
+			if err := s.GetData(blobLink.CID, &links); err != nil {
+				log.Errorf("Failed to fetch link data: %v", err)
+				return
+			}
+
+			// Track sampled column indices to avoid duplicates
+			sampledCols := make(map[int]bool)
+
+			for i := 0; i < sampleIterations; i++ {
+				// Find a unique column index that hasn't been sampled yet
+				var colIndex int
+				for {
+					colIndex = rand.Intn(len(links))
+					if !sampledCols[colIndex] {
+						sampledCols[colIndex] = true
+						break
+					}
+				}
+
+				var data internal.DataMap
+				if err := s.GetData(links[colIndex].CID, &data); err != nil {
+					log.Errorf("Failed to fetch data node: %v", err)
+					return
+				}
+
+				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
+				proof := data.Proof.Nested.Bytes
+				cell := data.Cell.Nested.Bytes
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch()
+				if err != nil {
+					log.Errorf("Failed to verify proof and cell: %v", err)
+					return
+				}
+
+				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
+
+				// TODO: Publish the result to storage
+				// storeReq := internal.StoreRequest{
+				// 	SamplingReqest:    request,
+				// 	SamplingSignature: fmt.Sprintf("%x", signature),
+				// 	Status:            res,
+				// 	Commitment:        base64.StdEncoding.EncodeToString(commitment),
+				// 	Proof:             base64.StdEncoding.EncodeToString(proof),
+				// 	Cell:              base64.StdEncoding.EncodeToString(cell),
+				// 	Version:           fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+				// 	BlobIndex:         blobIndex,
+				// 	CellIndex:         colIndex,
+				// }
+
+				// if err := s.pub.SendStoreRequest(&storeReq); err != nil {
+				// 	log.Errorf("Failed to publish to Cloud Storage: %v", err)
+				// 	return
+				// }
+			}
+		}
+	}(workload)
+}
+
 // ProcessEvent handles events asynchronously by processing the provided CID.
 func (s *Sampler) ProcessEvent(request internal.SamplingRequest, signature []byte) {
 	go func(request internal.SamplingRequest) {

@@ -10,27 +10,13 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	logging "github.com/ipfs/go-log/v2"
 )
 
 var log = logging.Logger("workload-poller")
-
-type Workload struct {
-	ChainID      int    `json:"chain_id"`
-	BlockHeight  int    `json:"block_height"`
-	BlockHash    string `json:"block_hash"`
-	SpecimenHash string `json:"specimen_hash"`
-	StorageURL   string `json:"storage_url"`
-	Challenge    string `json:"challenge"`
-}
-
-// Define the top-level struct
-type WorkloadResponse struct {
-	NextUpdate time.Time  `json:"next_update"`
-	Workloads  []Workload `json:"workloads"`
-}
 
 // WorkloadPoller represents the poller with a private key and a handler
 type WorkloadPoller struct {
@@ -81,7 +67,7 @@ func (p *WorkloadPoller) periodicPoll() {
 			log.Errorf("failed to read response: %s", err)
 		}
 
-		var response WorkloadResponse
+		var response internal.WorkloadResponse
 		err = json.Unmarshal([]byte(body), &response)
 		if err != nil {
 			log.Errorf("failed to unmarshal response: %s", err)
@@ -101,6 +87,9 @@ func (p *WorkloadPoller) periodicPoll() {
 			}
 
 			log.Infof("workload is eligible: %v", eligible)
+			if eligible {
+				p.sampler.ProcessEvent2(&workload)
+			}
 		}
 
 		time.Sleep(time.Until(response.NextUpdate))

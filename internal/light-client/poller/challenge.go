@@ -11,6 +11,7 @@ import (
 	"math/big"
 	"strings"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 )
 
@@ -135,7 +136,7 @@ func readBigInt(reader *bytes.Reader) (*big.Int, error) {
 }
 
 // Solve solves a challenge for a given workload and identity
-func (c *Challenge) Solve(workload *Workload, identity *utils.Identity) (bool, error) {
+func (c *Challenge) Solve(workload *internal.Workload, identity *utils.Identity) (bool, error) {
 	// Calculate the target
 	target, err := c.computeTarget(workload, identity)
 	if err != nil {
@@ -152,7 +153,7 @@ func (c *Challenge) Solve(workload *Workload, identity *utils.Identity) (bool, e
 	}
 }
 
-func (c *Challenge) computeTarget(workload *Workload, identity *utils.Identity) ([]byte, error) {
+func (c *Challenge) computeTarget(workload *internal.Workload, identity *utils.Identity) ([]byte, error) {
 	switch c.HashFunction {
 	case 1:
 		// SHA256

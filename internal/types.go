@@ -88,3 +88,18 @@ type StoreRequest struct {
 	Cell              string    `json:"cell"`
 	Version           string    `json:"version"`
 }
+
+type Workload struct {
+	ChainID      int    `json:"chain_id"`
+	BlockHeight  int    `json:"block_height"`
+	BlockHash    string `json:"block_hash"`
+	SpecimenHash string `json:"specimen_hash"`
+	StorageURL   string `json:"storage_url"`
+	Challenge    string `json:"challenge"`
+}
+
+// Define the top-level struct
+type WorkloadResponse struct {
+	NextUpdate time.Time  `json:"next_update"`
+	Workloads  []Workload `json:"workloads"`
+}
