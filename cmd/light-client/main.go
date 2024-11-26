@@ -103,7 +103,7 @@ func startClient() {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	poll, err := poller.NewPoller(identify, sampler, rpcURL)
+	poll, err := poller.NewWorkloadPoller(identify, sampler, rpcURL)
 	if err != nil {
 		log.Fatalf("Failed to create poller: %v", err)
 	}

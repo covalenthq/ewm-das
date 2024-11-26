@@ -1,6 +1,7 @@
 package poller
 
 import (
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -16,35 +17,50 @@ import (
 
 var log = logging.Logger("workload-poller")
 
-// Poller represents the poller with a private key and a handler
-type Poller struct {
+type Workload struct {
+	ChainID      int    `json:"chain_id"`
+	BlockHeight  int    `json:"block_height"`
+	BlockHash    string `json:"block_hash"`
+	SpecimenHash string `json:"specimen_hash"`
+	StorageURL   string `json:"storage_url"`
+	Challenge    string `json:"challenge"`
+}
+
+// Define the top-level struct
+type WorkloadResponse struct {
+	NextUpdate time.Time  `json:"next_update"`
+	Workloads  []Workload `json:"workloads"`
+}
+
+// WorkloadPoller represents the poller with a private key and a handler
+type WorkloadPoller struct {
 	identity *utils.Identity
 	sampler  *sampler.Sampler
 	endpoint string
 }
 
-// NewPoller creates a new Poller with the provided private key in hex format
-func NewPoller(identity *utils.Identity, sampler *sampler.Sampler, endpoint string) (*Poller, error) {
+// NewWorkloadPoller creates a new Poller with the provided private key in hex format
+func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, endpoint string) (*WorkloadPoller, error) {
 	_, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
 	}
 
-	return &Poller{
+	return &WorkloadPoller{
 		identity: identity,
 		sampler:  sampler,
 		endpoint: endpoint,
 	}, nil
 }
 
-func (p *Poller) Start() {
+func (p *WorkloadPoller) Start() {
 	go p.periodicPoll()
 
 	// Wait forever
 	p.waitForShutdown()
 }
 
-func (p *Poller) periodicPoll() {
+func (p *WorkloadPoller) periodicPoll() {
 	for {
 
 		// Poll the endpoint
@@ -65,13 +81,22 @@ func (p *Poller) periodicPoll() {
 			log.Errorf("failed to read response: %s", err)
 		}
 
-		log.Infof("response: %s", string(body))
+		var response WorkloadResponse
+		err = json.Unmarshal([]byte(body), &response)
+		if err != nil {
+			log.Errorf("failed to unmarshal response: %s", err)
+		}
+
+		// Process the workloads
+		for _, workload := range response.Workloads {
+			log.Infof("processing workload: %v", workload)
+		}
 
 		time.Sleep(10 * time.Second)
 	}
 }
 
-func (l *Poller) waitForShutdown() {
+func (l *WorkloadPoller) waitForShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
