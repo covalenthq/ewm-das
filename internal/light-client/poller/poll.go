@@ -90,9 +90,15 @@ func (p *WorkloadPoller) periodicPoll() {
 		// Process the workloads
 		for _, workload := range response.Workloads {
 			log.Infof("processing workload: %v", workload)
+			challenge, err := Decode(workload.Challenge)
+			if err != nil {
+				log.Errorf("failed to decode challenge: %s", err)
+			}
+
+			challenge.Solve(&workload, p.identity)
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(time.Until(response.NextUpdate))
 	}
 }
 
