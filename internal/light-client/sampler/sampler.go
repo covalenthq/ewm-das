@@ -10,8 +10,8 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
-	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -24,13 +24,13 @@ var log = logging.Logger("light-client")
 type Sampler struct {
 	ipfsShell     *ipfs.Shell
 	gh            *gateway.Handler
-	pub           *publisher.Publisher
+	pub           *apihandler.ApiHandler
 	samplingDelay uint
 	samplingFn    func(int, int, float64) int
 }
 
 // NewSampler creates a new Sampler instance and checks the connection to the IPFS daemon.
-func NewSampler(ipfsAddr string, samplingDelay uint, pub *publisher.Publisher) (*Sampler, error) {
+func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler) (*Sampler, error) {
 	shell := ipfs.NewShell(ipfsAddr)
 
 	if _, _, err := shell.Version(); err != nil {

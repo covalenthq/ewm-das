@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/poller"
-	publisher "github.com/covalenthq/das-ipfs-pinner/internal/light-client/publisher"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
@@ -93,20 +93,15 @@ func startClient() {
 	}
 	log.Infof("Client idenity: %s", identify.GetAddress().Hex())
 
-	pub, err := publisher.NewPublisher(rpcURL, identify)
+	api, err := apihandler.NewApiHandler(rpcURL, identify)
 	if err != nil {
-		log.Fatalf("Failed to create publisher: %v", err)
+		log.Fatalf("Failed to create API handler: %v", err)
 	}
 
-	sampler, err := sampler.NewSampler(ipfsAddr, samplingDelay, pub)
+	sampler, err := sampler.NewSampler(ipfsAddr, samplingDelay, api)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS sampler: %v", err)
 	}
 
-	poll, err := poller.NewWorkloadPoller(identify, sampler, rpcURL)
-	if err != nil {
-		log.Fatalf("Failed to create poller: %v", err)
-	}
-
-	poll.Start()
+	poller.NewWorkloadPoller(identify, sampler, api).Start()
 }

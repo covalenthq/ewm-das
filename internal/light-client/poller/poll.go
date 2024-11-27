@@ -1,16 +1,12 @@
 package poller
 
 import (
-	"encoding/json"
-	"io"
-	"net/http"
-	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
-	"github.com/covalenthq/das-ipfs-pinner/internal"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	logging "github.com/ipfs/go-log/v2"
@@ -20,29 +16,18 @@ var log = logging.Logger("workload-poller")
 
 // WorkloadPoller represents the poller with a private key and a handler
 type WorkloadPoller struct {
-	identity    *utils.Identity
-	sampler     *sampler.Sampler
-	endpointUrl string
+	identity *utils.Identity
+	sampler  *sampler.Sampler
+	api      *apihandler.ApiHandler
 }
 
 // NewWorkloadPoller creates a new Poller with the provided private key in hex format
-func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, endpoint string) (*WorkloadPoller, error) {
-	_, err := url.Parse(endpoint)
-	if err != nil {
-		return nil, err
-	}
-
-	// append the path to the URL
-	endpointUrl, err := url.JoinPath(endpoint, "/workloads")
-	if err != nil {
-		return nil, err
-	}
-
+func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, api *apihandler.ApiHandler) *WorkloadPoller {
 	return &WorkloadPoller{
-		identity:    identity,
-		sampler:     sampler,
-		endpointUrl: endpointUrl,
-	}, nil
+		identity: identity,
+		sampler:  sampler,
+		api:      api,
+	}
 }
 
 func (p *WorkloadPoller) Start() {
@@ -55,28 +40,9 @@ func (p *WorkloadPoller) Start() {
 func (p *WorkloadPoller) periodicPoll() {
 	for {
 
-		// Poll the endpoint
-		httpClient := &http.Client{}
-		req, err := http.NewRequest("GET", p.endpointUrl, nil)
+		response, err := p.api.GetWorkload()
 		if err != nil {
-			log.Errorf("failed to create request: %s", err)
-		}
-
-		resp, err := httpClient.Do(req)
-		if err != nil {
-			log.Errorf("failed to poll endpoint: %s", err)
-		}
-
-		// Read the response
-		body, err := io.ReadAll(resp.Body)
-		if err != nil {
-			log.Errorf("failed to read response: %s", err)
-		}
-
-		var response internal.WorkloadResponse
-		err = json.Unmarshal([]byte(body), &response)
-		if err != nil {
-			log.Errorf("failed to unmarshal response: %s", err)
+			log.Errorf("failed to get workload: %s", err)
 		}
 
 		// Process the workloads
