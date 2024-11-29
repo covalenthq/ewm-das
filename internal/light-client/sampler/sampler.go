@@ -112,7 +112,7 @@ func (s *Sampler) ProcessEvent2(workload *internal.Workload) {
 				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
 				proof := data.Proof.Nested.Bytes
 				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch()
+				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch2()
 				if err != nil {
 					log.Errorf("Failed to verify proof and cell: %v", err)
 					return

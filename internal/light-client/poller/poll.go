@@ -43,6 +43,7 @@ func (p *WorkloadPoller) periodicPoll() {
 		response, err := p.api.GetWorkload()
 		if err != nil {
 			log.Errorf("failed to get workload: %s", err)
+			time.Sleep(300 * time.Second)
 		}
 
 		// Process the workloads
