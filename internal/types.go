@@ -90,6 +90,7 @@ type StoreRequest struct {
 }
 
 type Workload struct {
+	ID           int    `json:"id"`
 	ChainID      int    `json:"chain_id"`
 	BlockHeight  int    `json:"block_height"`
 	BlockHash    string `json:"block_hash"`
