@@ -97,6 +97,7 @@ type Workload struct {
 	SpecimenHash string `json:"specimen_hash"`
 	StorageURL   string `json:"storage_url"`
 	Challenge    string `json:"challenge"`
+	Signature    string `json:"signature"`
 }
 
 // Define the top-level struct
