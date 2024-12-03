@@ -95,7 +95,7 @@ type Workload struct {
 	BlockHeight  int    `json:"block_height"`
 	BlockHash    string `json:"block_hash"`
 	SpecimenHash string `json:"specimen_hash"`
-	StorageURL   string `json:"storage_url"`
+	Cid          string `json:"cid"`
 	Challenge    string `json:"challenge"`
 	Signature    string `json:"signature"`
 }

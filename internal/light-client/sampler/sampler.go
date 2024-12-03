@@ -52,8 +52,7 @@ func (s *Sampler) ProcessEvent2(workload *internal.Workload) {
 	go func(workload *internal.Workload) {
 		log.Infof("Processing workload: %+v", workload)
 
-		// extract CID from StorageURL ipfs://<cid>
-		cidStr := workload.StorageURL[7:]
+		cidStr := workload.Cid
 
 		rawCid, err := cid.Decode(cidStr)
 		if err != nil {
