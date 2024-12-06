@@ -1,3 +1,3 @@
 package internal
 
-const StackSize = 32
+const StackSize = 8
