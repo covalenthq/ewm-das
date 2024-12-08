@@ -81,58 +81,69 @@ func (s *Sampler) ProcessEvent2(workload *internal.Workload) {
 		log.Infof("Root CID=%s version=%s, length=%d, size=%d, links=%d", cidStr, rootNode.Version, rootNode.Length, rootNode.Size, len(rootNode.Links))
 		log.Debugf("Select %d cell[s] from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
 
-		for blobIndex, blobLink := range rootNode.Links {
-			var links []internal.Link
-			if err := s.GetData(blobLink.CID, &links); err != nil {
-				log.Errorf("Failed to fetch link data: %v", err)
+		if workload.BlobIndex >= len(rootNode.Links) {
+			log.Errorf("Invalid blob index: %d", workload.BlobIndex)
+			return
+		}
+
+		blobLink := rootNode.Links[workload.BlobIndex]
+		blobIndex := workload.BlobIndex
+
+		var links []internal.Link
+		if err := s.GetData(blobLink.CID, &links); err != nil {
+			log.Errorf("Failed to fetch link data: %v", err)
+			return
+		}
+
+		// Track sampled column indices to avoid duplicates
+		sampledCols := make(map[int]bool)
+
+		for i := 0; i < sampleIterations; i++ {
+			// Find a unique column index that hasn't been sampled yet
+			var colIndex int
+			for {
+				colIndex = rand.Intn(len(links))
+				if !sampledCols[colIndex] {
+					sampledCols[colIndex] = true
+					break
+				}
+			}
+
+			var data internal.DataMap
+			if err := s.GetData(links[colIndex].CID, &data); err != nil {
+				log.Errorf("Failed to fetch data node: %v", err)
 				return
 			}
 
-			// Track sampled column indices to avoid duplicates
-			sampledCols := make(map[int]bool)
+			commitment := rootNode.Commitments[blobIndex].Nested.Bytes
+			proof := data.Proof.Nested.Bytes
+			cell := data.Cell.Nested.Bytes
+			commitmentStr := base64.StdEncoding.EncodeToString(commitment)
 
-			for i := 0; i < sampleIterations; i++ {
-				// Find a unique column index that hasn't been sampled yet
-				var colIndex int
-				for {
-					colIndex = rand.Intn(len(links))
-					if !sampledCols[colIndex] {
-						sampledCols[colIndex] = true
-						break
-					}
-				}
+			if workload.Commitment != commitmentStr {
+				log.Errorf("Mismatched commitment: %s != %s", workload.Commitment, commitmentStr)
+				return
+			}
 
-				var data internal.DataMap
-				if err := s.GetData(links[colIndex].CID, &data); err != nil {
-					log.Errorf("Failed to fetch data node: %v", err)
-					return
-				}
+			res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch2()
+			if err != nil {
+				log.Errorf("Failed to verify proof and cell: %v", err)
+				return
+			}
 
-				commitment := rootNode.Commitments[blobIndex].Nested.Bytes
-				proof := data.Proof.Nested.Bytes
-				cell := data.Cell.Nested.Bytes
-				res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch2()
-				if err != nil {
-					log.Errorf("Failed to verify proof and cell: %v", err)
-					return
-				}
+			log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
 
-				log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
+			storeReq := internal.StoreRequest2{
+				WorkloadRequest: *workload,
+				Proof:           base64.StdEncoding.EncodeToString(proof),
+				Cell:            base64.StdEncoding.EncodeToString(cell),
+				Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+				CellIndex:       colIndex,
+			}
 
-				storeReq := internal.StoreRequest2{
-					WorkloadRequest: *workload,
-					Commitment:      base64.StdEncoding.EncodeToString(commitment),
-					Proof:           base64.StdEncoding.EncodeToString(proof),
-					Cell:            base64.StdEncoding.EncodeToString(cell),
-					Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-					BlobIndex:       blobIndex,
-					CellIndex:       colIndex,
-				}
-
-				if err := s.pub.SendStoreRequest2(&storeReq); err != nil {
-					log.Errorf("Failed to publish to Cloud Storage: %v", err)
-					return
-				}
+			if err := s.pub.SendStoreRequest2(&storeReq); err != nil {
+				log.Errorf("Failed to publish to Cloud Storage: %v", err)
+				return
 			}
 		}
 	}(workload)

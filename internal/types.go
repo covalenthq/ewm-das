@@ -97,6 +97,8 @@ type Workload struct {
 	SpecimenHash string `json:"specimen_hash"`
 	Cid          string `json:"cid"`
 	Challenge    string `json:"challenge"`
+	BlobIndex    int    `json:"blob_index"`
+	Commitment   string `json:"commitment"`
 	Signature    string `json:"signature"`
 }
 
@@ -109,9 +111,7 @@ type WorkloadResponse struct {
 type StoreRequest2 struct {
 	WorkloadRequest Workload  `json:"workload"`
 	Timestamp       time.Time `json:"timestamp"`
-	BlobIndex       int       `json:"blob_index"`
 	CellIndex       int       `json:"cell_index"`
-	Commitment      string    `json:"commitment"`
 	Proof           string    `json:"proof"`
 	Cell            string    `json:"cell"`
 	Version         string    `json:"version"`
