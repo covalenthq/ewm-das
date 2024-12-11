@@ -90,16 +90,17 @@ type StoreRequest struct {
 }
 
 type Workload struct {
-	Hash         string `json:"hash"`
-	ChainID      int    `json:"chain_id"`
-	BlockHeight  int    `json:"block_height"`
-	BlockHash    string `json:"block_hash"`
-	SpecimenHash string `json:"specimen_hash"`
-	Cid          string `json:"cid"`
-	Challenge    string `json:"challenge"`
-	BlobIndex    int    `json:"blob_index"`
-	Commitment   string `json:"commitment"`
-	Signature    string `json:"signature"`
+	Hash         string    `json:"hash"`
+	ChainID      int       `json:"chain_id"`
+	BlockHeight  int       `json:"block_height"`
+	BlockHash    string    `json:"block_hash"`
+	SpecimenHash string    `json:"specimen_hash"`
+	Cid          string    `json:"cid"`
+	Challenge    string    `json:"challenge"`
+	BlobIndex    int       `json:"blob_index"`
+	Commitment   string    `json:"commitment"`
+	Expiration   time.Time `json:"expiration"`
+	Signature    string    `json:"signature"`
 }
 
 // Define the top-level struct
