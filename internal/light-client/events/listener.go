@@ -2,7 +2,6 @@ package events
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
@@ -14,7 +13,6 @@ import (
 	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
-	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/sampler"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"github.com/filecoin-project/go-jsonrpc"
@@ -61,22 +59,6 @@ func (h *EventListener) Identity() ([]byte, error) {
 // Version returns the version of the handler
 func (h *EventListener) Version() (string, error) {
 	return fmt.Sprintf("%s-%s", common.Version, common.GitCommit), nil
-}
-
-// Sample is a placeholder for implementing sampling logic
-func (h *EventListener) Sample(requestBytes []byte, signature []byte) error {
-	var request internal.SamplingRequest
-	if err := json.Unmarshal(requestBytes, &request); err != nil {
-		return fmt.Errorf("failed to unmarshal request: %w", err)
-	}
-
-	if err := h.verifyRequest(&request, signature); err != nil {
-		return err
-	}
-
-	h.sampler.ProcessEvent(request, signature)
-
-	return nil
 }
 
 // Start initializes the listener, performs the subscription, and blocks until a shutdown signal is received
@@ -185,21 +167,6 @@ func (l *EventListener) waitForShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
-}
-
-func (l *EventListener) verifyRequest(request *internal.SamplingRequest, signature []byte) error {
-	requestBytes, err := json.Marshal(request)
-	if err != nil {
-		return fmt.Errorf("failed to marshal request: %w", err)
-	}
-
-	ok, recoveredAddress := utils.VerifySignature(requestBytes, signature)
-	if !ok {
-		return fmt.Errorf("failed to verify signature")
-	}
-
-	log.Infof("Verified signature: %v", recoveredAddress.Hex())
-	return nil
 }
 
 // proxyConnFactory wraps the connection factory and notifies on reconnection

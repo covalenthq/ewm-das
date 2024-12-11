@@ -62,7 +62,7 @@ func (p *WorkloadPoller) periodicPoll() {
 
 			log.Infof("workload is eligible: %v", eligible)
 			if eligible {
-				p.sampler.ProcessEvent2(&workload)
+				p.sampler.ProcessEvent(&workload)
 			}
 		}
 

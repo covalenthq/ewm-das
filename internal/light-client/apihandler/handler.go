@@ -42,53 +42,13 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 		return nil, err
 	}
 
+	log.Infof("API URL: %s", apiUrl)
+
 	return &ApiHandler{
 		workloadEndpoint: workloadEndpoint,
 		samplesEndpoint:  samplesEndpoint,
 		identity:         identity,
 	}, nil
-}
-
-// Publish to Pubsub
-func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
-	ctx := context.Background()
-
-	request.SignedAt = time.Now()
-
-	// Marshal the request into JSON.
-	requestData, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-
-	signature, err := p.identity.SignMessage(requestData)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
-	if err != nil {
-		return err
-	}
-
-	// Set the headers
-	req.Header.Set("X-LC-Signature", fmt.Sprintf("%x", signature))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		responseBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
-	}
-
-	return nil
 }
 
 func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {
@@ -143,7 +103,7 @@ func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {
 	return &response, nil
 }
 
-func (p *ApiHandler) SendStoreRequest2(request *internal.StoreRequest2) error {
+func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest2) error {
 	ctx := context.Background()
 
 	request.Timestamp = time.Now()

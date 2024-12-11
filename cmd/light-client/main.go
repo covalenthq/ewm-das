@@ -18,7 +18,6 @@ var (
 	rpcURL        string
 	ipfsAddr      string
 	privateKey    string
-	collectUrl    string
 	samplingDelay uint
 )
 
@@ -67,15 +66,13 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&loglevel, "loglevel", "info", "Log level (debug, info, warn, error, fatal, panic)")
-	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL of the blockchain node")
+	rootCmd.PersistentFlags().StringVar(&rpcURL, "rpc-url", "", "RPC URL for workload coordination")
 	rootCmd.PersistentFlags().StringVar(&ipfsAddr, "ipfs-addr", ":5001", "IPFS node address")
 	rootCmd.PersistentFlags().StringVar(&privateKey, "private-key", "", "Private key of the client")
-	rootCmd.PersistentFlags().StringVar(&collectUrl, "collect-url", "", "API endpoint to collect the data")
 	rootCmd.PersistentFlags().UintVar(&samplingDelay, "sampling-delay", 10, "Delay between sampling process and the receiving of the event")
 
 	rootCmd.MarkPersistentFlagRequired("rpc-url")
 	rootCmd.MarkPersistentFlagRequired("private-key")
-	rootCmd.MarkPersistentFlagRequired("collect-url")
 }
 
 func initConfig() {

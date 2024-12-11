@@ -24,6 +24,5 @@ done
 # Start light-client with the provided and hardcoded arguments
 light-client \
   --loglevel info \
-  --rpc-url wss://coordinator.das.test.covalentnetwork.org/v1/rpc \
-  --collect-url https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector \
+  --rpc-url https://apilayer-ewm-838505730421.us-central1.run.app/api/v1 \
   --private-key "$PRIVATE_KEY"
