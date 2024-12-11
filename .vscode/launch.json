@@ -88,7 +88,7 @@
         "--loglevel",
         "debug",
         "--rpc-url",
-        "wss://coordinator.das.test.covalentnetwork.org/v1/rpc",
+        "https://apilayer-ewm-838505730421.us-central1.run.app/api/v1",
         "--private-key",
         "5fb8646c69fe23b6a8c9060a117a4218867acb2b2019df36f2627620fa8d5077", // sample key - change to your key
         "--collect-url",
