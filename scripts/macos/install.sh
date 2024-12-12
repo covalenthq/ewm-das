@@ -24,6 +24,7 @@ validate_private_key() {
 
 # Define variables and paths
 define_paths() {
+  USER_AGENTS_DIR="$HOME/Library/LaunchAgents"
   COVALENT_DIR="$HOME/.covalent"
   PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.light-client.plist"
   IPFS_PLIST_FILE="$HOME/Library/LaunchAgents/com.covalent.ipfs.plist"
@@ -169,6 +170,8 @@ download_files() {
 
 # Create and configure IPFS plist
 create_ipfs_plist() {
+  mkdir -p "$USER_AGENTS_DIR"
+
   cat <<EOF > "$IPFS_PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -212,6 +215,8 @@ EOF
 
 # Create and configure Light Client plist
 create_light_client_plist() {
+  mkdir -p "$USER_AGENTS_DIR"
+
   cat <<EOF > "$PLIST_FILE"
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
