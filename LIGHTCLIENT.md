@@ -59,5 +59,5 @@ Note: Private key is the identity of your client. To generate a private key, use
 - [Eth-vanity](https://eth-vanity.io/#calc)
 
 ```sh
-./bin/light-client --rpc-url wss://coordinator.das.test.covalentnetwork.org/v1/rpc --private-key ${PRIVATE_KEY}
+./bin/light-client --rpc-url https://apilayer-ewm-838505730421.us-central1.run.app/api/v1 --private-key ${PRIVATE_KEY}
 ```
