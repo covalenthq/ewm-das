@@ -148,7 +148,6 @@ echo "IPFS daemon has started."
 "\$COVALENT_DIR/\$SERVICE_NAME" \\
     --loglevel info \\
     --rpc-url https://apilayer-ewm-838505730421.us-central1.run.app/api/v1 \\
-    --collect-url https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector \\
     --private-key "\$PRIVATE_KEY"
 EOF
 
