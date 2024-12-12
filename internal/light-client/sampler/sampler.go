@@ -125,15 +125,18 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 				return
 			}
 
-			res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch2()
+			res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch()
 			if err != nil {
 				log.Errorf("Failed to verify proof and cell: %v", err)
 				return
 			}
+			if !res {
+				log.Errorf("Failed to verify proof and cell [blob=%d, col=%d]", blobIndex, colIndex)
+			} else {
+				log.Infof("cell=[%2d,%3d], root=%-40v, blob=%-40v", blobIndex, colIndex, cidStr, links[colIndex].CID)
+			}
 
-			log.Infof("cell=[%2d,%3d], verified=%-5v, cid=%-40v", blobIndex, colIndex, res, cidStr)
-
-			storeReq := internal.StoreRequest2{
+			storeReq := internal.StoreRequest{
 				WorkloadRequest: *workload,
 				Proof:           base64.StdEncoding.EncodeToString(proof),
 				Cell:            base64.StdEncoding.EncodeToString(cell),

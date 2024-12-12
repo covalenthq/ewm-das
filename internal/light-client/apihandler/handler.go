@@ -103,7 +103,7 @@ func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {
 	return &response, nil
 }
 
-func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest2) error {
+func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 	ctx := context.Background()
 
 	request.Timestamp = time.Now()
