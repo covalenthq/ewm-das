@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/ipfs/go-cid"
-	"github.com/web3-storage/go-ucanto/did"
-	"github.com/web3-storage/go-ucanto/principal/ed25519/signer"
+	"github.com/storacha/go-ucanto/did"
+	"github.com/storacha/go-ucanto/principal/ed25519/signer"
 )
 
 // W3Storage struct encapsulates the web3.storage client.

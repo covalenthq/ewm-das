@@ -49,7 +49,6 @@ To run the light-client, use the following command:
 
 ```sh
 ./bin/light-client --rpc-url <rpc-url> \
-    --collect-url <collect-url> \
     --private-key <private-key> 
 ```
 
@@ -60,5 +59,5 @@ Note: Private key is the identity of your client. To generate a private key, use
 - [Eth-vanity](https://eth-vanity.io/#calc)
 
 ```sh
-./bin/light-client --rpc-url wss://coordinator.das.test.covalentnetwork.org/v1/rpc --collect-url https://us-central1-covalent-network-team-sandbox.cloudfunctions.net/ewm-das-collector --private-key ${PRIVATE_KEY}
+./bin/light-client --rpc-url wss://coordinator.das.test.covalentnetwork.org/v1/rpc --private-key ${PRIVATE_KEY}
 ```
