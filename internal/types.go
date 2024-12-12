@@ -117,3 +117,16 @@ type StoreRequest2 struct {
 	Cell            string    `json:"cell"`
 	Version         string    `json:"version"`
 }
+
+type Sample struct {
+	CellIndex int    `json:"cell_index"`
+	Proof     string `json:"proof"`
+	Cell      string `json:"cell"`
+}
+
+type BatchedStoreRequest struct {
+	WorkloadRequest Workload  `json:"workload"`
+	Timestamp       time.Time `json:"timestamp"`
+	Version         string    `json:"version"`
+	Samples         []Sample  `json:"samples"`
+}

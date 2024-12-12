@@ -97,6 +97,7 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 
 		// Track sampled column indices to avoid duplicates
 		sampledCols := make(map[int]bool)
+		samples := make([]internal.Sample, 0)
 
 		for i := 0; i < sampleIterations; i++ {
 			// Find a unique column index that hasn't been sampled yet
@@ -141,10 +142,27 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 				CellIndex:       colIndex,
 			}
 
+			samples = append(samples, internal.Sample{
+				CellIndex: colIndex,
+				Proof:     base64.StdEncoding.EncodeToString(proof),
+				Cell:      base64.StdEncoding.EncodeToString(cell),
+			})
+
 			if err := s.pub.SendStoreRequest(&storeReq); err != nil {
 				log.Errorf("Failed to store samples: %v", err)
 				return
 			}
+		}
+
+		batchedReq := internal.BatchedStoreRequest{
+			WorkloadRequest: *workload,
+			Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+			Samples:         samples,
+		}
+
+		if err := s.pub.SendBatchedStoreRequest(&batchedReq); err != nil {
+			log.Errorf("Failed to store batched samples: %v", err)
+			return
 		}
 	}(workload)
 }

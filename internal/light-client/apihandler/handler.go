@@ -153,6 +153,56 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest2) error {
 	return nil
 }
 
+func (p *ApiHandler) SendBatchedStoreRequest(request *internal.BatchedStoreRequest) error {
+	ctx := context.Background()
+
+	request.Timestamp = time.Now()
+
+	// Marshal the request into JSON.
+	requestData, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	timestamp := request.Timestamp.Unix()
+	url, err := url.Parse(p.samplesEndpoint)
+	if err != nil {
+		return err
+	}
+
+	message := constructMessage("POST", url.Path, "", timestamp, requestData)
+	signature, err := p.identity.SignMessage([]byte(message))
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
+	if err != nil {
+		return err
+	}
+
+	// Set the headers
+	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
+	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
+	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		responseBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+	}
+
+	return nil
+}
+
 // constructMessage builds the canonical message
 func constructMessage(method, path, queryString string, timestamp int64, body []byte) string {
 	if method == "POST" {
