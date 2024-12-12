@@ -50,7 +50,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 
 func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 	go func(workload *internal.Workload) {
-		log.Infof("Processing workload: %+v", workload)
+		log.Debugf("Processing workload: %+v", workload)
 
 		cidStr := workload.Cid
 
@@ -67,7 +67,7 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 
 		log.Debugf("Processing event for CID [%s] is deferred for %d sec", cidStr, s.samplingDelay)
 		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
-		log.Debugf("Processing event for CID [%s] ...", cidStr)
+		log.Debugf("Processing event for CID [%s] Blob [%d] ...", cidStr, workload.BlobIndex)
 
 		var rootNode internal.RootNode
 		if err := s.GetData(cidStr, &rootNode); err != nil {

@@ -69,7 +69,7 @@ func sample(cidStr string, blobIndex uint, cellIndex uint, ipfsAddr string) {
 		return
 	}
 
-	log.Debugf("Processing event for CID [%s] ...", cidStr)
+	log.Debugf("Processing event for CID [%s] Blob [%d] ...", cidStr, blobIndex)
 
 	var rootNode internal.RootNode
 	if err := s.GetData(cidStr, &rootNode); err != nil {
