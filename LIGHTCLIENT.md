@@ -11,8 +11,8 @@
 Clone the repository:
 
 ```bash
-git clone https://github.com/covalenthq/das-ipfs-pinner
-cd das-ipfs-pinner
+git clone https://github.com/covalenthq/ewm-das
+cd ewm-das
 ```
 
 Build the Docker image:
