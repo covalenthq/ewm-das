@@ -48,10 +48,10 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 	}, nil
 }
 
-func (s *Sampler) ProcessEvent(workload *internal.Workload) {
-	go func(workload *internal.Workload) {
+func (s *Sampler) ProcessEvent(workload *internal.SignedWorkload) {
+	go func(signedWorkload *internal.SignedWorkload) {
 		log.Debugf("Processing workload: %+v", workload)
-
+		workload := workload.Workload
 		cidStr := workload.Cid
 
 		rawCid, err := cid.Decode(cidStr)
@@ -137,7 +137,7 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 			}
 
 			storeReq := internal.StoreRequest{
-				WorkloadRequest: *workload,
+				WorkloadRequest: *signedWorkload,
 				Proof:           base64.StdEncoding.EncodeToString(proof),
 				Cell:            base64.StdEncoding.EncodeToString(cell),
 				Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),

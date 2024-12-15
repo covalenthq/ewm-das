@@ -80,20 +80,24 @@ type Workload struct {
 	BlobIndex    int       `json:"blob_index"`
 	Commitment   string    `json:"commitment"`
 	Expiration   time.Time `json:"expiration"`
-	Signature    string    `json:"signature"`
+}
+
+type SignedWorkload struct {
+	Workload  Workload `json:"workload"`
+	Signature string   `json:"signature"`
 }
 
 // Define the top-level struct
 type WorkloadResponse struct {
-	NextUpdate time.Time  `json:"next_update"`
-	Workloads  []Workload `json:"workloads"`
+	NextUpdate time.Time        `json:"next_update"`
+	Workloads  []SignedWorkload `json:"workloads"`
 }
 
 type StoreRequest struct {
-	WorkloadRequest Workload  `json:"workload"`
-	Timestamp       time.Time `json:"timestamp"`
-	CellIndex       int       `json:"cell_index"`
-	Proof           string    `json:"proof"`
-	Cell            string    `json:"cell"`
-	Version         string    `json:"version"`
+	WorkloadRequest SignedWorkload `json:"workload"`
+	Timestamp       time.Time      `json:"timestamp"`
+	CellIndex       int            `json:"cell_index"`
+	Proof           string         `json:"proof"`
+	Cell            string         `json:"cell"`
+	Version         string         `json:"version"`
 }

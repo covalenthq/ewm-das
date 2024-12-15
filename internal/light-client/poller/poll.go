@@ -50,12 +50,12 @@ func (p *WorkloadPoller) periodicPoll() {
 		// Process the workloads
 		for _, workload := range response.Workloads {
 			log.Debugf("processing workload: %v", workload)
-			challenge, err := Decode(workload.Challenge)
+			challenge, err := Decode(workload.Workload.Challenge)
 			if err != nil {
 				log.Errorf("failed to decode challenge: %s", err)
 			}
 
-			eligible, err := challenge.Solve(&workload, p.identity)
+			eligible, err := challenge.Solve(&workload.Workload, p.identity)
 			if err != nil {
 				log.Errorf("failed to solve challenge: %s", err)
 			}
