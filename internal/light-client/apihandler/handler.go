@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"golang.org/x/crypto/sha3"
@@ -137,6 +138,12 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
 	req.Header.Set("Content-Type", "application/json")
 
+	// Send the request
+	err = retryWithBackoff(req, 3)
+	if err != nil {
+		return err
+	}
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -169,4 +176,40 @@ func hashKeccak256(data []byte) string {
 	hasher := sha3.NewLegacyKeccak256()
 	hasher.Write(data)
 	return fmt.Sprintf("0x%x", hasher.Sum(nil))
+}
+
+// retryWithBackoff executes a function with retry logic and exponential backoff.
+func retryWithBackoff(req *http.Request, maxRetries int) error {
+	// Configure exponential backoff
+	bo := backoff.NewExponentialBackOff()
+	bo.InitialInterval = 500 * time.Millisecond // Start with 500ms delay
+	bo.RandomizationFactor = 0.5                // Add randomness to the delay
+	bo.Multiplier = 2                           // Double the delay for each retry
+	bo.MaxInterval = 5 * time.Second            // Maximum delay between retries
+	bo.MaxElapsedTime = 20 * time.Second        // Stop retrying after 20s
+
+	// Limit retries with the maximum retries setting
+	retryWithLimit := backoff.WithMaxRetries(bo, uint64(maxRetries))
+
+	// Retry the operation with the backoff strategy
+	err := backoff.Retry(func() error {
+		resp, err := (&http.Client{}).Do(req)
+		if err != nil {
+			log.Warnf("Retrying due to:", err)
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			responseBody, _ := io.ReadAll(resp.Body)
+			log.Warnf("API request failed with status: %s", resp.Status)
+			return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+		}
+		log.Debug("Operation succeeded!")
+		return nil
+	}, retryWithLimit)
+
+	if err != nil {
+		return fmt.Errorf("operation failed after %d retries: %w", maxRetries, err)
+	}
+	return nil
 }
