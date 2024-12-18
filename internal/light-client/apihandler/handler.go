@@ -139,25 +139,7 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 	req.Header.Set("Content-Type", "application/json")
 
 	// Send the request
-	err = retryWithBackoff(req, 3)
-	if err != nil {
-		return err
-	}
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		responseBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
-	}
-
-	return nil
+	return retryWithBackoff(req, 3)
 }
 
 // constructMessage builds the canonical message
