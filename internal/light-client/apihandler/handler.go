@@ -105,41 +105,56 @@ func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {
 }
 
 func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
-	ctx := context.Background()
+	err := retryWithBackoff(func() error {
+		ctx := context.Background()
 
-	request.Timestamp = time.Now()
+		request.Timestamp = time.Now()
 
-	// Marshal the request into JSON.
-	requestData, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
+		// Marshal the request into JSON.
+		requestData, err := json.Marshal(request)
+		if err != nil {
+			return err
+		}
 
-	timestamp := request.Timestamp.Unix()
-	url, err := url.Parse(p.samplesEndpoint)
-	if err != nil {
-		return err
-	}
+		timestamp := request.Timestamp.Unix()
+		url, err := url.Parse(p.samplesEndpoint)
+		if err != nil {
+			return err
+		}
 
-	message := constructMessage("POST", url.Path, "", timestamp, requestData)
-	signature, err := p.identity.SignMessage([]byte(message))
-	if err != nil {
-		return err
-	}
+		message := constructMessage("POST", url.Path, "", timestamp, requestData)
+		signature, err := p.identity.SignMessage([]byte(message))
+		if err != nil {
+			return err
+		}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
-	if err != nil {
-		return err
-	}
+		req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
+		if err != nil {
+			return err
+		}
 
-	// Set the headers
-	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
-	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
-	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
-	req.Header.Set("Content-Type", "application/json")
+		// Set the headers
+		req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
+		req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
+		req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
+		req.Header.Set("Content-Type", "application/json")
 
-	// Send the request
-	return retryWithBackoff(req, 3)
+		resp, err := (&http.Client{}).Do(req)
+		if err != nil {
+			log.Errorf("API request failed: %s", err)
+			return err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			responseBody, _ := io.ReadAll(resp.Body)
+			return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+		}
+
+		// Send the request
+		return nil
+	}, 3)
+
+	return err
 }
 
 // constructMessage builds the canonical message
@@ -161,7 +176,7 @@ func hashKeccak256(data []byte) string {
 }
 
 // retryWithBackoff executes a function with retry logic and exponential backoff.
-func retryWithBackoff(req *http.Request, maxRetries int) error {
+func retryWithBackoff(operation func() error, maxRetries int) error {
 	// Configure exponential backoff
 	bo := backoff.NewExponentialBackOff()
 	bo.InitialInterval = 500 * time.Millisecond // Start with 500ms delay
@@ -175,16 +190,10 @@ func retryWithBackoff(req *http.Request, maxRetries int) error {
 
 	// Retry the operation with the backoff strategy
 	err := backoff.Retry(func() error {
-		resp, err := (&http.Client{}).Do(req)
+		err := operation()
 		if err != nil {
 			log.Warnf("Retrying due to:", err)
 			return err
-		}
-		defer resp.Body.Close()
-		if resp.StatusCode != http.StatusOK {
-			responseBody, _ := io.ReadAll(resp.Body)
-			log.Warnf("API request failed with status: %s", resp.Status)
-			return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
 		}
 		log.Debug("Operation succeeded!")
 		return nil
