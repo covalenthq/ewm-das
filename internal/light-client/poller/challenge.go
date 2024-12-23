@@ -12,8 +12,8 @@ import (
 	"strings"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
-	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -56,6 +56,15 @@ func Decode(encoded string) (*Challenge, error) {
 }
 
 func DecodeRaw(data []byte) (*Challenge, error) {
+	if len(data) < 3 {
+		return nil, errors.New("invalid challenge length")
+	}
+
+	// Check if the prefix "ewm" exists and remove it
+	if bytes.HasPrefix(data, []byte("ewm")) {
+		data = data[3:] // Remove the first 3 bytes
+	}
+
 	reader := bytes.NewReader(data)
 
 	// Read version

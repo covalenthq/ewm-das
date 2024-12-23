@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package schema;
+
+message Workload {
+    uint64 chain_id = 1;
+    uint64 block_height = 2;
+    uint64 blob_index = 3;
+    uint64 expiration_timestamp = 4;
+    bytes hash = 5;
+    bytes block_hash = 6;
+    bytes specimen_hash = 7;
+    bytes commitment = 8;
+    bytes ipfs_cid = 9;
+    bytes challenge = 10;
+}
+
+message SignedWorkload {
+    Workload workload = 1;
+    bytes signature = 2;
+}
+
+message WorkloadsResponse {
+    repeated SignedWorkload workloads = 1;
+    uint64 next_update_timestamp = 2;
+}
+
+message SampleVerifyRequest {
+    SignedWorkload workload = 1;
+    uint64 timestamp = 2;
+    uint64 cell_index = 3;
+    bytes proof = 4;
+    bytes cell = 5;
+    string version = 6;
+}

@@ -11,8 +11,8 @@ import (
 	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
-	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
 	"golang.org/x/crypto/sha3"
 	"google.golang.org/protobuf/proto"
 
@@ -67,7 +67,7 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 	}, nil
 }
 
-func (p *ApiHandler) GetProtoWorkload() (*pb.SignedWorkloadCollection, error) {
+func (p *ApiHandler) GetProtoWorkload() (*pb.WorkloadsResponse, error) {
 	ctx := context.Background()
 	endpoint := p.binWorkloadEndpoint
 
@@ -111,7 +111,7 @@ func (p *ApiHandler) GetProtoWorkload() (*pb.SignedWorkloadCollection, error) {
 		return nil, err
 	}
 
-	var response pb.SignedWorkloadCollection
+	var response pb.WorkloadsResponse
 	err = proto.Unmarshal([]byte(body), &response)
 	if err != nil {
 		return nil, err
@@ -222,7 +222,7 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 	return nil
 }
 
-func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
+func (p *ApiHandler) SendProtoStoreRequest(request *pb.SampleVerifyRequest) error {
 	ctx := context.Background()
 
 	request.Timestamp = uint64(time.Now().Unix())

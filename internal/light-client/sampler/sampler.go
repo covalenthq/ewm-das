@@ -12,7 +12,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
-	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -243,7 +243,7 @@ func (s *Sampler) ProcessEventProt(workload *pb.SignedWorkload) {
 				log.Infof("cell=[%2d,%3d], root=%-40v, blob=%-40v", blobIndex, colIndex, cidStr, links[colIndex].CID)
 			}
 
-			storeReq := pb.StoreRequest{
+			storeReq := pb.SampleVerifyRequest{
 				Workload:  signedWorkload,
 				Proof:     proof,
 				Cell:      cell,
