@@ -75,40 +75,6 @@ func (p *WorkloadPoller) periodicProtoPoll() {
 	}
 }
 
-func (p *WorkloadPoller) periodicPoll() {
-	for {
-
-		response, err := p.api.GetWorkload()
-		if err != nil {
-			log.Errorf("failed to get workload: %s", err)
-			time.Sleep(60 * time.Second)
-			continue
-		}
-
-		// Process the workloads
-		for _, workload := range response.Workloads {
-			log.Debugf("processing workload: %v", workload)
-			challenge, err := Decode(workload.Workload.Challenge)
-			if err != nil {
-				log.Errorf("failed to decode challenge: %s", err)
-			}
-
-			eligible, err := challenge.Solve(&workload.Workload, p.identity)
-			if err != nil {
-				log.Errorf("failed to solve challenge: %s", err)
-			}
-
-			log.Infof("workload is eligible: %v", eligible)
-			if eligible {
-				p.sampler.ProcessEvent(&workload)
-			}
-		}
-
-		log.Infof("waiting for next update: %v in %f seconds", response.NextUpdate, time.Until(response.NextUpdate).Seconds())
-		time.Sleep(time.Until(response.NextUpdate))
-	}
-}
-
 func (l *WorkloadPoller) waitForShutdown() {
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)

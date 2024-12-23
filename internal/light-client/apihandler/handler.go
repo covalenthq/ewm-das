@@ -25,6 +25,7 @@ type ApiHandler struct {
 	workloadEndpoint    string
 	binWorkloadEndpoint string
 	samplesEndpoint     string
+	binSamplesEndpoint  string
 	identity            *utils.Identity
 }
 
@@ -50,12 +51,18 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 		return nil, err
 	}
 
+	binSamplesEndpoint, err := url.JoinPath(apiUrl, "/bin-samples")
+	if err != nil {
+		return nil, err
+	}
+
 	log.Infof("API URL: %s", apiUrl)
 
 	return &ApiHandler{
 		workloadEndpoint:    workloadEndpoint,
 		binWorkloadEndpoint: binWorkloadEndpoint,
 		samplesEndpoint:     samplesEndpoint,
+		binSamplesEndpoint:  binSamplesEndpoint,
 		identity:            identity,
 	}, nil
 }
@@ -197,6 +204,55 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
 	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
 	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		responseBody, _ := io.ReadAll(resp.Body)
+		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+	}
+
+	return nil
+}
+
+func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
+	ctx := context.Background()
+
+	request.Timestamp = uint64(time.Now().Unix())
+
+	// Marshal the request into JSON.
+	requestData, err := proto.Marshal(request)
+	if err != nil {
+		return err
+	}
+
+	url, err := url.Parse(p.binSamplesEndpoint)
+	if err != nil {
+		return err
+	}
+
+	message := constructMessage("POST", url.Path, "", int64(request.Timestamp), requestData)
+	signature, err := p.identity.SignMessage([]byte(message))
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
+	if err != nil {
+		return err
+	}
+
+	// Set the headers
+	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
+	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
+	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", request.Timestamp))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}

@@ -240,6 +240,90 @@ func (x *SignedWorkloadCollection) GetNextUpdateTimestamp() uint64 {
 	return 0
 }
 
+type StoreRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Workload      *SignedWorkload        `protobuf:"bytes,1,opt,name=workload,proto3" json:"workload,omitempty"`
+	Timestamp     uint64                 `protobuf:"varint,2,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	CellIndex     uint64                 `protobuf:"varint,3,opt,name=cell_index,json=cellIndex,proto3" json:"cell_index,omitempty"`
+	Proof         []byte                 `protobuf:"bytes,4,opt,name=proof,proto3" json:"proof,omitempty"`
+	Cell          []byte                 `protobuf:"bytes,5,opt,name=cell,proto3" json:"cell,omitempty"`
+	Version       string                 `protobuf:"bytes,6,opt,name=version,proto3" json:"version,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StoreRequest) Reset() {
+	*x = StoreRequest{}
+	mi := &file_proto_workload_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StoreRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StoreRequest) ProtoMessage() {}
+
+func (x *StoreRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_workload_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StoreRequest.ProtoReflect.Descriptor instead.
+func (*StoreRequest) Descriptor() ([]byte, []int) {
+	return file_proto_workload_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *StoreRequest) GetWorkload() *SignedWorkload {
+	if x != nil {
+		return x.Workload
+	}
+	return nil
+}
+
+func (x *StoreRequest) GetTimestamp() uint64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *StoreRequest) GetCellIndex() uint64 {
+	if x != nil {
+		return x.CellIndex
+	}
+	return 0
+}
+
+func (x *StoreRequest) GetProof() []byte {
+	if x != nil {
+		return x.Proof
+	}
+	return nil
+}
+
+func (x *StoreRequest) GetCell() []byte {
+	if x != nil {
+		return x.Cell
+	}
+	return nil
+}
+
+func (x *StoreRequest) GetVersion() string {
+	if x != nil {
+		return x.Version
+	}
+	return ""
+}
+
 var File_proto_workload_proto protoreflect.FileDescriptor
 
 var file_proto_workload_proto_rawDesc = []byte{
@@ -280,7 +364,20 @@ var file_proto_workload_proto_rawDesc = []byte{
 	0x61, 0x64, 0x73, 0x12, 0x32, 0x0a, 0x15, 0x6e, 0x65, 0x78, 0x74, 0x5f, 0x75, 0x70, 0x64, 0x61,
 	0x74, 0x65, 0x5f, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x02, 0x20, 0x01,
 	0x28, 0x04, 0x52, 0x13, 0x6e, 0x65, 0x78, 0x74, 0x55, 0x70, 0x64, 0x61, 0x74, 0x65, 0x54, 0x69,
-	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x22, 0xc5, 0x01, 0x0a, 0x0c, 0x53, 0x74, 0x6f, 0x72,
+	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x34, 0x0a, 0x08, 0x77, 0x6f, 0x72, 0x6b,
+	0x6c, 0x6f, 0x61, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x18, 0x2e, 0x77, 0x6f, 0x72,
+	0x6b, 0x6c, 0x6f, 0x61, 0x64, 0x2e, 0x53, 0x69, 0x67, 0x6e, 0x65, 0x64, 0x57, 0x6f, 0x72, 0x6b,
+	0x6c, 0x6f, 0x61, 0x64, 0x52, 0x08, 0x77, 0x6f, 0x72, 0x6b, 0x6c, 0x6f, 0x61, 0x64, 0x12, 0x1c,
+	0x0a, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x04, 0x52, 0x09, 0x74, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d, 0x70, 0x12, 0x1d, 0x0a, 0x0a,
+	0x63, 0x65, 0x6c, 0x6c, 0x5f, 0x69, 0x6e, 0x64, 0x65, 0x78, 0x18, 0x03, 0x20, 0x01, 0x28, 0x04,
+	0x52, 0x09, 0x63, 0x65, 0x6c, 0x6c, 0x49, 0x6e, 0x64, 0x65, 0x78, 0x12, 0x14, 0x0a, 0x05, 0x70,
+	0x72, 0x6f, 0x6f, 0x66, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x70, 0x72, 0x6f, 0x6f,
+	0x66, 0x12, 0x12, 0x0a, 0x04, 0x63, 0x65, 0x6c, 0x6c, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0c, 0x52,
+	0x04, 0x63, 0x65, 0x6c, 0x6c, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e,
+	0x18, 0x06, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -295,20 +392,22 @@ func file_proto_workload_proto_rawDescGZIP() []byte {
 	return file_proto_workload_proto_rawDescData
 }
 
-var file_proto_workload_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_proto_workload_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_proto_workload_proto_goTypes = []any{
 	(*Workload)(nil),                 // 0: workload.Workload
 	(*SignedWorkload)(nil),           // 1: workload.SignedWorkload
 	(*SignedWorkloadCollection)(nil), // 2: workload.SignedWorkloadCollection
+	(*StoreRequest)(nil),             // 3: workload.StoreRequest
 }
 var file_proto_workload_proto_depIdxs = []int32{
 	0, // 0: workload.SignedWorkload.workload:type_name -> workload.Workload
 	1, // 1: workload.SignedWorkloadCollection.workloads:type_name -> workload.SignedWorkload
-	2, // [2:2] is the sub-list for method output_type
-	2, // [2:2] is the sub-list for method input_type
-	2, // [2:2] is the sub-list for extension type_name
-	2, // [2:2] is the sub-list for extension extendee
-	0, // [0:2] is the sub-list for field type_name
+	1, // 2: workload.StoreRequest.workload:type_name -> workload.SignedWorkload
+	3, // [3:3] is the sub-list for method output_type
+	3, // [3:3] is the sub-list for method input_type
+	3, // [3:3] is the sub-list for extension type_name
+	3, // [3:3] is the sub-list for extension extendee
+	0, // [0:3] is the sub-list for field type_name
 }
 
 func init() { file_proto_workload_proto_init() }
@@ -322,7 +421,7 @@ func file_proto_workload_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_proto_workload_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

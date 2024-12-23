@@ -24,3 +24,12 @@ message SignedWorkloadCollection {
     repeated SignedWorkload workloads = 1;
     uint64 next_update_timestamp = 2;
 }
+
+message StoreRequest {
+    SignedWorkload workload = 1;
+    uint64 timestamp = 2;
+    uint64 cell_index = 3;
+    bytes proof = 4;
+    bytes cell = 5;
+    string version = 6;
+}

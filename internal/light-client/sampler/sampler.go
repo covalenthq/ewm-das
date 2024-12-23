@@ -243,18 +243,18 @@ func (s *Sampler) ProcessEventProt(workload *pb.SignedWorkload) {
 				log.Infof("cell=[%2d,%3d], root=%-40v, blob=%-40v", blobIndex, colIndex, cidStr, links[colIndex].CID)
 			}
 
-			// storeReq := internal.StoreRequest{
-			// 	WorkloadRequest: *signedWorkload,
-			// 	Proof:           base64.StdEncoding.EncodeToString(proof),
-			// 	Cell:            base64.StdEncoding.EncodeToString(cell),
-			// 	Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-			// 	CellIndex:       colIndex,
-			// }
+			storeReq := pb.StoreRequest{
+				Workload:  signedWorkload,
+				Proof:     proof,
+				Cell:      cell,
+				Version:   fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+				CellIndex: uint64(colIndex),
+			}
 
-			// if err := s.pub.SendStoreRequest(&storeReq); err != nil {
-			// 	log.Errorf("Failed to store samples: %v", err)
-			// 	return
-			// }
+			if err := s.pub.SendProtoStoreRequest(&storeReq); err != nil {
+				log.Errorf("Failed to store samples: %v", err)
+				return
+			}
 		}
 	}(workload)
 }
