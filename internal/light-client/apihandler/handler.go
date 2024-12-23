@@ -33,12 +33,12 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 		return nil, err
 	}
 
-	binWorkloadEndpoint, err := url.JoinPath(apiUrl, "/bin-workloads")
+	workloadEndpoint, err := url.JoinPath(apiUrl, "/bin-workloads")
 	if err != nil {
 		return nil, err
 	}
 
-	binSamplesEndpoint, err := url.JoinPath(apiUrl, "/bin-samples")
+	samplesEndpoint, err := url.JoinPath(apiUrl, "/bin-samples")
 	if err != nil {
 		return nil, err
 	}
@@ -46,8 +46,8 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 	log.Infof("API URL: %s", apiUrl)
 
 	return &ApiHandler{
-		workloadEndpoint: binWorkloadEndpoint,
-		samplesEndpoint:  binSamplesEndpoint,
+		workloadEndpoint: workloadEndpoint,
+		samplesEndpoint:  samplesEndpoint,
 		identity:         identity,
 	}, nil
 }
