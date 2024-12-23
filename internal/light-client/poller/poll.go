@@ -31,17 +31,16 @@ func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, api *
 }
 
 func (p *WorkloadPoller) Start() {
-	// go p.periodicPoll()
-	go p.periodicProtoPoll()
+	go p.periodicPoll()
 
 	// Wait forever
 	p.waitForShutdown()
 }
 
-func (p *WorkloadPoller) periodicProtoPoll() {
+func (p *WorkloadPoller) periodicPoll() {
 	for {
 
-		response, err := p.api.GetProtoWorkload()
+		response, err := p.api.GetWorkload()
 		if err != nil {
 			log.Errorf("failed to get workload: %s", err)
 			time.Sleep(60 * time.Second)

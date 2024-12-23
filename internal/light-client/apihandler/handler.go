@@ -21,26 +21,14 @@ import (
 var log = logging.Logger("api-handler")
 
 type ApiHandler struct {
-	workloadEndpoint    string
-	binWorkloadEndpoint string
-	samplesEndpoint     string
-	binSamplesEndpoint  string
-	identity            *utils.Identity
+	workloadEndpoint string
+	samplesEndpoint  string
+	identity         *utils.Identity
 }
 
 // NewApiHandler creates a new API handler instance
 func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error) {
 	_, err := url.Parse(apiUrl)
-	if err != nil {
-		return nil, err
-	}
-
-	workloadEndpoint, err := url.JoinPath(apiUrl, "/workloads")
-	if err != nil {
-		return nil, err
-	}
-
-	samplesEndpoint, err := url.JoinPath(apiUrl, "/samples")
 	if err != nil {
 		return nil, err
 	}
@@ -58,17 +46,15 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 	log.Infof("API URL: %s", apiUrl)
 
 	return &ApiHandler{
-		workloadEndpoint:    workloadEndpoint,
-		binWorkloadEndpoint: binWorkloadEndpoint,
-		samplesEndpoint:     samplesEndpoint,
-		binSamplesEndpoint:  binSamplesEndpoint,
-		identity:            identity,
+		workloadEndpoint: binWorkloadEndpoint,
+		samplesEndpoint:  binSamplesEndpoint,
+		identity:         identity,
 	}, nil
 }
 
-func (p *ApiHandler) GetProtoWorkload() (*pb.WorkloadsResponse, error) {
+func (p *ApiHandler) GetWorkload() (*pb.WorkloadsResponse, error) {
 	ctx := context.Background()
-	endpoint := p.binWorkloadEndpoint
+	endpoint := p.workloadEndpoint
 
 	timestamp := time.Now().Unix()
 	url, err := url.Parse(endpoint)
@@ -119,12 +105,12 @@ func (p *ApiHandler) GetProtoWorkload() (*pb.WorkloadsResponse, error) {
 	return &response, nil
 }
 
-func (p *ApiHandler) SendProtoStoreRequest(request *pb.SampleVerifyRequest) error {
+func (p *ApiHandler) SendSampleVerifyRequest(request *pb.SampleVerifyRequest) error {
 	return retryWithBackoff(func() error {
 		ctx := context.Background()
 
 		request.Timestamp = uint64(time.Now().Unix())
-		endpoint := p.binSamplesEndpoint
+		endpoint := p.samplesEndpoint
 
 		// Marshal the request into JSON.
 		requestData, err := proto.Marshal(request)

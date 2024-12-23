@@ -147,7 +147,7 @@ func (s *Sampler) ProcessEventProt(workload *pb.SignedWorkload) {
 				CellIndex: uint64(colIndex),
 			}
 
-			if err := s.pub.SendProtoStoreRequest(&storeReq); err != nil {
+			if err := s.pub.SendSampleVerifyRequest(&storeReq); err != nil {
 				log.Errorf("Failed to store samples: %v", err)
 				return
 			}
