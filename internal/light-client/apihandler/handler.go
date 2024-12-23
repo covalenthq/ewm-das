@@ -3,7 +3,6 @@ package apihandler
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,7 +10,6 @@ import (
 	"time"
 
 	"github.com/cenkalti/backoff/v4"
-	"github.com/covalenthq/das-ipfs-pinner/internal"
 	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	"golang.org/x/crypto/sha3"
@@ -121,83 +119,31 @@ func (p *ApiHandler) GetProtoWorkload() (*pb.WorkloadsResponse, error) {
 	return &response, nil
 }
 
-func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {
-	ctx := context.Background()
-
-	timestamp := time.Now().Unix()
-	url, err := url.Parse(p.workloadEndpoint)
-	if err != nil {
-		return nil, err
-	}
-	message := constructMessage("GET", url.Path, "", timestamp, nil)
-	signature, err := p.identity.SignMessage([]byte(message))
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "GET", p.workloadEndpoint, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
-	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
-	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		responseBody, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
-	}
-
-	// Read the response
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	var response internal.WorkloadResponse
-	err = json.Unmarshal([]byte(body), &response)
-	if err != nil {
-		return nil, err
-	}
-
-	return &response, nil
-}
-
-func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
-	err := retryWithBackoff(func() error {
+func (p *ApiHandler) SendProtoStoreRequest(request *pb.SampleVerifyRequest) error {
+	return retryWithBackoff(func() error {
 		ctx := context.Background()
 
-		request.Timestamp = time.Now()
+		request.Timestamp = uint64(time.Now().Unix())
+		endpoint := p.binSamplesEndpoint
 
 		// Marshal the request into JSON.
-		requestData, err := json.Marshal(request)
+		requestData, err := proto.Marshal(request)
 		if err != nil {
 			return err
 		}
 
-		timestamp := request.Timestamp.Unix()
-		url, err := url.Parse(p.samplesEndpoint)
+		url, err := url.Parse(endpoint)
 		if err != nil {
 			return err
 		}
 
-		message := constructMessage("POST", url.Path, "", timestamp, requestData)
+		message := constructMessage("POST", url.Path, "", int64(request.Timestamp), requestData)
 		signature, err := p.identity.SignMessage([]byte(message))
 		if err != nil {
 			return err
 		}
 
-		req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
+		req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(requestData))
 		if err != nil {
 			return err
 		}
@@ -205,75 +151,24 @@ func (p *ApiHandler) SendStoreRequest(request *internal.StoreRequest) error {
 		// Set the headers
 		req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
 		req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
-		req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
-		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", request.Timestamp))
+		req.Header.Set("Content-Type", "application/octet-stream")
 
-		resp, err := (&http.Client{}).Do(req)
+		client := &http.Client{}
+		resp, err := client.Do(req)
 		if err != nil {
-			log.Errorf("API request failed: %s", err)
 			return err
 		}
 		defer resp.Body.Close()
+
+		// Check the response status code
 		if resp.StatusCode != http.StatusOK {
 			responseBody, _ := io.ReadAll(resp.Body)
 			return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
 		}
 
-		// Send the request
 		return nil
 	}, 3)
-
-	return err
-}
-
-func (p *ApiHandler) SendProtoStoreRequest(request *pb.SampleVerifyRequest) error {
-	ctx := context.Background()
-
-	request.Timestamp = uint64(time.Now().Unix())
-	endpoint := p.binSamplesEndpoint
-
-	// Marshal the request into JSON.
-	requestData, err := proto.Marshal(request)
-	if err != nil {
-		return err
-	}
-
-	url, err := url.Parse(endpoint)
-	if err != nil {
-		return err
-	}
-
-	message := constructMessage("POST", url.Path, "", int64(request.Timestamp), requestData)
-	signature, err := p.identity.SignMessage([]byte(message))
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(requestData))
-	if err != nil {
-		return err
-	}
-
-	// Set the headers
-	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
-	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
-	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", request.Timestamp))
-	req.Header.Set("Content-Type", "application/octet-stream")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		responseBody, _ := io.ReadAll(resp.Body)
-		return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
-	}
-
-	return nil
 }
 
 // constructMessage builds the canonical message
