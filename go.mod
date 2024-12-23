@@ -5,6 +5,7 @@ go 1.23
 toolchain go1.23.2
 
 require (
+	github.com/cenkalti/backoff v2.2.1+incompatible
 	github.com/ethereum/c-kzg-4844/v2 v2.0.1
 	github.com/ethereum/go-ethereum v1.14.11
 	github.com/ipfs/boxo v0.24.3
