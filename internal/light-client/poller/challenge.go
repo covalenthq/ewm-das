@@ -3,12 +3,10 @@ package poller
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base32"
 	"encoding/binary"
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 
 	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
@@ -34,26 +32,7 @@ type Challenge struct {
 	ClauseType   ClauseType
 }
 
-// Decode a Base32 encoded string into a Challenge
-func Decode(encoded string) (*Challenge, error) {
-	// Validate the prefix
-	if !strings.HasPrefix(encoded, "ewm") {
-		return nil, errors.New("invalid prefix: must start with 'ewm'")
-	}
-
-	// Remove the "ewm" prefix
-	encodedBody := encoded[3:]
-
-	// Decode Base32
-	decoded, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(strings.ToUpper(encodedBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode Base32: %w", err)
-	}
-
-	return DecodeRaw(decoded)
-}
-
-func DecodeRaw(data []byte) (*Challenge, error) {
+func Decode(data []byte) (*Challenge, error) {
 	if len(data) < 3 {
 		return nil, errors.New("invalid challenge length")
 	}
