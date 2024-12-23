@@ -226,6 +226,7 @@ func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
 	ctx := context.Background()
 
 	request.Timestamp = uint64(time.Now().Unix())
+	endpoint := p.binSamplesEndpoint
 
 	// Marshal the request into JSON.
 	requestData, err := proto.Marshal(request)
@@ -233,7 +234,7 @@ func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
 		return err
 	}
 
-	url, err := url.Parse(p.binSamplesEndpoint)
+	url, err := url.Parse(endpoint)
 	if err != nil {
 		return err
 	}
@@ -244,7 +245,7 @@ func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
 		return err
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", p.samplesEndpoint, bytes.NewBuffer(requestData))
+	req, err := http.NewRequestWithContext(ctx, "POST", endpoint, bytes.NewBuffer(requestData))
 	if err != nil {
 		return err
 	}
@@ -253,7 +254,7 @@ func (p *ApiHandler) SendProtoStoreRequest(request *pb.StoreRequest) error {
 	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
 	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
 	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", request.Timestamp))
-	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Content-Type", "application/octet-stream")
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
