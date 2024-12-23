@@ -149,9 +149,9 @@ func readBigInt(reader *bytes.Reader) (*big.Int, error) {
 }
 
 // Solve solves a challenge for a given workload and identity
-func (c *Challenge) SolveProt(workload *pb.Workload, identity *utils.Identity) (bool, error) {
+func (c *Challenge) Solve(workload *pb.Workload, identity *utils.Identity) (bool, error) {
 	// Calculate the target
-	target, err := c.computeTargetProt(workload, identity)
+	target, err := c.computeTarget(workload, identity)
 	if err != nil {
 		return false, fmt.Errorf("failed to calculate target: %w", err)
 	}
@@ -166,7 +166,7 @@ func (c *Challenge) SolveProt(workload *pb.Workload, identity *utils.Identity) (
 	}
 }
 
-func (c *Challenge) computeTargetProt(workload *pb.Workload, identity *utils.Identity) ([]byte, error) {
+func (c *Challenge) computeTarget(workload *pb.Workload, identity *utils.Identity) ([]byte, error) {
 	switch c.HashFunction {
 	case 1:
 		// SHA256

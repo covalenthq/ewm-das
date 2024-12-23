@@ -55,14 +55,14 @@ func (p *WorkloadPoller) periodicPoll() {
 				log.Errorf("failed to decode challenge: %s", err)
 			}
 
-			eligible, err := challenge.SolveProt(workload.Workload, p.identity)
+			eligible, err := challenge.Solve(workload.Workload, p.identity)
 			if err != nil {
 				log.Errorf("failed to solve challenge: %s", err)
 			}
 
 			log.Infof("workload is eligible: %v", eligible)
 			if eligible {
-				p.sampler.ProcessEventProt(workload)
+				p.sampler.ProcessEvent(workload)
 			}
 		}
 

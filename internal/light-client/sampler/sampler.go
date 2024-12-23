@@ -49,7 +49,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 	}, nil
 }
 
-func (s *Sampler) ProcessEventProt(workload *pb.SignedWorkload) {
+func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
 	go func(signedWorkload *pb.SignedWorkload) {
 		log.Debugf("Processing workload: %+v", workload)
 		workload := workload.Workload
