@@ -13,6 +13,8 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
+	"google.golang.org/protobuf/proto"
 )
 
 // ClauseType defines the various clause types
@@ -50,7 +52,11 @@ func Decode(encoded string) (*Challenge, error) {
 		return nil, fmt.Errorf("failed to decode Base32: %w", err)
 	}
 
-	reader := bytes.NewReader(decoded)
+	return DecodeRaw(decoded)
+}
+
+func DecodeRaw(data []byte) (*Challenge, error) {
+	reader := bytes.NewReader(data)
 
 	// Read version
 	var version uint8
@@ -150,6 +156,43 @@ func (c *Challenge) Solve(workload *internal.Workload, identity *utils.Identity)
 		return c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
 	default:
 		return false, fmt.Errorf("unsupported clause type: %s", c.ClauseType.Type)
+	}
+}
+
+func (c *Challenge) SolveProt(workload *pb.Workload, identity *utils.Identity) (bool, error) {
+	// Calculate the target
+	target, err := c.computeTargetProt(workload, identity)
+	if err != nil {
+		return false, fmt.Errorf("failed to calculate target: %w", err)
+	}
+
+	// Compare the target
+	switch c.ClauseType.Type {
+	case "Modulo":
+		log.Infof("Solving Modulo challenge M=%s, K=%s", c.ClauseType.M, c.ClauseType.K)
+		return c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
+	default:
+		return false, fmt.Errorf("unsupported clause type: %s", c.ClauseType.Type)
+	}
+}
+
+func (c *Challenge) computeTargetProt(workload *pb.Workload, identity *utils.Identity) ([]byte, error) {
+	switch c.HashFunction {
+	case 1:
+		// SHA256
+		data, err := proto.Marshal(workload)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal workload: %w", err)
+		}
+
+		// Compute the hash
+		hash := sha256.New()
+		hash.Write(data)
+		hash.Write(identity.GetAddress().Bytes())
+
+		return hash.Sum(nil), nil
+	default:
+		return nil, fmt.Errorf("unsupported hash function: %d", c.HashFunction)
 	}
 }
 

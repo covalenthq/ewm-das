@@ -31,10 +31,48 @@ func NewWorkloadPoller(identity *utils.Identity, sampler *sampler.Sampler, api *
 }
 
 func (p *WorkloadPoller) Start() {
-	go p.periodicPoll()
+	// go p.periodicPoll()
+	go p.periodicProtoPoll()
 
 	// Wait forever
 	p.waitForShutdown()
+}
+
+func (p *WorkloadPoller) periodicProtoPoll() {
+	for {
+
+		response, err := p.api.GetProtoWorkload()
+		if err != nil {
+			log.Errorf("failed to get workload: %s", err)
+			time.Sleep(60 * time.Second)
+			continue
+		}
+
+		// Process the workloads
+		for _, workload := range response.Workloads {
+			log.Debugf("processing workload: %v", workload)
+			challenge, err := DecodeRaw(workload.Workload.Challenge)
+			if err != nil {
+				log.Errorf("failed to decode challenge: %s", err)
+			}
+
+			eligible, err := challenge.SolveProt(workload.Workload, p.identity)
+			if err != nil {
+				log.Errorf("failed to solve challenge: %s", err)
+			}
+
+			log.Infof("workload is eligible: %v", eligible)
+			if eligible {
+				p.sampler.ProcessEventProt(workload)
+			}
+		}
+
+		// unix timestamp to time
+		nextUpdate := time.Unix(int64(response.NextUpdateTimestamp), 0)
+
+		log.Infof("waiting for next update: %v in %f seconds", nextUpdate, time.Until(nextUpdate).Seconds())
+		time.Sleep(time.Until(nextUpdate))
+	}
 }
 
 func (p *WorkloadPoller) periodicPoll() {

@@ -12,7 +12,9 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
 	"golang.org/x/crypto/sha3"
+	"google.golang.org/protobuf/proto"
 
 	logging "github.com/ipfs/go-log/v2"
 )
@@ -20,9 +22,10 @@ import (
 var log = logging.Logger("api-handler")
 
 type ApiHandler struct {
-	workloadEndpoint string
-	samplesEndpoint  string
-	identity         *utils.Identity
+	workloadEndpoint    string
+	binWorkloadEndpoint string
+	samplesEndpoint     string
+	identity            *utils.Identity
 }
 
 // NewApiHandler creates a new API handler instance
@@ -42,13 +45,72 @@ func NewApiHandler(apiUrl string, identity *utils.Identity) (*ApiHandler, error)
 		return nil, err
 	}
 
+	binWorkloadEndpoint, err := url.JoinPath(apiUrl, "/bin-workloads")
+	if err != nil {
+		return nil, err
+	}
+
 	log.Infof("API URL: %s", apiUrl)
 
 	return &ApiHandler{
-		workloadEndpoint: workloadEndpoint,
-		samplesEndpoint:  samplesEndpoint,
-		identity:         identity,
+		workloadEndpoint:    workloadEndpoint,
+		binWorkloadEndpoint: binWorkloadEndpoint,
+		samplesEndpoint:     samplesEndpoint,
+		identity:            identity,
 	}, nil
+}
+
+func (p *ApiHandler) GetProtoWorkload() (*pb.SignedWorkloadCollection, error) {
+	ctx := context.Background()
+	endpoint := p.binWorkloadEndpoint
+
+	timestamp := time.Now().Unix()
+	url, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	message := constructMessage("GET", url.Path, "", timestamp, nil)
+	signature, err := p.identity.SignMessage([]byte(message))
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "GET", endpoint, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("X-ETH-ADDRESS", p.identity.GetAddress().Hex())
+	req.Header.Set("X-SIGNATURE", fmt.Sprintf("%x", signature))
+	req.Header.Set("X-TIMESTAMP", fmt.Sprintf("%d", timestamp))
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	// Check the response status code
+	if resp.StatusCode != http.StatusOK {
+		responseBody, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+	}
+
+	// Read the response
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var response pb.SignedWorkloadCollection
+	err = proto.Unmarshal([]byte(body), &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
 }
 
 func (p *ApiHandler) GetWorkload() (*internal.WorkloadResponse, error) {

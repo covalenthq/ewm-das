@@ -12,6 +12,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/workloadpb"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -148,6 +149,112 @@ func (s *Sampler) ProcessEvent(workload *internal.SignedWorkload) {
 				log.Errorf("Failed to store samples: %v", err)
 				return
 			}
+		}
+	}(workload)
+}
+
+func (s *Sampler) ProcessEventProt(workload *pb.SignedWorkload) {
+	go func(signedWorkload *pb.SignedWorkload) {
+		log.Debugf("Processing workload: %+v", workload)
+		workload := workload.Workload
+
+		rawCid, err := cid.Cast(workload.IpfsCid)
+		if err != nil {
+			log.Errorf("Invalid CID: %v", err)
+			return
+		}
+
+		cidStr := rawCid.String()
+
+		if rawCid.Prefix().Codec != cid.DagCBOR {
+			log.Debugf("Unsupported CID codec: %v. Skipping", rawCid.Prefix().Codec)
+			return
+		}
+
+		log.Debugf("Processing event for CID [%s] is deferred for %d sec", cidStr, s.samplingDelay)
+		time.Sleep(time.Duration(s.samplingDelay) * time.Second)
+		log.Debugf("Processing event for CID [%s] Blob [%d] ...", cidStr, workload.BlobIndex)
+
+		var rootNode internal.RootNode
+		if err := s.GetData(cidStr, &rootNode); err != nil {
+			log.Errorf("Failed to fetch root DAG data: %v", err)
+			return
+		}
+
+		sampleIterations := s.samplingFn(rootNode.Length, rootNode.Length/2, 0.95)
+		stackSize := ckzg4844.CellsPerExtBlob / rootNode.Length
+
+		log.Infof("Root CID=%s version=%s, length=%d, size=%d, links=%d", cidStr, rootNode.Version, rootNode.Length, rootNode.Size, len(rootNode.Links))
+		log.Debugf("Select %d cell[s] from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
+
+		if workload.BlobIndex >= uint64(len(rootNode.Links)) {
+			log.Errorf("Invalid blob index: %d", workload.BlobIndex)
+			return
+		}
+
+		blobLink := rootNode.Links[workload.BlobIndex]
+		blobIndex := workload.BlobIndex
+
+		var links []internal.Link
+		if err := s.GetData(blobLink.CID, &links); err != nil {
+			log.Errorf("Failed to fetch link data: %v", err)
+			return
+		}
+
+		// Track sampled column indices to avoid duplicates
+		sampledCols := make(map[int]bool)
+
+		for i := 0; i < sampleIterations; i++ {
+			// Find a unique column index that hasn't been sampled yet
+			var colIndex int
+			for {
+				colIndex = rand.Intn(len(links))
+				if !sampledCols[colIndex] {
+					sampledCols[colIndex] = true
+					break
+				}
+			}
+
+			var data internal.DataMap
+			if err := s.GetData(links[colIndex].CID, &data); err != nil {
+				log.Errorf("Failed to fetch data node: %v", err)
+				return
+			}
+
+			commitment := rootNode.Commitments[blobIndex].Nested.Bytes
+			proof := data.Proof.Nested.Bytes
+			cell := data.Cell.Nested.Bytes
+			commitmentStr := base64.StdEncoding.EncodeToString(commitment)
+			workloadCommitmentStr := base64.StdEncoding.EncodeToString(workload.Commitment)
+
+			if workloadCommitmentStr != commitmentStr {
+				log.Errorf("Mismatched commitment: %s != %s", workloadCommitmentStr, commitmentStr)
+				return
+			}
+
+			res, err := verifier.NewKZGVerifier(commitment, proof, cell, uint64(colIndex), uint64(stackSize)).VerifyBatch()
+			if err != nil {
+				log.Errorf("Failed to verify proof and cell: %v", err)
+				return
+			}
+			if !res {
+				log.Errorf("Failed to verify proof and cell [blob=%d, col=%d]", blobIndex, colIndex)
+			} else {
+				log.Infof("cell=[%2d,%3d], root=%-40v, blob=%-40v", blobIndex, colIndex, cidStr, links[colIndex].CID)
+			}
+
+			// storeReq := internal.StoreRequest{
+			// 	WorkloadRequest: *signedWorkload,
+			// 	Proof:           base64.StdEncoding.EncodeToString(proof),
+			// 	Cell:            base64.StdEncoding.EncodeToString(cell),
+			// 	Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+			// 	CellIndex:       colIndex,
+			// }
+
+			// if err := s.pub.SendStoreRequest(&storeReq); err != nil {
+			// 	log.Errorf("Failed to store samples: %v", err)
+			// 	return
+			// }
 		}
 	}(workload)
 }
