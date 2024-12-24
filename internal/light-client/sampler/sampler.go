@@ -12,6 +12,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -48,17 +49,18 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 	}, nil
 }
 
-func (s *Sampler) ProcessEvent(workload *internal.Workload) {
-	go func(workload *internal.Workload) {
-		log.Debugf("Processing workload: %+v", workload)
+func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
+	go func(signedWorkload *pb.SignedWorkload) {
+		log.Debugf("Processing workload: %+v", workload.GetWorkload().ReadableString())
+		workload := workload.Workload
 
-		cidStr := workload.Cid
-
-		rawCid, err := cid.Decode(cidStr)
+		rawCid, err := cid.Cast(workload.IpfsCid)
 		if err != nil {
 			log.Errorf("Invalid CID: %v", err)
 			return
 		}
+
+		cidStr := rawCid.String()
 
 		if rawCid.Prefix().Codec != cid.DagCBOR {
 			log.Debugf("Unsupported CID codec: %v. Skipping", rawCid.Prefix().Codec)
@@ -81,7 +83,7 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 		log.Infof("Root CID=%s version=%s, length=%d, size=%d, links=%d", cidStr, rootNode.Version, rootNode.Length, rootNode.Size, len(rootNode.Links))
 		log.Debugf("Select %d cell[s] from %d blobs with stack size %d", sampleIterations, rootNode.Length, stackSize)
 
-		if workload.BlobIndex >= len(rootNode.Links) {
+		if workload.BlobIndex >= uint64(len(rootNode.Links)) {
 			log.Errorf("Invalid blob index: %d", workload.BlobIndex)
 			return
 		}
@@ -119,9 +121,10 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 			proof := data.Proof.Nested.Bytes
 			cell := data.Cell.Nested.Bytes
 			commitmentStr := base64.StdEncoding.EncodeToString(commitment)
+			workloadCommitmentStr := base64.StdEncoding.EncodeToString(workload.Commitment)
 
-			if workload.Commitment != commitmentStr {
-				log.Errorf("Mismatched commitment: %s != %s", workload.Commitment, commitmentStr)
+			if workloadCommitmentStr != commitmentStr {
+				log.Errorf("Mismatched commitment: %s != %s", workloadCommitmentStr, commitmentStr)
 				return
 			}
 
@@ -136,15 +139,15 @@ func (s *Sampler) ProcessEvent(workload *internal.Workload) {
 				log.Infof("cell=[%2d,%3d], root=%-40v, blob=%-40v", blobIndex, colIndex, cidStr, links[colIndex].CID)
 			}
 
-			storeReq := internal.StoreRequest{
-				WorkloadRequest: *workload,
-				Proof:           base64.StdEncoding.EncodeToString(proof),
-				Cell:            base64.StdEncoding.EncodeToString(cell),
-				Version:         fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
-				CellIndex:       colIndex,
+			storeReq := pb.SampleVerifyRequest{
+				Workload:  signedWorkload,
+				Proof:     proof,
+				Cell:      cell,
+				Version:   fmt.Sprintf("%s-%s", common.Version, common.GitCommit),
+				CellIndex: uint64(colIndex),
 			}
 
-			if err := s.pub.SendStoreRequest(&storeReq); err != nil {
+			if err := s.pub.SendSampleVerifyRequest(&storeReq); err != nil {
 				log.Errorf("Failed to store samples: %v", err)
 				return
 			}

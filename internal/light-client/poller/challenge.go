@@ -3,16 +3,14 @@ package poller
 import (
 	"bytes"
 	"crypto/sha256"
-	"encoding/base32"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"math/big"
-	"strings"
 
-	"github.com/covalenthq/das-ipfs-pinner/internal"
+	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
+	"google.golang.org/protobuf/proto"
 )
 
 // ClauseType defines the various clause types
@@ -34,23 +32,17 @@ type Challenge struct {
 	ClauseType   ClauseType
 }
 
-// Decode a Base32 encoded string into a Challenge
-func Decode(encoded string) (*Challenge, error) {
-	// Validate the prefix
-	if !strings.HasPrefix(encoded, "ewm") {
-		return nil, errors.New("invalid prefix: must start with 'ewm'")
+func Decode(data []byte) (*Challenge, error) {
+	if len(data) < 3 {
+		return nil, errors.New("invalid challenge length")
 	}
 
-	// Remove the "ewm" prefix
-	encodedBody := encoded[3:]
-
-	// Decode Base32
-	decoded, err := base32.StdEncoding.WithPadding(base32.NoPadding).DecodeString(strings.ToUpper(encodedBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to decode Base32: %w", err)
+	// Check if the prefix "ewm" exists and remove it
+	if bytes.HasPrefix(data, []byte("ewm")) {
+		data = data[3:] // Remove the first 3 bytes
 	}
 
-	reader := bytes.NewReader(decoded)
+	reader := bytes.NewReader(data)
 
 	// Read version
 	var version uint8
@@ -136,7 +128,7 @@ func readBigInt(reader *bytes.Reader) (*big.Int, error) {
 }
 
 // Solve solves a challenge for a given workload and identity
-func (c *Challenge) Solve(workload *internal.Workload, identity *utils.Identity) (bool, error) {
+func (c *Challenge) Solve(workload *pb.Workload, identity *utils.Identity) (bool, error) {
 	// Calculate the target
 	target, err := c.computeTarget(workload, identity)
 	if err != nil {
@@ -153,11 +145,11 @@ func (c *Challenge) Solve(workload *internal.Workload, identity *utils.Identity)
 	}
 }
 
-func (c *Challenge) computeTarget(workload *internal.Workload, identity *utils.Identity) ([]byte, error) {
+func (c *Challenge) computeTarget(workload *pb.Workload, identity *utils.Identity) ([]byte, error) {
 	switch c.HashFunction {
 	case 1:
 		// SHA256
-		data, err := json.Marshal(workload)
+		data, err := proto.Marshal(workload)
 		if err != nil {
 			return nil, fmt.Errorf("failed to marshal workload: %w", err)
 		}
