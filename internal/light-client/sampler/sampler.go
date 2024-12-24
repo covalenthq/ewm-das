@@ -51,7 +51,7 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 
 func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
 	go func(signedWorkload *pb.SignedWorkload) {
-		log.Debugf("Processing workload: %+v", workload)
+		log.Debugf("Processing workload: %+v", workload.GetWorkload().ReadableString())
 		workload := workload.Workload
 
 		rawCid, err := cid.Cast(workload.IpfsCid)
