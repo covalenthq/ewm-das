@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"fmt"
 	"testing"
 	"time"
 )
@@ -33,7 +32,6 @@ func TestPermutationWithSeed(t *testing.T) {
 	numSamples := 128
 
 	rand := NewPolynomialPermutation(seed, maxElements)
-	fmt.Printf("rand: %v\n", rand)
 
 	for idx := range numSamples {
 		if rand.Permute(idx) != expected[idx] {
