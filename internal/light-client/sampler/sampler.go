@@ -98,7 +98,7 @@ func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload, seed []byte) {
 		}
 
 		// Find a unique column index that hasn't been sampled yet
-		colIndexes := utils.GenerateIndices(seed, sampleIterations, ckzg4844.CellsPerExtBlob)
+		colIndexes := utils.NewPolynomialPermutation(seed, ckzg4844.CellsPerExtBlob).Generate(sampleIterations)
 
 		// adjust the column indexes according to the stack size
 		for i, colIndex := range colIndexes {

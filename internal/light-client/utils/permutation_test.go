@@ -12,7 +12,8 @@ func TestPermutationAlgorihm(t *testing.T) {
 	numSamples := 128
 	totalIndices := 128
 
-	indices := GenerateIndices(publicSeed, numSamples, totalIndices)
+	rand := NewPolynomialPermutation(publicSeed, totalIndices)
+	indices := rand.Generate(numSamples)
 
 	if len(indices) != numSamples {
 		t.Fatalf("Expected %d indices, got %d", numSamples, len(indices))
