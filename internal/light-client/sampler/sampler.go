@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
 	"time"
 
 	"github.com/covalenthq/das-ipfs-pinner/common"
@@ -13,6 +12,7 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/apihandler"
 	verifier "github.com/covalenthq/das-ipfs-pinner/internal/light-client/c-kzg-verifier"
 	pb "github.com/covalenthq/das-ipfs-pinner/internal/light-client/schemapb"
+	"github.com/covalenthq/das-ipfs-pinner/internal/light-client/utils"
 	ckzg4844 "github.com/ethereum/c-kzg-4844/v2/bindings/go"
 	"github.com/ipfs/go-cid"
 	ipfs "github.com/ipfs/go-ipfs-api"
@@ -49,8 +49,8 @@ func NewSampler(ipfsAddr string, samplingDelay uint, pub *apihandler.ApiHandler)
 	}, nil
 }
 
-func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
-	go func(signedWorkload *pb.SignedWorkload) {
+func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload, seed []byte) {
+	go func(signedWorkload *pb.SignedWorkload, seed []byte) {
 		log.Debugf("Processing workload: %+v", workload.GetWorkload().ReadableString())
 		workload := workload.Workload
 
@@ -97,20 +97,15 @@ func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
 			return
 		}
 
-		// Track sampled column indices to avoid duplicates
-		sampledCols := make(map[int]bool)
+		// Find a unique column index that hasn't been sampled yet
+		colIndexes := utils.GenerateIndices(seed, sampleIterations, ckzg4844.CellsPerExtBlob)
 
-		for i := 0; i < sampleIterations; i++ {
-			// Find a unique column index that hasn't been sampled yet
-			var colIndex int
-			for {
-				colIndex = rand.Intn(len(links))
-				if !sampledCols[colIndex] {
-					sampledCols[colIndex] = true
-					break
-				}
-			}
+		// adjust the column indexes according to the stack size
+		for i, colIndex := range colIndexes {
+			colIndexes[i] = colIndex / stackSize
+		}
 
+		for _, colIndex := range colIndexes {
 			var data internal.DataMap
 			if err := s.GetData(links[colIndex].CID, &data); err != nil {
 				log.Errorf("Failed to fetch data node: %v", err)
@@ -152,7 +147,7 @@ func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload) {
 				return
 			}
 		}
-	}(workload)
+	}(workload, seed)
 }
 
 // GetData tries to fetch data from both the IPFS node and gateways simultaneously.
