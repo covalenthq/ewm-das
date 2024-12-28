@@ -97,15 +97,11 @@ func (s *Sampler) ProcessEvent(workload *pb.SignedWorkload, seed []byte) {
 			return
 		}
 
-		// Find a unique column index that hasn't been sampled yet
-		colIndexes := utils.NewPolynomialPermutation(seed, ckzg4844.CellsPerExtBlob).Generate(sampleIterations)
+		// Use Polynomial Permutation to generate Indeces
+		rand := utils.NewPolynomialPermutation(seed, ckzg4844.CellsPerExtBlob)
+		for i := range sampleIterations {
+			colIndex := rand.Permute(i) / stackSize
 
-		// adjust the column indexes according to the stack size
-		for i, colIndex := range colIndexes {
-			colIndexes[i] = colIndex / stackSize
-		}
-
-		for _, colIndex := range colIndexes {
 			var data internal.DataMap
 			if err := s.GetData(links[colIndex].CID, &data); err != nil {
 				log.Errorf("Failed to fetch data node: %v", err)

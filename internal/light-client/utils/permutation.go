@@ -2,7 +2,6 @@ package utils
 
 import (
 	"crypto/sha256"
-	"math/big"
 )
 
 func gcd(a, b int) int {
@@ -26,7 +25,7 @@ type PolynomialPermutation struct {
 func NewPolynomialPermutation(publicSeed []byte, maxElements int) *PolynomialPermutation {
 	// Hash the public seed to derive coefficients
 	hash := sha256.Sum256(publicSeed)
-	seed := new(big.Int).SetBytes(hash[:]).Int64()
+	seed := int64(hash[0]) + int64(hash[1])<<8 + int64(hash[2])<<16 + int64(hash[3])<<24
 
 	// Derive coefficients a and b
 	a := int(seed%int64(maxElements)) + 1
@@ -44,12 +43,6 @@ func NewPolynomialPermutation(publicSeed []byte, maxElements int) *PolynomialPer
 	}
 }
 
-// Generate generates a unique set of integers between 0 and maxElements
-func (p *PolynomialPermutation) Generate(numSamples int) []int {
-	indices := make([]int, numSamples)
-	for i := 0; i < numSamples; i++ {
-		indices[i] = (p.a*i + p.b) % p.maxElements
-	}
-
-	return indices
+func (p *PolynomialPermutation) Permute(index int) int {
+	return (p.a*index + p.b) % p.maxElements
 }
