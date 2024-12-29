@@ -128,20 +128,24 @@ func readBigInt(reader *bytes.Reader) (*big.Int, error) {
 }
 
 // Solve solves a challenge for a given workload and identity
-func (c *Challenge) Solve(workload *pb.Workload, identity *utils.Identity) (bool, error) {
+func (c *Challenge) Solve(workload *pb.Workload, identity *utils.Identity) (bool, []byte, error) {
 	// Calculate the target
 	target, err := c.computeTarget(workload, identity)
 	if err != nil {
-		return false, fmt.Errorf("failed to calculate target: %w", err)
+		return false, nil, fmt.Errorf("failed to calculate target: %w", err)
 	}
 
 	// Compare the target
 	switch c.ClauseType.Type {
 	case "Modulo":
 		log.Infof("Solving Modulo challenge M=%s, K=%s", c.ClauseType.M, c.ClauseType.K)
-		return c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
+		eligible, err := c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
+		if err != nil {
+			return false, nil, fmt.Errorf("failed to solve Modulo challenge: %w", err)
+		}
+		return eligible, target, nil
 	default:
-		return false, fmt.Errorf("unsupported clause type: %s", c.ClauseType.Type)
+		return false, nil, fmt.Errorf("unsupported clause type: %s", c.ClauseType.Type)
 	}
 }
 
