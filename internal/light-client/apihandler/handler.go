@@ -149,8 +149,13 @@ func (p *ApiHandler) SendSampleVerifyRequest(request *pb.SampleVerifyRequest) er
 
 		// Check the response status code
 		if resp.StatusCode != http.StatusOK {
+			if resp.StatusCode == http.StatusRequestTimeout {
+				return fmt.Errorf("API request timed out")
+			}
+
 			responseBody, _ := io.ReadAll(resp.Body)
-			return fmt.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+			log.Errorf("API request failed with status: %s, response: %s", resp.Status, responseBody)
+			return nil
 		}
 
 		return nil
