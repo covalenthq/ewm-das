@@ -129,7 +129,7 @@ make test-cover
 - [x] Packaging and installation improvements
 - [x] Workload distribution system v1
 - [x] Authorization layer for LC proof submission v1 (PoA)
-- [ ] Guarantee LCs perform minimum sampling for availability
+- [x] Guarantee LCs perform minimum sampling for availability
 - [ ] Collection-Reward distribution system v1
 
 ## License
