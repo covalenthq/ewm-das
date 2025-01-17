@@ -22,3 +22,8 @@ func (w *Workload) ReadableString() string {
 		w.Challenge,
 	)
 }
+
+func (w *Workload) GetCID() *cid.Cid {
+	c, _ := cid.Cast(w.IpfsCid)
+	return &c
+}

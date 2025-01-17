@@ -48,6 +48,7 @@ func (p *WorkloadPoller) periodicPoll() {
 		}
 
 		// Process the workloads
+
 		for _, workload := range response.Workloads {
 			log.Debugf("processing workload: %v", workload.GetWorkload().ReadableString())
 			challenge, err := Decode(workload.Workload.Challenge)
@@ -60,11 +61,14 @@ func (p *WorkloadPoller) periodicPoll() {
 				log.Errorf("failed to solve challenge: %s", err)
 			}
 
-			log.Infof("workload is eligible: %v", eligible)
+			log.Debugf("workload is eligible: %v", eligible)
 			if eligible {
+				log.Infof("workload for CID %s is eligible", workload.GetWorkload().GetCID().String())
 				p.sampler.ProcessEvent(workload, seed)
 			}
 		}
+
+		log.Infof("%d workloads available", len(response.Workloads))
 
 		// unix timestamp to time
 		nextUpdate := time.Unix(int64(response.NextUpdateTimestamp), 0)

@@ -138,7 +138,7 @@ func (c *Challenge) Solve(workload *pb.Workload, identity *utils.Identity) (bool
 	// Compare the target
 	switch c.ClauseType.Type {
 	case "Modulo":
-		log.Infof("Solving Modulo challenge M=%s, K=%s", c.ClauseType.M, c.ClauseType.K)
+		log.Debugf("Modulo challenge M=%s, K=%s ...", c.ClauseType.M, c.ClauseType.K)
 		eligible, err := c.solveModulo(target, c.ClauseType.M, c.ClauseType.K)
 		if err != nil {
 			return false, nil, fmt.Errorf("failed to solve Modulo challenge: %w", err)
