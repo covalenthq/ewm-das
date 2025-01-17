@@ -37,6 +37,12 @@ type DataMap struct {
 	Proof InnerMap `json:"proof"`
 }
 
+// MarshalJSON for InnerMap encodes the nested bytes directly as a base64 string.
+func (i InnerMap) MarshalJSON() ([]byte, error) {
+	encoded := base64.StdEncoding.EncodeToString(i.Nested.Bytes)
+	return json.Marshal(encoded)
+}
+
 // UnmarshalJSON handles base64 decoding directly into the Bytes field.
 func (n *NestedBytes) UnmarshalJSON(data []byte) error {
 	var aux struct {

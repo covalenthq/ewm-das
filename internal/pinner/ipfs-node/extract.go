@@ -13,8 +13,8 @@ import (
 
 // ExtractData extracts the block from IPFS and downloads all cells.
 func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byte, error) {
-	var root internal.RootNode
-	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
+	root, err := ipfsNode.GetRoot(ctx, cidStr)
+	if err != nil {
 		return nil, err
 	}
 
@@ -71,8 +71,16 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 		return nil, errors.New("context canceled")
 	case <-errorChan:
 		// All downloads completed successfully, combine them into a block
-		return combineDownloadedCells(root, byteCells)
+		return combineDownloadedCells(*root, byteCells)
 	}
+}
+
+func (ipfsNode *IPFSNode) GetRoot(ctx context.Context, cidStr string) (*internal.RootNode, error) {
+	var root internal.RootNode
+	if err := ipfsNode.GetData(ctx, cidStr, &root); err != nil {
+		return nil, err
+	}
+	return &root, nil
 }
 
 // downloadCells downloads up to the specified limit of cells from the provided blob links.

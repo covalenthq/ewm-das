@@ -1,12 +1,13 @@
 package api
 
 import (
-	"fmt"
+	"encoding/json"
 	"io"
 	"net/http"
 	"strings"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
 )
@@ -56,6 +57,7 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			return
 		}
 
+		responses := make(map[string]*internal.RootNode)
 		for filename, data := range files {
 			log.Debugf("Received %d bytes of data from file: %s", len(data), filename)
 
@@ -73,11 +75,28 @@ func createUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 				return
 			}
 
-			log.Infof("Data upload successfully with CID: %s", cid)
-			succStr := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
-			if _, err := w.Write([]byte(succStr)); err != nil {
-				log.Errorf("error writing data to connection: %w", err)
+			root, err := ipfsNode.GetRoot(r.Context(), cid.String())
+			if err != nil {
+				log.Errorf("Failed to get root from IPFS: %w", err)
+				handleError(w, "Failed to get root from IPFS", http.StatusInternalServerError)
+				return
 			}
+
+			responses[cid.String()] = root
+			log.Infof("Data locally cached with CID: %s", cid)
+		}
+
+		// Convert `responses` to JSON and write it to the HTTP response
+		responseJSON, err := json.Marshal(responses)
+		if err != nil {
+			log.Errorf("Failed to marshal responses to JSON: %v", err)
+			handleError(w, "Failed to serialize response", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(responseJSON); err != nil {
+			log.Errorf("Failed to write response JSON to client: %v", err)
 		}
 	}
 }
@@ -176,6 +195,7 @@ func createCalculateCIDHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 			return
 		}
 
+		responses := make(map[string]*internal.RootNode)
 		for filename, data := range files {
 			log.Debugf("Received %d bytes of data from file: %s", len(data), filename)
 
@@ -193,11 +213,28 @@ func createCalculateCIDHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 				return
 			}
 
-			log.Infof("Data locally cached with CID: %s", cid)
-			succStr := fmt.Sprintf("{\"cid\": \"%s\"}", cid.String())
-			if _, err := w.Write([]byte(succStr)); err != nil {
-				log.Errorf("error writing data to connection: %w", err)
+			root, err := ipfsNode.GetRoot(r.Context(), cid.String())
+			if err != nil {
+				log.Errorf("Failed to get root from IPFS: %w", err)
+				handleError(w, "Failed to get root from IPFS", http.StatusInternalServerError)
+				return
 			}
+
+			responses[cid.String()] = root
+			log.Infof("Data locally cached with CID: %s", cid)
+		}
+
+		// Convert `responses` to JSON and write it to the HTTP response
+		responseJSON, err := json.Marshal(responses)
+		if err != nil {
+			log.Errorf("Failed to marshal responses to JSON: %v", err)
+			handleError(w, "Failed to serialize response", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		if _, err := w.Write(responseJSON); err != nil {
+			log.Errorf("Failed to write response JSON to client: %v", err)
 		}
 	}
 }
