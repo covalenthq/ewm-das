@@ -214,3 +214,10 @@ func deprecatedHandler(originalHandler http.HandlerFunc, newEndpoint string) htt
 		originalHandler(w, r)
 	}
 }
+
+func createHealthCheckHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		log.Infof("Received /health request:", "source=", r.RemoteAddr, "status=", http.StatusOK)
+		w.WriteHeader(http.StatusOK)
+	}
+}

@@ -41,6 +41,7 @@ func StartServer(config ServerConfig) {
 	mux.HandleFunc("/upload", deprecatedHandler(createUploadHandler(ipfsNode), "/api/v1/upload"))
 	mux.HandleFunc("/get", deprecatedHandler(createLegacyDownloadHandler(ipfsNode), "/api/v1/download"))
 	mux.HandleFunc("/cid", deprecatedHandler(createCalculateCIDHandler(ipfsNode), "/api/v1/cid"))
+	mux.HandleFunc("/health", createHealthCheckHandler())
 
 	server := &http.Server{
 		Addr:    config.Addr,

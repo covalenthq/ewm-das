@@ -8,7 +8,7 @@ ENV CGO_LDFLAGS="-O2 -D__BLST_PORTABLE__"
 
 # Install necessary dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    git make bash curl gcc g++ musl-dev && \
+    git make bash curl gcc g++ musl-dev musl-tools && \
     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Set the working directory for the pinner
@@ -18,18 +18,19 @@ WORKDIR /go/src/pinner
 COPY . .
 
 # Build the pinner
-RUN make build-pinner EXTRA_TAGS="-tags experimental"
+RUN CC=musl-gcc make build-pinner EXTRA_TAGS="-tags experimental"
 
 # Create a minimal runtime image
 FROM alpine:latest
 
 # Install necessary dependencies
-RUN apk update && apk add --no-cache bash nodejs npm git \
+RUN apk update && apk add --no-cache bash nodejs npm git musl-dev \
     && npm install -g @web3-storage/w3cli@v7.9.1 \
     && npm install -g crypto-random-string
 
 # Copy the built pinner binary
 COPY --from=builder /go/src/pinner/bin/pinner /usr/local/bin/pinner
+RUN chmod +x /usr/local/bin/pinner
 
 # Copy trusted setup files
 COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/trusted_setup.txt
@@ -49,5 +50,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s CMD wget --no-verbose --tries=1 --spider localhost:3001/health
 
 ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
-CMD [ "pinner --addr 0.0.0.0:3001 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]
-
+CMD [ "pinner --addr :3001 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]
