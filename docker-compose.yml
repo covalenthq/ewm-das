@@ -42,8 +42,12 @@ services:
         done;
         echo Pinner is deployed;
         echo Uploading test files to local .ipfs...;
+        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/api/v1/upload;
+        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/api/v1/cid;
+        curl http://ewm-das:3001/api/v1/download?cid=bafyreiaboifhabwe5opprpc2sfq2eab7n4csfksx2mywtg6sok4qcswblu;
         curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/upload;
         curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/car;
+        curl http://ewm-das:3001/get?cid=bafyreiaboifhabwe5opprpc2sfq2eab7n4csfksx2mywtg6sok4qcswblu;
       "
     networks:
       - cxt-net
