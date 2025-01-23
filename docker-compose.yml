@@ -1,0 +1,34 @@
+version: "3"
+# runs the entire rudder pipeline with all supporting services (including rudder) in docker
+# set .env such that all services in docker are talking to each other only
+services:
+  ewm-das:
+    image: "us-docker.pkg.dev/covalent-project/network/ewm-das:latest"
+    volumes:
+      - ~/.ipfs:/root/.ipfs/
+    container_name: ewm-das
+    restart: on-failure
+    entrypoint: |
+      /bin/bash -l -c "
+        touch proof_out_hex.txt;
+        chmod +x proof_out_hex.txt;
+        echo "$PROOF_OUT_HEX" > proof_out_hex.txt;
+        xxd -r -p proof_out_hex.txt > proof_from_hex.out;
+        chmod +x proof_from_hex.out;
+        mv ./proof_from_hex.out /root/.ipfs/proof_from_hex.out;
+        ./usr/local/bin/pinner --addr :3001 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE;"
+    expose:
+      - "4001:4001"
+      - "3001:3001"
+    environment:
+      - W3_AGENT_KEY=${W3_AGENT_KEY}
+      - W3_DELEGATION_FILE=${W3_DELEGATION_FILE}
+      - PROOF_OUT_HEX=${PROOF_OUT_HEX}
+    networks:
+      - cxt-net
+    ports:
+      - "4001:4001"
+      - "3001:3001"
+
+networks:
+  cxt-net:

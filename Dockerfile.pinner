@@ -38,6 +38,9 @@ COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/t
 # Clean up
 RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*
 
+# Expose pinner API port
+EXPOSE 3001
+
 # Expose the default IPFS port
 EXPOSE 4001
 
