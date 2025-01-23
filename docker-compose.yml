@@ -43,7 +43,7 @@ services:
         echo Pinner is deployed;
         echo Uploading test files to local .ipfs...;
         curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/upload;
-        while true; do sleep 60; done;
+        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/car;
       "
     networks:
       - cxt-net
