@@ -1,0 +1,62 @@
+name: build-gar
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request:
+    branches:
+      - "main"
+      - "develop"
+jobs:
+  ewm-das:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel Previous Runs
+        uses: styfle/cancel-workflow-action@0.6.0
+        with:
+          access_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Login to GCR
+        uses: docker/login-action@v2
+        with:
+          registry: us-docker.pkg.dev
+          username: _json_key
+          password: ${{ secrets.GCR_JSON_KEY }}
+
+      - uses: actions/checkout@v2
+      - name: Build & Publish the Docker image
+        run: |
+          docker buildx create --name builder --use --platform=linux/amd64,linux/arm64  && docker buildx build --platform=linux/amd64,linux/arm64 . -f Dockerfile.pinner -t us-docker.pkg.dev/covalent-project/network/ewm-das:latest --push
+
+    #   - name: Create .env file
+    #     run: |
+    #       touch .env
+    #       {
+    #         echo "PRIVATE_KEY=${{ secrets.PRIVATE_KEY }}"
+    #         echo "RPC_URL=${{ secrets.RPC_URL }}"
+    #         echo "WEB3_JWT=${{ secrets.WEB3_JWT }}"
+    #         echo "W3_AGENT_KEY=${{ secrets.W3_AGENT_KEY }}"
+    #         echo "PROOF_OUT_HEX=${{ secrets.PROOF_OUT_HEX }}"
+    #         echo "W3_DELEGATION_FILE=${{ secrets.W3_DELEGATION_FILE }}"
+    #       } >> .env
+    #       cat .env
+
+    #   - name: Load .env file
+    #     uses: xom9ikk/dotenv@v1.0.2
+
+    #   - name: Run containers
+    #     run: docker compose --env-file ".env" -f "docker-compose-ci.yml" up --build --remove-orphans --exit-code-from agent
+
+    #   - name: Check running agent
+    #     run: docker inspect bsp-agent
+
+    #   - name: Check running containers
+    #     run: docker ps
+
+    #   - name: Delete .env & bin files
+    #     run: |
+    #       rm -rf .env && rm -rf ./bin/block-ethereum
+
+    #   - name: Stop containers
+    #     if: always()
+    #     run: docker compose -f "docker-compose-ci.yml" down
