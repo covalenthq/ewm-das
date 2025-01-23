@@ -35,6 +35,9 @@ RUN chmod +x /usr/local/bin/pinner
 # Copy trusted setup files
 COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/trusted_setup.txt
 
+# Copy test data
+COPY --from=builder /go/src/pinner/test/data/specimen.bin /root/.covalent/test/specimen.bin
+
 # Clean up
 RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*
 
