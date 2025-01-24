@@ -1,6 +1,8 @@
 package api
 
 import (
+	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -9,6 +11,7 @@ import (
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
 	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
+	boxoFiles "github.com/ipfs/boxo/files"
 )
 
 func parseMultipartFormData(r *http.Request, maxMemory int64) (map[string][]byte, error) {
@@ -219,5 +222,66 @@ func createHealthCheckHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		log.Infof("Received /health request:", "source=", r.RemoteAddr, "status=", http.StatusOK)
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func createLegacyUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		contentType := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(contentType, "multipart/form-data") {
+			handleError(w, "Content-Type must be multipart/form-data", http.StatusUnsupportedMediaType)
+			return
+		}
+
+		files, err := parseMultipartFormData(r, MaxMultipartMemory)
+		if err != nil {
+			log.Errorf("Failed to parse multipart form: %w", err)
+			handleError(w, "Failed to parse multipart form", http.StatusBadRequest)
+			return
+		}
+
+		for filename, data := range files {
+			log.Debugf("Received %d bytes of data from file: %s", len(data), filename)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			node := boxoFiles.NewReaderFile(bytes.NewReader(data))
+			rpath, err := ipfsNode.UnixFs().Add(ctx, node, ipfsNode.AddOptions(true)...)
+			if err != nil {
+				log.Errorf("Failed to upload data to IPFS: %w", err)
+				handleError(w, "Failed to upload data to IPFS", http.StatusInternalServerError)
+				return
+			}
+
+			fcid := rpath.RootCid()
+
+			log.Infof("generated dag has root cid: %s", fcid)
+
+			pinnedCid, err := ipfsNode.Pin(ctx, fcid)
+			if err != nil {
+				log.Errorf("Failed to pin data to IPFS: %w", err)
+				handleError(w, "Failed to pin data to IPFS", http.StatusInternalServerError)
+				return
+			}
+
+			if pinnedCid != fcid {
+				log.Errorf("pinned CID %s does not match root CID %s", pinnedCid, fcid)
+				handleError(w, "Failed to pin data to IPFS", http.StatusInternalServerError)
+				return
+			}
+
+			log.Infof("Data upload successfully with CID: %s", pinnedCid)
+
+			succStr := fmt.Sprintf("{\"cid\": \"%s\"}", pinnedCid.String())
+			if _, err := w.Write([]byte(succStr)); err != nil {
+				log.Errorf("error writing data to connection: %w", err)
+			}
+		}
 	}
 }
