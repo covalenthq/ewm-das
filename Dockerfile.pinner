@@ -24,7 +24,7 @@ RUN CC=musl-gcc make build-pinner EXTRA_TAGS="-tags experimental"
 FROM alpine:latest
 
 # Install necessary dependencies
-RUN apk update && apk add --no-cache bash curl nodejs npm git musl musl-dev musl-tools \
+RUN apk update && apk add --no-cache bash curl nodejs npm git musl musl-dev \
     && npm install -g @web3-storage/w3cli@v7.9.1 \
     && npm install -g crypto-random-string
 
