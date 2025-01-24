@@ -36,7 +36,7 @@ RUN chmod +x /usr/local/bin/pinner
 COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/trusted_setup.txt
 
 # Copy test data
-COPY --from=builder /go/src/pinner/test/data/specimen.bin /root/.covalent/test/specimen.bin
+COPY --from=builder /go/src/pinner/test/data/specimen-result.json /root/.covalent/test/specimen-result.json
 COPY --from=builder /go/src/pinner/scripts/das-pinner-tester.sh /root/.covalent/test/das-pinner-tester.sh
 RUN chmod +x /root/.covalent/test/das-pinner-tester.sh
 
@@ -44,7 +44,7 @@ RUN chmod +x /root/.covalent/test/das-pinner-tester.sh
 RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*
 
 # Expose pinner API port
-EXPOSE 3001
+EXPOSE 5080
 
 # Expose the default IPFS port
 EXPOSE 4001
@@ -55,7 +55,7 @@ EXPOSE 5001
 # Expose the default IPFS Gateway port
 EXPOSE 8080
 
-HEALTHCHECK --interval=10s --timeout=5s CMD wget --no-verbose --tries=1 --spider localhost:3001/health
+HEALTHCHECK --interval=10s --timeout=5s CMD wget --no-verbose --tries=1 --spider localhost:5080/health
 
 ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
-CMD [ "pinner --addr :3001 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]
+CMD [ "pinner --addr 0.0.0.0:5080 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]
