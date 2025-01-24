@@ -24,7 +24,7 @@ curl -s -X POST -F "filedata=@/root/.covalent/test/specimen-result.json" http://
 
 # Uncomment the following block to test the /get endpoint
 echo -e "\nTesting endpoint /get..."
-curl -s http://ewm-das:5080/get?cid=bafyreif75ukvi7d6lsxca4lo325vgj5cwrmrfrsqjhqxf6mxjeyx3dua7y
+curl -s http://ewm-das:5080/get?cid=bafybeigs743aytsliyd7mnmybgflpcfqfonktwcqylte7rfd7d2o45ar3y
 
 # Test the /cid endpoint again
 echo -e "\nTesting endpoint /cid..."
