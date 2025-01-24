@@ -37,6 +37,8 @@ COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/t
 
 # Copy test data
 COPY --from=builder /go/src/pinner/test/data/specimen.bin /root/.covalent/test/specimen.bin
+COPY --from=builder /go/src/pinner/scripts/das-pinner-tester.sh /root/.covalent/test/das-pinner-tester.sh
+RUN chmod +x /root/.covalent/test/das-pinner-tester.sh
 
 # Clean up
 RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*

@@ -31,24 +31,12 @@ services:
       - "3001:3001"
 
   ewm-das-tester:
-    image: "us-docker.pkg.dev/covalent-project/network/ewm-das:latest"
+    build:
+      context: .
+      dockerfile: Dockerfile.pinner
     depends_on:
       - ewm-das
-    entrypoint: |
-      /bin/bash -l -c "
-        echo Waiting for pinner to start...;
-        while ! nc -z ewm-das 3001; do
-          sleep 1;
-        done;
-        echo Pinner is deployed;
-        echo Uploading test files to local .ipfs...;
-        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/api/v1/upload;
-        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/api/v1/cid;
-        curl http://ewm-das:3001/api/v1/download?cid=bafyreiaboifhabwe5opprpc2sfq2eab7n4csfksx2mywtg6sok4qcswblu;
-        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/upload;
-        curl -F \"filedata=@/root/.covalent/test/specimen.bin\" http://ewm-das:3001/car;
-        curl http://ewm-das:3001/get?cid=bafyreiaboifhabwe5opprpc2sfq2eab7n4csfksx2mywtg6sok4qcswblu;
-      "
+    entrypoint: /root/.covalent/test/das-pinner-tester.sh
     networks:
       - cxt-net
 
