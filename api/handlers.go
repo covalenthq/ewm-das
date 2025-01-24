@@ -285,3 +285,49 @@ func createLegacyUploadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 		}
 	}
 }
+
+func createLegacyCalculateCIDHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		contentType := r.Header.Get("Content-Type")
+		if !strings.HasPrefix(contentType, "multipart/form-data") {
+			handleError(w, "Content-Type must be multipart/form-data", http.StatusUnsupportedMediaType)
+			return
+		}
+
+		files, err := parseMultipartFormData(r, MaxMultipartMemory)
+		if err != nil {
+			log.Errorf("Failed to parse multipart form: %w", err)
+			handleError(w, "Failed to parse multipart form", http.StatusBadRequest)
+			return
+		}
+
+		for filename, data := range files {
+			log.Debugf("Received %d bytes of data from file: %s", len(data), filename)
+
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+
+			node := boxoFiles.NewReaderFile(bytes.NewReader(data))
+			rpath, err := ipfsNode.UnixFs().Add(ctx, node, ipfsNode.AddOptions(false)...)
+			if err != nil {
+				log.Errorf("Failed to upload data to IPFS: %w", err)
+				handleError(w, "Failed to upload data to IPFS", http.StatusInternalServerError)
+				return
+			}
+
+			fcid := rpath.RootCid()
+
+			log.Infof("generated dag has root cid: %s", fcid)
+
+			succStr := fmt.Sprintf("{\"cid\": \"%s\"}", fcid.String())
+			if _, err := w.Write([]byte(succStr)); err != nil {
+				log.Errorf("error writing data to connection: %w", err)
+			}
+		}
+	}
+}
