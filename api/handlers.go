@@ -122,43 +122,6 @@ func createDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	}
 }
 
-func createLegacyDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Measure the start time
-		start := time.Now()
-
-		// Only allow GET method
-		if r.Method != http.MethodGet {
-			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
-			return
-		}
-
-		// Get the CID from the query parameters
-		cid := r.FormValue("cid")
-		if cid == "" {
-			handleError(w, "CID form parameter is required", http.StatusBadRequest)
-			return
-		}
-
-		// Extract the block from IPFS
-		data, err := ipfsNode.ExtractData(r.Context(), cid)
-		if err != nil {
-			log.Errorf("Failed to extract data from IPFS: %w", err)
-			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
-			return
-		}
-
-		// Write the data to the response
-		if _, err := w.Write(data); err != nil {
-			log.Errorf("error writing data to connection: %w", err)
-			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
-			return
-		}
-		elapsed := time.Since(start)
-		log.Infof("Downloaded CID %s, size %d, took %v", cid, len(data), elapsed)
-	}
-}
-
 func createCalculateCIDHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
@@ -329,5 +292,41 @@ func createLegacyCalculateCIDHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFu
 				log.Errorf("error writing data to connection: %w", err)
 			}
 		}
+	}
+}
+
+func createLegacyDownloadHandler(ipfsNode *ipfsnode.IPFSNode) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		// Measure the start time
+		start := time.Now()
+
+		// Only allow GET method
+		if r.Method != http.MethodGet {
+			handleError(w, "Only POST method is allowed", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Get the CID from the query parameters
+		strCid := r.FormValue("cid")
+		if strCid == "" {
+			handleError(w, "CID form parameter is required", http.StatusBadRequest)
+			return
+		}
+
+		data, err := ipfsnode.NewHttpContentFetcher(ipfsnode.IPFS_HTTP_GATEWAYS).FetchCidViaHttp(r.Context(), strCid)
+		if err != nil {
+			log.Errorf("Failed to extract data from IPFS: %w", err)
+			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
+			return
+		}
+
+		// Write the data to the response
+		if _, err := w.Write(data); err != nil {
+			log.Errorf("error writing data to connection: %w", err)
+			handleError(w, "Failed to extract data from IPFS", http.StatusInternalServerError)
+			return
+		}
+		elapsed := time.Since(start)
+		log.Infof("Downloaded CID %s, size %d, took %v", strCid, len(data), elapsed)
 	}
 }
