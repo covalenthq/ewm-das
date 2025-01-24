@@ -6,22 +6,28 @@ done
 
 echo -e "\nPinner is deployed"
 
+# Test the /api/v1/cid endpoint
 echo -e "\nTesting endpoint /api/v1/cid..."
-wget --quiet --method=POST --body-file=/root/.covalent/test/specimen-result.json --header="Content-Type: multipart/form-data" -O - http://ewm-das:5080/api/v1/cid
+curl -s -X POST -F "filedata=@/root/.covalent/test/specimen-result.json" http://ewm-das:5080/api/v1/cid
 
+# Test the /api/v1/upload endpoint
 echo -e "\nTesting endpoint /api/v1/upload..."
-wget --quiet --method=POST --body-file=/root/.covalent/test/specimen-result.json --header="Content-Type: multipart/form-data" -O - http://ewm-das:5080/api/v1/upload
+curl -s -X POST -F "filedata=@/root/.covalent/test/specimen-result.json" http://ewm-das:5080/api/v1/upload
 
+# Uncomment the following block to test the /api/v1/download endpoint
 echo -e "\nTesting endpoint /api/v1/download..."
-wget --quiet -O - http://ewm-das:5080/api/v1/download?cid=bafyreibo6rb2gvqi5srunoypym3tfzlbbj2yohmcbhpnrb47zexsugfeim
+curl -s http://ewm-das:5080/api/v1/download?cid=bafyreif75ukvi7d6lsxca4lo325vgj5cwrmrfrsqjhqxf6mxjeyx3dua7y
 
+# Test the /upload endpoint
 echo -e "\nTesting endpoint /upload..."
-wget --quiet --method=POST --body-file=/root/.covalent/test/specimen-result.json --header="Content-Type: multipart/form-data" -O - http://ewm-das:5080/upload
+curl -s -X POST -F "filedata=@/root/.covalent/test/specimen-result.json" http://ewm-das:5080/upload
 
+# Uncomment the following block to test the /get endpoint
 echo -e "\nTesting endpoint /get..."
-wget --quiet -O - http://ewm-das:5080/get?cid=bafyreibo6rb2gvqi5srunoypym3tfzlbbj2yohmcbhpnrb47zexsugfeim
+curl -s http://ewm-das:5080/get?cid=bafyreif75ukvi7d6lsxca4lo325vgj5cwrmrfrsqjhqxf6mxjeyx3dua7y
 
+# Test the /cid endpoint again
 echo -e "\nTesting endpoint /cid..."
-wget --quiet --method=POST --body-file=/root/.covalent/test/specimen-result.json --header="Content-Type: multipart/form-data" -O - http://ewm-das:5080/cid
+curl -s -X POST -F "filedata=@/root/.covalent/test/specimen-result.json" http://ewm-das:5080/cid
 
 exit 0
