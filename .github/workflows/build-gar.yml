@@ -24,9 +24,9 @@ jobs:
           password: ${{ secrets.GCR_JSON_KEY }}
 
       - uses: actions/checkout@v2
-        # - name: Build & Publish the Docker image
-        #   run: |
-        #     docker buildx create --name builder --use --platform=linux/amd64,linux/arm64  && docker buildx build --platform=linux/amd64,linux/arm64 . -f Dockerfile.pinner -t us-docker.pkg.dev/covalent-project/network/ewm-das:latest --push
+      - name: Build & Publish the Docker image
+        run: |
+          docker buildx create --name builder --use --platform=linux/amd64,linux/arm64  && docker buildx build --platform=linux/amd64,linux/arm64 . -f Dockerfile.pinner -t us-docker.pkg.dev/covalent-project/network/ewm-das:latest --push
 
       - name: Create .env file
         run: |
