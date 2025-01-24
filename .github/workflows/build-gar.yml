@@ -42,7 +42,7 @@ jobs:
         uses: xom9ikk/dotenv@v1.0.2
 
       - name: Run containers
-        run: docker compose --env-file ".env" -f "docker-compose.yml" up --build --remove-orphans --exit-code-from ewm-das-tester
+        run: docker compose --env-file ".env" -f "docker-compose-ci.yml" up --build --remove-orphans --exit-code-from ewm-das-tester
 
       - name: Check running agent
         run: docker inspect ewm-das
