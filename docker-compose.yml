@@ -31,9 +31,7 @@ services:
       - "3001:3001"
 
   ewm-das-tester:
-    build:
-      context: .
-      dockerfile: Dockerfile.pinner
+    image: "us-docker.pkg.dev/covalent-project/network/ewm-das:latest"
     depends_on:
       - ewm-das
     entrypoint: /root/.covalent/test/das-pinner-tester.sh
