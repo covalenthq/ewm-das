@@ -1,0 +1,61 @@
+# Use an official Golang image as a base image
+FROM golang:1.23-bullseye AS builder
+
+# Set environment variables for CGO flags
+ENV CGO_CFLAGS="-O2 -D__BLST_PORTABLE__"
+ENV CGO_CXXFLAGS="-O2 -D__BLST_PORTABLE__"
+ENV CGO_LDFLAGS="-O2 -D__BLST_PORTABLE__"
+
+# Install necessary dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git make bash curl gcc g++ musl musl-dev musl-tools && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Set the working directory for the pinner
+WORKDIR /go/src/pinner
+
+# Clone the pinner repository
+COPY . .
+
+# Build the pinner
+RUN CC=musl-gcc make build-pinner EXTRA_TAGS="-tags experimental"
+
+# Create a minimal runtime image
+FROM alpine:latest
+
+# Install necessary dependencies
+RUN apk update && apk add --no-cache bash nodejs npm git musl musl-dev curl \
+    && npm install -g @web3-storage/w3cli@v7.9.1 \
+    && npm install -g crypto-random-string
+
+# Copy the built pinner binary
+COPY --from=builder /go/src/pinner/bin/pinner /usr/local/bin/pinner
+RUN chmod +x /usr/local/bin/pinner
+
+# Copy trusted setup files
+COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/trusted_setup.txt
+
+# Copy test data
+COPY --from=builder /go/src/pinner/test/data/specimen-result.json /root/.covalent/test/specimen-result.json
+COPY --from=builder /go/src/pinner/scripts/das-pinner-tester.sh /root/.covalent/test/das-pinner-tester.sh
+RUN chmod +x /root/.covalent/test/das-pinner-tester.sh
+
+# Clean up
+RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*
+
+# Expose pinner API port
+EXPOSE 5080
+
+# Expose the default IPFS port
+EXPOSE 4001
+
+# Expose the default IPFS API port
+EXPOSE 5001
+
+# Expose the default IPFS Gateway port
+EXPOSE 8080
+
+HEALTHCHECK --interval=10s --timeout=5s CMD wget --no-verbose --tries=1 --spider localhost:5080/health
+
+ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
+CMD [ "pinner --addr :5080 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]

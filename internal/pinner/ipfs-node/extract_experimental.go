@@ -113,6 +113,7 @@ func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode
 			if count < limit {
 				for z := 0; z < len(cellBytes); z++ {
 					copy(cellBytes[z][:], cell.Cell.Nested.Bytes[z*2048:(z+1)*2048])
+					log.Debugf("Downloaded blob [%3d] cell [%3d] byte [%3d] stackSize", blobIndex, i, z, internal.StackSize)
 					byteCells[blobIndex][i*internal.StackSize+z] = cellBytes[z][:]
 
 					count++
