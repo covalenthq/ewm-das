@@ -17,7 +17,7 @@
       "request": "launch",
       "mode": "auto",
       "program": "${workspaceFolder}/cmd/pinner/main.go",
-      "buildFlags": ["-tags", "experimental"],
+      // "buildFlags": ["-tags", "experimental"],
       "args": [
         "--w3-agent-key",
         "MgCY1PrWhMRwMBFuRpZMX2Ds7NyoHPnrDY3hrd54kWpS3ue0BR363tSycSPmI1YiaNkek4QXCsUjZ1cx80NcmuiHbsYs=", // sample key - change to your key

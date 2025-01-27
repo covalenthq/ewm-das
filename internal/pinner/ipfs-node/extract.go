@@ -1,5 +1,3 @@
-//go:build !experimental
-
 package ipfsnode
 
 import (
@@ -32,26 +30,26 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 
 	// Start processing each root link in parallel
 	for i, link := range root.Links {
-		// wg.Add(1)
-		// go func(i int, link internal.Link) {
-		// defer wg.Done()
+		wg.Add(1)
+		go func(i int, link internal.Link) {
+			defer wg.Done()
 
-		// Fetch the next set of links (128 cells per link)
-		var blobLinks []internal.Link
-		if err := ipfsNode.GetData(ctx, link.CID, &blobLinks); err != nil {
-			select {
-			case errorChan <- err:
-			default:
+			// Fetch the next set of links (128 cells per link)
+			var blobLinks []internal.Link
+			if err := ipfsNode.GetData(ctx, link.CID, &blobLinks); err != nil {
+				select {
+				case errorChan <- err:
+				default:
+				}
+				return
 			}
-			// return
-		}
 
-		// Download up to 64 cells from the blob links
-		err := downloadCells(ctx, byteCells, ipfsNode, i, blobLinks, errorChan, 64)
-		if err != nil {
-			// return
-		}
-		// }(i, link)
+			// Download up to 64 cells from the blob links
+			err := downloadCells(ctx, byteCells, ipfsNode, i, blobLinks, errorChan, 64)
+			if err != nil {
+				return
+			}
+		}(i, link)
 	}
 
 	// Goroutine to close error channel when all downloads are done
@@ -65,13 +63,14 @@ func (ipfsNode *IPFSNode) ExtractData(ctx context.Context, cidStr string) ([]byt
 	case err := <-errorChan:
 		// If an error occurs, cancel the remaining operations
 		cancel()
-		return nil, err
+		if err != nil {
+			return nil, err
+		}
+		// If no error, combine them into a block
+		return combineDownloadedCells(root, byteCells)
 	case <-ctx.Done():
 		// If the context is canceled, return an error
 		return nil, errors.New("context canceled")
-	case <-errorChan:
-		// All downloads completed successfully, combine them into a block
-		return combineDownloadedCells(root, byteCells)
 	}
 }
 
@@ -103,16 +102,20 @@ func downloadCells(ctx context.Context, byteCells [][][]byte, ipfsNode *IPFSNode
 			}
 
 			// Allocate space for each byte slice within the cell
-			cellBytes := make([]byte, len(cell.Cell.Nested.Bytes))
+			cellBytes := make([][2048]byte, len(cell.Cell.Nested.Bytes)/2048)
 
 			mu.Lock()
 			defer mu.Unlock()
 
 			// Insert the cell at the correct index and increment the count
 			if count < limit {
-				copy(cellBytes, cell.Cell.Nested.Bytes)
-				byteCells[blobIndex][i] = cellBytes
-				count++
+				for z := 0; z < len(cellBytes); z++ {
+					copy(cellBytes[z][:], cell.Cell.Nested.Bytes[z*2048:(z+1)*2048])
+					log.Debugf("Downloaded blob [%3d] cell [%3d] byte [%3d] stackSize", blobIndex, i, z, internal.StackSize)
+					byteCells[blobIndex][i*internal.StackSize+z] = cellBytes[z][:]
+
+					count++
+				}
 
 				log.Infof("Downloaded blob [%3d] cell [%3d] total [%3d/%3d]", blobIndex, i, count, limit)
 			}
