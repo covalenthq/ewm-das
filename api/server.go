@@ -34,7 +34,7 @@ func StartServer(config ServerConfig) {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/v1/upload", createUploadHandler(ipfsNode))
-	mux.HandleFunc("/api/v1/download", createDownloadHandler(ipfsNode))
+	mux.HandleFunc("/api/v1/get", createDownloadHandler(ipfsNode))
 	mux.HandleFunc("/api/v1/cid", createCalculateCIDHandler(ipfsNode))
 	mux.HandleFunc("/api/v1/health", createHealthCheckHandler())
 
