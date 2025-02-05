@@ -33,3 +33,6 @@ c_cpp_properties.json
 
 # python
 .venv/
+out/
+.envrc
+.envrc.local
