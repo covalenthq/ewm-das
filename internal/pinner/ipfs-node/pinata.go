@@ -22,6 +22,20 @@ const (
 	pinataUploadTimeout      = 5 * time.Minute
 )
 
+// pinataPersistencePollSchedule controls how long Pin waits for Pinata's async
+// CAR validator to confirm the file before failing. The schedule is generous
+// because Pinata's `is_duplicate=false` upload response only confirms "bytes
+// received", not "pinned" — a CAR that fails async validation is dropped
+// silently. Empirically a valid wrapped CAR appears in the account index in
+// well under 10s; we wait up to ~30s before declaring rejection.
+var pinataPersistencePollSchedule = []time.Duration{
+	1 * time.Second,
+	2 * time.Second,
+	4 * time.Second,
+	8 * time.Second,
+	15 * time.Second,
+}
+
 // PinataStorage uploads CAR files to Pinata via the v3 Files API.
 type PinataStorage struct {
 	jwt           string
@@ -29,6 +43,7 @@ type PinataStorage struct {
 	network       string
 	uploadsHost   string
 	uploadsScheme string // "https" in production; tests override to "http"
+	apiHost       string
 	apiScheme     string
 	httpClient    *http.Client
 }
@@ -59,6 +74,7 @@ func NewPinataStorage(cfg PinataConfig) (*PinataStorage, error) {
 		network:       network,
 		uploadsHost:   defaultPinataUploadsHost,
 		uploadsScheme: "https",
+		apiHost:       defaultPinataAPIHost,
 		apiScheme:     "https",
 		httpClient:    &http.Client{Timeout: pinataUploadTimeout},
 	}
@@ -66,10 +82,9 @@ func NewPinataStorage(cfg PinataConfig) (*PinataStorage, error) {
 }
 
 // Initialize verifies the JWT against Pinata's testAuthentication endpoint.
-// Called once at startup; non-fatal warm-up failures are returned so caller can decide.
 func (p *PinataStorage) Initialize() error {
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("%s://%s/data/testAuthentication", p.apiScheme, defaultPinataAPIHost), nil)
+		fmt.Sprintf("%s://%s/data/testAuthentication", p.apiScheme, p.apiHost), nil)
 	if err != nil {
 		return fmt.Errorf("pinata: build auth-test request: %w", err)
 	}
@@ -105,64 +120,106 @@ type pinataUploadResponse struct {
 	} `json:"data"`
 }
 
-// Pin uploads the given CAR file to Pinata and returns the CID Pinata reports.
+// Pin uploads carFile to Pinata and blocks until Pinata's async CAR validator
+// confirms the file is in the account index. expectedRoot is the CAR's root
+// CID (the dag-pb wrapper CID built by pin.go::writeWrappedCAR), used to
+// verify Pinata's upload response and to spot drift.
 //
-// The caller is responsible for verifying that the returned CID matches the
-// locally-computed root CID. The check lives at publish.go:66.
-func (p *PinataStorage) Pin(carFile *os.File) (cid.Cid, error) {
+// Returning nil means Pinata has actually persisted the upload, not merely
+// that the HTTP POST returned 200. Returning an error means the file was
+// either not accepted or silently dropped by the async validator — surface
+// this to the caller; never log success on uncertainty.
+func (p *PinataStorage) Pin(carFile *os.File, expectedRoot cid.Cid) error {
 	ctx, cancel := context.WithTimeout(context.Background(), pinataUploadTimeout)
 	defer cancel()
 
 	if _, err := carFile.Seek(0, io.SeekStart); err != nil {
-		return cid.Undef, fmt.Errorf("pinata: rewind CAR file: %w", err)
+		return fmt.Errorf("pinata: rewind CAR file: %w", err)
 	}
 
 	body, contentType, err := p.buildMultipart(carFile)
 	if err != nil {
-		return cid.Undef, err
+		return err
 	}
 
-	url := fmt.Sprintf("%s://%s/v3/files", p.uploadsScheme, p.uploadsHost)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, body)
+	uploadURL := fmt.Sprintf("%s://%s/v3/files", p.uploadsScheme, p.uploadsHost)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, uploadURL, body)
 	if err != nil {
-		return cid.Undef, fmt.Errorf("pinata: build upload request: %w", err)
+		return fmt.Errorf("pinata: build upload request: %w", err)
 	}
 	req.Header.Set("Authorization", "Bearer "+p.jwt)
 	req.Header.Set("Content-Type", contentType)
 
 	resp, err := p.doWithRetry(req)
 	if err != nil {
-		return cid.Undef, err
+		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-		return cid.Undef, fmt.Errorf("pinata: upload returned status %d: %s",
+		return fmt.Errorf("pinata: upload returned status %d: %s",
 			resp.StatusCode, truncate(string(respBody), 256))
 	}
 
 	var parsed pinataUploadResponse
 	if err := json.NewDecoder(resp.Body).Decode(&parsed); err != nil {
-		return cid.Undef, fmt.Errorf("pinata: decode upload response: %w", err)
+		return fmt.Errorf("pinata: decode upload response: %w", err)
 	}
 	if parsed.Data.CID == "" {
-		return cid.Undef, fmt.Errorf("pinata: upload response had empty data.cid")
+		return fmt.Errorf("pinata: upload response had empty data.cid")
+	}
+	if parsed.Data.ID == "" {
+		return fmt.Errorf("pinata: upload response had empty data.id")
+	}
+	if parsed.Data.CID != expectedRoot.String() {
+		return fmt.Errorf("pinata: upload returned cid %q, expected wrapper %q",
+			parsed.Data.CID, expectedRoot.String())
 	}
 
-	parsedCID, err := cid.Parse(parsed.Data.CID)
-	if err != nil {
-		return cid.Undef, fmt.Errorf("pinata: parse returned CID %q: %w", parsed.Data.CID, err)
+	if err := p.waitForPersistence(ctx, parsed.Data.ID); err != nil {
+		return err
 	}
 
-	log.Infof("Pinata accepted upload: cid=%s id=%s size=%d duplicate=%t",
-		parsed.Data.CID, parsed.Data.ID, parsed.Data.Size, parsed.Data.IsDuplicate)
-	return parsedCID, nil
+	log.Infof("Pinata pinned upload: cid=%s id=%s size=%d",
+		parsed.Data.CID, parsed.Data.ID, parsed.Data.Size)
+	return nil
+}
+
+// waitForPersistence polls GET /v3/files/{network}/{id} until the file appears
+// in Pinata's account index or the schedule is exhausted. Pinata's async CAR
+// validator can drop uploads silently (most notably any CAR whose root block
+// has a dag-cbor codec); this poll is the only way to distinguish a real pin
+// from "bytes received, then discarded".
+func (p *PinataStorage) waitForPersistence(ctx context.Context, fileID string) error {
+	url := fmt.Sprintf("%s://%s/v3/files/%s/%s", p.apiScheme, p.apiHost, p.network, fileID)
+	for attempt, wait := range pinataPersistencePollSchedule {
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("pinata: persistence check canceled after %d attempts: %w", attempt, ctx.Err())
+		case <-time.After(wait):
+		}
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+		if err != nil {
+			return fmt.Errorf("pinata: build persistence request: %w", err)
+		}
+		req.Header.Set("Authorization", "Bearer "+p.jwt)
+		resp, err := p.httpClient.Do(req)
+		if err != nil {
+			return fmt.Errorf("pinata: persistence request failed: %w", err)
+		}
+		sc := resp.StatusCode
+		resp.Body.Close()
+		if sc == http.StatusOK {
+			log.Debugf("Pinata persistence confirmed for %s after %d attempts", fileID, attempt+1)
+			return nil
+		}
+	}
+	return fmt.Errorf("pinata: file %s did not appear in account index — "+
+		"Pinata likely rejected the upload silently (CAR root codec must be dag-pb)", fileID)
 }
 
 // buildMultipart constructs the multipart form payload for /v3/files.
-//
-// Fields: file, network, name, car=true, plus optional group_id.
 func (p *PinataStorage) buildMultipart(carFile *os.File) (*bytes.Buffer, string, error) {
 	body := &bytes.Buffer{}
 	w := multipart.NewWriter(body)
@@ -181,8 +238,6 @@ func (p *PinataStorage) buildMultipart(carFile *os.File) (*bytes.Buffer, string,
 	if err := w.WriteField("name", filepath.Base(carFile.Name())); err != nil {
 		return nil, "", err
 	}
-	// car=true tells Pinata to process this upload as a CAR file and index its
-	// inner DAG, returning the CAR's root CID rather than a wrapper.
 	if err := w.WriteField("car", "true"); err != nil {
 		return nil, "", err
 	}
@@ -199,7 +254,6 @@ func (p *PinataStorage) buildMultipart(carFile *os.File) (*bytes.Buffer, string,
 
 // doWithRetry retries on 5xx and transient network errors. Never on 4xx.
 func (p *PinataStorage) doWithRetry(req *http.Request) (*http.Response, error) {
-	// Cache body so we can re-send on retry.
 	var bodyBytes []byte
 	if req.Body != nil {
 		b, err := io.ReadAll(req.Body)
@@ -227,7 +281,6 @@ func (p *PinataStorage) doWithRetry(req *http.Request) (*http.Response, error) {
 		if resp.StatusCode < 500 {
 			return resp, nil
 		}
-		// 5xx — close and retry.
 		respBody, _ := io.ReadAll(io.LimitReader(resp.Body, 1024))
 		resp.Body.Close()
 		lastErr = fmt.Errorf("pinata: HTTP %d: %s", resp.StatusCode, truncate(string(respBody), 256))
