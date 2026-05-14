@@ -23,10 +23,9 @@ RUN CC=musl-gcc make build-pinner EXTRA_TAGS="-tags experimental"
 # Create a minimal runtime image
 FROM alpine:latest
 
-# Install necessary dependencies
-RUN apk update && apk add --no-cache bash nodejs npm git musl musl-dev curl \
-    && npm install -g @web3-storage/w3cli@v7.9.1 \
-    && npm install -g crypto-random-string
+# Install runtime dependencies
+RUN apk update && apk add --no-cache bash curl \
+    && rm -rf /var/cache/apk/* /tmp/*
 
 # Copy the built pinner binary
 COPY --from=builder /go/src/pinner/bin/pinner /usr/local/bin/pinner
@@ -39,9 +38,6 @@ COPY --from=builder /go/src/pinner/test/data/trusted_setup.txt /root/.covalent/t
 COPY --from=builder /go/src/pinner/test/data/specimen-result.json /root/.covalent/test/specimen-result.json
 COPY --from=builder /go/src/pinner/scripts/das-pinner-tester.sh /root/.covalent/test/das-pinner-tester.sh
 RUN chmod +x /root/.covalent/test/das-pinner-tester.sh
-
-# Clean up
-RUN apk del git && rm -rf /var/cache/apk/* /root/.npm /tmp/*
 
 # Expose pinner API port
 EXPOSE 5080
@@ -58,4 +54,4 @@ EXPOSE 8080
 HEALTHCHECK --interval=10s --timeout=5s CMD wget --no-verbose --tries=1 --spider localhost:5080/health
 
 ENTRYPOINT [ "/bin/bash", "-l", "-c" ]
-CMD [ "pinner --addr :5080 --w3-agent-key $W3_AGENT_KEY --w3-delegation-proof-path $W3_DELEGATION_FILE" ]
+CMD [ "pinner --addr :5080" ]

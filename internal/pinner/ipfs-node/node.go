@@ -22,18 +22,18 @@ var log = logging.Logger("das-pinner") // Initialize the logger
 type IPFSNode struct {
 	node *core.IpfsNode
 	api  iface.CoreAPI
-	w3   *W3Storage
+	pin  *PinataStorage
 	gh   *gateway.Handler
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
-func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
-	w3, err := NewW3Storage(w3Key, w3DelegationProofPath)
+func NewIPFSNode(pinataCfg PinataConfig) (*IPFSNode, error) {
+	pin, err := NewPinataStorage(pinataCfg)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := w3.Initialize(); err != nil {
+	if err := pin.Initialize(); err != nil {
 		return nil, err
 	}
 
@@ -64,7 +64,7 @@ func NewIPFSNode(w3Key, w3DelegationProofPath string) (*IPFSNode, error) {
 	return &IPFSNode{
 		node: node,
 		api:  api,
-		w3:   w3,
+		pin:  pin,
 		gh:   gh,
 	}, nil
 }

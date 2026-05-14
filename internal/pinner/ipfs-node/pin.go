@@ -47,7 +47,7 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error
 		return cid.Undef, err
 	}
 
-	pinnedCid, err := ipfsNode.w3.Pin(carFile)
+	pinnedCid, err := ipfsNode.pin.Pin(carFile)
 	if err != nil {
 		return cid.Undef, err
 	}

@@ -2,31 +2,11 @@
 
 ## Prerequisites
 
-Before running the service, you need to install the following dependencies:
-
-- [web3.storage](https://web3.storage/docs/go-w3up/#install-w3-cli)
-- Trusted setup for the service
-
-### Setting up web3.storage
-
-Create an account on [web3.storage](https://web3.storage/docs/how-to/create-account/#using-the-cli) and generate a private key:
-
-```sh
-w3 key create > private.key
-```
-
-The contents of the private key should look like this:
-
-```sh
-# did:key:z6MkhtbMWQq7dTrZXGuNMWQcFs3Wdr3E4esVbHFMX7GkiHmf
-MgCbd3MtiwMFne6Fx7ta22YhWzI+lXEa4KwBQrN1WE/9V9+0BMxBp5XL6JTyn3r1P+IpZTTWBfp+800KqlpkAtCykk1Y=
-```
-
-Create permissions to add storage space (store/add) and to upload (upload/add) data:
-
-```sh
-w3 delegation create -c 'store/add' -c 'upload/add' -k <did-from-private.key> -o delegation.proof
-```
+- A Pinata account with a paid plan that allows CAR file uploads
+  (see https://pinata.cloud/pricing). The free tier does not include CAR support.
+- A Pinata JWT (Dashboard → API Keys → Create New Key → enable file uploads,
+  groups read, optionally testAuthentication).
+- Trusted setup for the service.
 
 ### Installing the Trusted Setup
 
@@ -36,12 +16,19 @@ To install the trusted setup, run the following command:
 ./install-trusted-setup.sh
 ```
 
+## Configuration
+
+Set the following environment variables before running the service:
+
+- `PINATA_JWT` (required) — your Pinata JWT
+- `PINATA_GROUP_ID` (optional) — Pinata group to organize uploads under
+- `PINATA_NETWORK` (optional) — `public` (default) or `private`
+
 ## Running the service
 
-To start the service, use the following command:
-
 ```sh
-./bin/pinner --w3-agent-key <web3.storage-agent-key:MgCbd3M...> --w3-delegation-proof-path delegation.proof
+export PINATA_JWT=<your-jwt>
+./bin/pinner --addr :5080
 ```
 
 Output:

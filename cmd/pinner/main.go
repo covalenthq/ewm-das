@@ -7,27 +7,28 @@ import (
 	"github.com/covalenthq/das-ipfs-pinner/api"
 	"github.com/covalenthq/das-ipfs-pinner/common"
 	"github.com/covalenthq/das-ipfs-pinner/internal/pinner/das"
+	ipfsnode "github.com/covalenthq/das-ipfs-pinner/internal/pinner/ipfs-node"
 	logging "github.com/ipfs/go-log/v2"
 	"github.com/spf13/cobra"
 )
 
 var greeting = `
-██████   █████  ███████     ██████  ██ ███    ██ ███    ██ ███████ ██████  
-██   ██ ██   ██ ██          ██   ██ ██ ████   ██ ████   ██ ██      ██   ██ 
-██   ██ ███████ ███████     ██████  ██ ██ ██  ██ ██ ██  ██ █████   ██████  
-██   ██ ██   ██      ██     ██      ██ ██  ██ ██ ██  ██ ██ ██      ██   ██ 
-██████  ██   ██ ███████     ██      ██ ██   ████ ██   ████ ███████ ██   ██ 
-                                                                                                                                                                                            
+██████   █████  ███████     ██████  ██ ███    ██ ███    ██ ███████ ██████
+██   ██ ██   ██ ██          ██   ██ ██ ████   ██ ████   ██ ██      ██   ██
+██   ██ ███████ ███████     ██████  ██ ██ ██  ██ ██ ██  ██ █████   ██████
+██   ██ ██   ██      ██     ██      ██ ██  ██ ██ ██  ██ ██ ██      ██   ██
+██████  ██   ██ ███████     ██      ██ ██   ████ ██   ████ ███████ ██   ██
+
 
 `
 
 var log = logging.Logger("das-pinner") // Initialize the logger
 
 var (
-	addr                  string
-	logLevel              string
-	w3AgentKey            string
-	w3DelegationProofPath string
+	addr          string
+	logLevel      string
+	pinataGroupID string
+	pinataNetwork string
 )
 
 // rootCmd represents the base command
@@ -48,11 +49,17 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		// Populate the ServerConfig struct
+		jwt := os.Getenv("PINATA_JWT")
+		if jwt == "" {
+			log.Fatalf("PINATA_JWT environment variable is required")
+		}
 		config := api.ServerConfig{
-			Addr:                  addr,
-			W3AgentKey:            w3AgentKey,
-			W3DelegationProofPath: w3DelegationProofPath,
+			Addr: addr,
+			Pinata: ipfsnode.PinataConfig{
+				JWT:     jwt,
+				GroupID: pinataGroupID,
+				Network: pinataNetwork,
+			},
 		}
 		api.StartServer(config)
 	},
@@ -71,15 +78,12 @@ func main() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVar(&logLevel, "log-level", "info", "Log level")
-	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", ":5080"), "Address to run the pinner service on")
-
-	// W3 agent flags
-	rootCmd.PersistentFlags().StringVar(&w3AgentKey, "w3-agent-key", "", "Key for the W3 agent")
-	rootCmd.PersistentFlags().StringVar(&w3DelegationProofPath, "w3-delegation-proof-path", "", "Path to the W3 delegation proof")
-
-	// Mark the flags as required
-	rootCmd.MarkPersistentFlagRequired("w3-agent-key")
-	rootCmd.MarkPersistentFlagRequired("w3-delegation-proof-path")
+	rootCmd.PersistentFlags().StringVar(&addr, "addr", getEnv("PINNER_ADDR", ":5080"),
+		"Address to run the pinner service on")
+	rootCmd.PersistentFlags().StringVar(&pinataGroupID, "pinata-group-id",
+		getEnv("PINATA_GROUP_ID", ""), "Optional Pinata group ID for uploads")
+	rootCmd.PersistentFlags().StringVar(&pinataNetwork, "pinata-network",
+		getEnv("PINATA_NETWORK", "public"), "Pinata network: public or private")
 }
 
 func initConfig() {

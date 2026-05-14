@@ -36,3 +36,8 @@ c_cpp_properties.json
 out/
 .envrc
 .envrc.local
+
+.specs/
+.plans/
+.prompts/
+.onboarding/

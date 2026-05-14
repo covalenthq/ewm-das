@@ -20,14 +20,13 @@ const MaxMultipartMemory = 100 << 20 // 100 MB
 
 // ServerConfig contains the configuration for the HTTP server.
 type ServerConfig struct {
-	Addr                  string
-	W3AgentKey            string
-	W3DelegationProofPath string
+	Addr   string
+	Pinata ipfsnode.PinataConfig
 }
 
 // StartServer initializes and starts the HTTP server.
 func StartServer(config ServerConfig) {
-	ipfsNode, err := ipfsnode.NewIPFSNode(config.W3AgentKey, config.W3DelegationProofPath)
+	ipfsNode, err := ipfsnode.NewIPFSNode(config.Pinata)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS node: %v", err)
 	}
