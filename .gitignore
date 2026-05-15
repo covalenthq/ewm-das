@@ -36,3 +36,9 @@ c_cpp_properties.json
 out/
 .envrc
 .envrc.local
+
+# Session-only working directories used during migration prep
+.specs/
+.plans/
+.prompts/
+.onboarding/
