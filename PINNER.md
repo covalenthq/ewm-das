@@ -2,46 +2,36 @@
 
 ## Prerequisites
 
-Before running the service, you need to install the following dependencies:
-
-- [web3.storage](https://web3.storage/docs/go-w3up/#install-w3-cli)
-- Trusted setup for the service
-
-### Setting up web3.storage
-
-Create an account on [web3.storage](https://web3.storage/docs/how-to/create-account/#using-the-cli) and generate a private key:
-
-```sh
-w3 key create > private.key
-```
-
-The contents of the private key should look like this:
-
-```sh
-# did:key:z6MkhtbMWQq7dTrZXGuNMWQcFs3Wdr3E4esVbHFMX7GkiHmf
-MgCbd3MtiwMFne6Fx7ta22YhWzI+lXEa4KwBQrN1WE/9V9+0BMxBp5XL6JTyn3r1P+IpZTTWBfp+800KqlpkAtCykk1Y=
-```
-
-Create permissions to add storage space (store/add) and to upload (upload/add) data:
-
-```sh
-w3 delegation create -c 'store/add' -c 'upload/add' -k <did-from-private.key> -o delegation.proof
-```
+- A Filebase account ([filebase.com](https://filebase.com)). The free tier
+  (5 GB storage, 5 GB bandwidth, 1 dedicated gateway, no credit card) is
+  sufficient for local testing.
+- An IPFS bucket in your Filebase account and an **IPFS RPC API token**
+  scoped to that bucket. Generated from the Filebase console under the
+  bucket's settings (separate from the S3 access key — we use the RPC token,
+  not the S3 credentials).
+- Trusted setup for the service.
 
 ### Installing the Trusted Setup
-
-To install the trusted setup, run the following command:
 
 ```sh
 ./install-trusted-setup.sh
 ```
 
+## Configuration
+
+Set the following environment variable before running the service:
+
+- `FILEBASE_RPC_TOKEN` (required) — your Filebase IPFS RPC API token.
+
+The pinner verifies the token at startup against
+`https://rpc.filebase.io/api/v0/version` and refuses to start if it is
+missing or invalid.
+
 ## Running the service
 
-To start the service, use the following command:
-
 ```sh
-./bin/pinner --w3-agent-key <web3.storage-agent-key:MgCbd3M...> --w3-delegation-proof-path delegation.proof
+export FILEBASE_RPC_TOKEN=<your-token>
+./bin/pinner --addr :5080
 ```
 
 Output:
