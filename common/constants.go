@@ -4,7 +4,7 @@ package common
 var BinaryName = "defaultBinaryName"
 
 // Version is the version of the binary
-var Version = "v0.1.0"
+var Version = "v0.18.1"
 
 // GitCommit is the commit hash of the binary
 var GitCommit = "00000000"
