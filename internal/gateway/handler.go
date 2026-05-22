@@ -21,7 +21,7 @@ import (
 var log = logging.Logger("das-gateway")
 
 var DefaultGateways = []string{
-	"https://w3s.link/",
+	"https://ipfs.filebase.io/",
 	"https://trustless-gateway.link/",
 	"https://dweb.link/",
 	"https://ipfs.io/",

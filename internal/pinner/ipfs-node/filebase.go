@@ -38,6 +38,7 @@ type FilebaseStorage struct {
 // FilebaseConfig is the value-object passed in from main / api.ServerConfig.
 type FilebaseConfig struct {
 	RPCToken string // required; an IPFS RPC API token from the Filebase console
+	Gateway  string // optional; dedicated public gateway URL prepended to the read-side gateway pool (set via DEDICATED_GATEWAY)
 }
 
 // NewFilebaseStorage constructs a client. Auth is verified separately by

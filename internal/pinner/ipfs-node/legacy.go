@@ -5,8 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
 	iface "github.com/ipfs/kubo/core/coreiface"
 	"github.com/ipfs/kubo/core/coreiface/options"
 	mh "github.com/multiformats/go-multihash"
@@ -39,9 +41,24 @@ func (ipfsNode *IPFSNode) AddOptions(upload bool) []options.UnixfsAddOption {
 	return addOptions
 }
 
-var (
-	IPFS_HTTP_GATEWAYS = []string{"https://w3s.link/ipfs/%s", "https://dweb.link/ipfs/%s", "https://ipfs.io/ipfs/%s"}
-)
+// IPFS_HTTP_GATEWAYS is the gateway pool used by the deprecated /get
+// endpoint. It is derived from gateway.DefaultGateways (the same source of
+// truth the /api/v1/get path uses) so future updates to that pool flow
+// through automatically and the legacy path can never drift back to a
+// retired gateway. The legacy fetcher injects the CID via fmt.Sprintf, so
+// each base URL is suffixed with "/ipfs/%s".
+//
+// The optional DEDICATED_GATEWAY is intentionally not honoured here — the
+// legacy endpoint is deprecated and callers should migrate to /api/v1/get
+// to pick up dedicated-gateway support and the new path's parallel-fetch
+// worker pool.
+var IPFS_HTTP_GATEWAYS = func() []string {
+	out := make([]string, 0, len(gateway.DefaultGateways))
+	for _, g := range gateway.DefaultGateways {
+		out = append(out, strings.TrimRight(g, "/")+"/ipfs/%s")
+	}
+	return out
+}()
 
 type httpContentFetcher struct {
 	cursor        int

@@ -52,7 +52,12 @@ func NewIPFSNode(filebaseCfg FilebaseConfig) (*IPFSNode, error) {
 		return nil, err
 	}
 
-	gh := gateway.NewHandler(gateway.DefaultGateways, 128)
+	gateways := gateway.DefaultGateways
+	if filebaseCfg.Gateway != "" {
+		gateways = append([]string{filebaseCfg.Gateway}, gateway.DefaultGateways...)
+		log.Infof("Using dedicated gateway: %s", filebaseCfg.Gateway)
+	}
+	gh := gateway.NewHandler(gateways, 128)
 
 	// Stuf from Kubo client to consider
 	// err = cctx.Plugins.Start(node)

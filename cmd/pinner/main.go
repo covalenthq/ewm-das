@@ -52,8 +52,11 @@ var rootCmd = &cobra.Command{
 			log.Fatalf("FILEBASE_RPC_TOKEN environment variable is required")
 		}
 		config := api.ServerConfig{
-			Addr:     addr,
-			Filebase: ipfsnode.FilebaseConfig{RPCToken: rpcToken},
+			Addr: addr,
+			Filebase: ipfsnode.FilebaseConfig{
+				RPCToken: rpcToken,
+				Gateway:  os.Getenv("DEDICATED_GATEWAY"),
+			},
 		}
 		api.StartServer(config)
 	},

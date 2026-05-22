@@ -19,11 +19,15 @@
 
 ## Configuration
 
-Set the following environment variable before running the service:
+Set the following environment variables before running the service:
 
 - `FILEBASE_RPC_TOKEN` (required) — your Filebase IPFS RPC API token.
+- `DEDICATED_GATEWAY` (optional) — a dedicated public gateway URL (e.g.
+  `https://<your-bucket>.myfilebase.com/`). When set, it is prepended to
+  the read-side gateway pool, so `/api/v1/get` requests race it against
+  the public gateways and typically win on inner CIDs of dag-cbor DAGs.
 
-The pinner verifies the token at startup against
+The pinner verifies the RPC token at startup against
 `https://rpc.filebase.io/api/v0/version` and refuses to start if it is
 missing or invalid.
 
