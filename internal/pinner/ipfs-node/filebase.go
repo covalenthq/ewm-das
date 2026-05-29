@@ -38,7 +38,6 @@ type FilebaseStorage struct {
 // FilebaseConfig is the value-object passed in from main / api.ServerConfig.
 type FilebaseConfig struct {
 	RPCToken string // required; an IPFS RPC API token from the Filebase console
-	Gateway  string // optional; dedicated public gateway URL prepended to the read-side gateway pool (set via DEDICATED_GATEWAY)
 }
 
 // NewFilebaseStorage constructs a client. Auth is verified separately by
@@ -77,17 +76,6 @@ func (f *FilebaseStorage) Initialize() error {
 	}
 	log.Info("Filebase RPC authentication verified")
 	return nil
-}
-
-// filebaseImportRoot is one line of the newline-delimited JSON returned by
-// /dag/import. Filebase emits one line per root declared in the CAR header.
-type filebaseImportRoot struct {
-	Root struct {
-		Cid struct {
-			Slash string `json:"/"`
-		} `json:"Cid"`
-		PinErrorMsg string `json:"PinErrorMsg"`
-	} `json:"Root"`
 }
 
 // Pin uploads carFile to Filebase via POST /dag/import?pin-roots=true and
@@ -136,7 +124,7 @@ func (f *FilebaseStorage) Pin(carFile *os.File, expectedRoots []cid.Cid) error {
 	pinned := make(map[string]struct{}, len(expectedRoots))
 	dec := json.NewDecoder(resp.Body)
 	for dec.More() {
-		var entry filebaseImportRoot
+		var entry dagImportRoot
 		if err := dec.Decode(&entry); err != nil {
 			return fmt.Errorf("filebase: decode dag/import response: %w", err)
 		}

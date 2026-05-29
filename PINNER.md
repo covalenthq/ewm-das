@@ -2,10 +2,15 @@
 
 ## Prerequisites
 
-- A Filebase account ([filebase.com](https://filebase.com)). The free tier
+You need **one** of the following remote pin backends:
+
+- **Self-hosted IPFS (Kubo)**: a running [Kubo](https://github.com/ipfs/kubo)
+  daemon reachable over its HTTP RPC (default `http://127.0.0.1:5001/api/v0`).
+  Vanilla Kubo accepts unauthenticated requests; for shared deployments
+  put it behind a reverse proxy that enforces a bearer token.
+- **Filebase**: A Filebase account ([filebase.com](https://filebase.com)). The free tier
   (5 GB storage, 5 GB bandwidth, 1 dedicated gateway, no credit card) is
-  sufficient for local testing.
-- An IPFS bucket in your Filebase account and an **IPFS RPC API token**
+  sufficient for local testing. An IPFS bucket in your Filebase account and an **IPFS RPC API token**
   scoped to that bucket. Generated from the Filebase console under the
   bucket's settings (separate from the S3 access key — we use the RPC token,
   not the S3 credentials).
@@ -19,19 +24,48 @@
 
 ## Configuration
 
-Set the following environment variables before running the service:
+The pinner picks its backend from environment variables at startup. **If
+`IPFS_RPC_URL` is set, the self-hosted backend is used and Filebase is
+ignored even if `FILEBASE_RPC_TOKEN` is also present.** The pinner refuses
+to start if neither is set.
+
+### Self-hosted IPFS (preferred)
+
+- `IPFS_RPC_URL` (required) — full Kubo RPC base URL, e.g.
+  `http://127.0.0.1:5001/api/v0`.
+- `IPFS_RPC_TOKEN` (optional) — bearer token, only sent if non-empty.
+  Leave unset for vanilla Kubo; set for reverse-proxied / auth-fronted
+  Kubo.
+- `DEDICATED_GATEWAY` (optional) — a public-ish gateway URL prepended to
+  the read-side gateway pool. For a self-hosted setup point it at your
+  Kubo gateway (e.g. `http://127.0.0.1:8080/`).
+
+The pinner verifies connectivity at startup by POSTing
+`${IPFS_RPC_URL}/version` and refuses to start if the endpoint is
+unreachable or returns non-200.
+
+### Filebase
 
 - `FILEBASE_RPC_TOKEN` (required) — your Filebase IPFS RPC API token.
-- `DEDICATED_GATEWAY` (optional) — a dedicated public gateway URL (e.g.
-  `https://<your-bucket>.myfilebase.com/`). When set, it is prepended to
-  the read-side gateway pool, so `/api/v1/get` requests race it against
-  the public gateways and typically win on inner CIDs of dag-cbor DAGs.
+- `DEDICATED_GATEWAY` (optional) — your dedicated Filebase gateway URL
+  (e.g. `https://<your-bucket>.myfilebase.com/`).
 
-The pinner verifies the RPC token at startup against
+The pinner verifies the token at startup against
 `https://rpc.filebase.io/api/v0/version` and refuses to start if it is
 missing or invalid.
 
 ## Running the service
+
+Self-hosted (Kubo):
+
+```sh
+ipfs daemon &        # or: docker run -d -p 5001:5001 -p 8080:8080 ipfs/kubo:v0.32.1
+export IPFS_RPC_URL=http://127.0.0.1:5001/api/v0
+export DEDICATED_GATEWAY=http://127.0.0.1:8080/
+./bin/pinner --addr :5080
+```
+
+Filebase:
 
 ```sh
 export FILEBASE_RPC_TOKEN=<your-token>
@@ -42,14 +76,14 @@ Output:
 
 ```sh
 
-░▒▓███████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒░      ░▒▓███████▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░  
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░░▒▓██████▓▒░       ░▒▓███████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██████▓▒░ ░▒▓███████▓▒░  
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░       ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░ 
-                                                                                                                       
+░▒▓███████▓▒░ ░▒▓██████▓▒░ ░▒▓███████▓▒░      ░▒▓███████▓▒░░▒▓█▓▒░▒▓███████▓▒░░▒▓███████▓▒░░▒▓████████▓▒░▒▓███████▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░             ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░░▒▓██████▓▒░       ░▒▓███████▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██████▓▒░ ░▒▓███████▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░
+░▒▓███████▓▒░░▒▓█▓▒░░▒▓█▓▒░▒▓███████▓▒░       ░▒▓█▓▒░      ░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓████████▓▒░▒▓█▓▒░░▒▓█▓▒░
+
 
 Version: v0.1.0, commit: 00000000
 Initializing root command...

@@ -47,14 +47,19 @@ var rootCmd = &cobra.Command{
 		}
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		rpcToken := os.Getenv("FILEBASE_RPC_TOKEN")
-		if rpcToken == "" {
-			log.Fatalf("FILEBASE_RPC_TOKEN environment variable is required")
+		ipfsURL := os.Getenv("IPFS_RPC_URL")
+		ipfsToken := os.Getenv("IPFS_RPC_TOKEN")
+		fbToken := os.Getenv("FILEBASE_RPC_TOKEN")
+
+		if ipfsURL == "" && fbToken == "" {
+			log.Fatalf("must set IPFS_RPC_URL (self-hosted IPFS) or FILEBASE_RPC_TOKEN (Filebase)")
 		}
+
 		config := api.ServerConfig{
 			Addr: addr,
-			Filebase: ipfsnode.FilebaseConfig{
-				RPCToken: rpcToken,
+			Pinner: ipfsnode.PinnerConfig{
+				IPFSRPC:  ipfsnode.IPFSRPCConfig{RPCURL: ipfsURL, RPCToken: ipfsToken},
+				Filebase: ipfsnode.FilebaseConfig{RPCToken: fbToken},
 				Gateway:  os.Getenv("DEDICATED_GATEWAY"),
 			},
 		}

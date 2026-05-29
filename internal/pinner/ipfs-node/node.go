@@ -2,10 +2,12 @@ package ipfsnode
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
 	"github.com/covalenthq/das-ipfs-pinner/internal/gateway"
+	"github.com/ipfs/go-cid"
 	logging "github.com/ipfs/go-log/v2"
 	config "github.com/ipfs/kubo/config"
 	"github.com/ipfs/kubo/core"
@@ -18,22 +20,34 @@ import (
 
 var log = logging.Logger("das-pinner") // Initialize the logger
 
+type pinStorage interface {
+	Initialize() error
+	Pin(carFile *os.File, expectedRoots []cid.Cid) error
+}
+
+// PinnerConfig — IPFSRPC takes precedence over Filebase when both are set.
+type PinnerConfig struct {
+	IPFSRPC  IPFSRPCConfig  // IPFS_RPC_URL / IPFS_RPC_TOKEN
+	Filebase FilebaseConfig // FILEBASE_RPC_TOKEN
+	Gateway  string         // DEDICATED_GATEWAY
+}
+
 // IPFSNode struct encapsulates the IPFS node and CoreAPI.
 type IPFSNode struct {
 	node *core.IpfsNode
 	api  iface.CoreAPI
-	fb   *FilebaseStorage
+	pin  pinStorage
 	gh   *gateway.Handler
 }
 
 // NewIPFSNode initializes and returns a new IPFSNode instance.
-func NewIPFSNode(filebaseCfg FilebaseConfig) (*IPFSNode, error) {
-	fb, err := NewFilebaseStorage(filebaseCfg)
+func NewIPFSNode(cfg PinnerConfig) (*IPFSNode, error) {
+	pin, err := selectPinStorage(cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	if err := fb.Initialize(); err != nil {
+	if err := pin.Initialize(); err != nil {
 		return nil, err
 	}
 
@@ -53,25 +67,28 @@ func NewIPFSNode(filebaseCfg FilebaseConfig) (*IPFSNode, error) {
 	}
 
 	gateways := gateway.DefaultGateways
-	if filebaseCfg.Gateway != "" {
-		gateways = append([]string{filebaseCfg.Gateway}, gateway.DefaultGateways...)
-		log.Infof("Using dedicated gateway: %s", filebaseCfg.Gateway)
+	if cfg.Gateway != "" {
+		gateways = append([]string{cfg.Gateway}, gateway.DefaultGateways...)
+		log.Infof("Using dedicated gateway: %s", cfg.Gateway)
 	}
 	gh := gateway.NewHandler(gateways, 128)
-
-	// Stuf from Kubo client to consider
-	// err = cctx.Plugins.Start(node)
-	// if err != nil {
-	// 	return err
-	// }
-	// node.Process.AddChild(goprocess.WithTeardown(cctx.Plugins.Close))
 
 	return &IPFSNode{
 		node: node,
 		api:  api,
-		fb:   fb,
+		pin:  pin,
 		gh:   gh,
 	}, nil
+}
+
+func selectPinStorage(cfg PinnerConfig) (pinStorage, error) {
+	if cfg.IPFSRPC.RPCURL != "" {
+		return NewIPFSRPCStorage(cfg.IPFSRPC)
+	}
+	if cfg.Filebase.RPCToken != "" {
+		return NewFilebaseStorage(cfg.Filebase)
+	}
+	return nil, fmt.Errorf("pinner: no remote pin backend configured (set IPFS_RPC_URL for self-hosted IPFS, or FILEBASE_RPC_TOKEN for Filebase)")
 }
 
 // initializeIPFSConfig sets up the IPFS configuration.

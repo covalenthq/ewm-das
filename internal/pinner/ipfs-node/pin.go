@@ -25,14 +25,14 @@ func (ds dagStore) Get(ctx context.Context, c cid.Cid) (blocks.Block, error) {
 	return ds.dag.Get(ctx, c)
 }
 
-// Pin uploads the DAG rooted at root to Filebase and returns root on success.
+// Pin uploads the DAG rooted at root to the configured pin backend and
+// returns root on success.
 //
 // Two CAR passes: the first walks the DAG into a temp CAR via SelectiveCar,
-// the second repacks that CAR with every block CID declared as a root in the
-// header. Filebase's /dag/import?pin-roots=true then pins each block
-// individually, which is the only way the dedicated gateway will serve inner
-// dag-cbor CIDs (Filebase's CAR processor does not recursively pin children
-// of a single-root dag-cbor CAR — see filebase.go for the underlying detail).
+// the second repacks that CAR with every block CID declared as a root in
+// the header. /dag/import?pin-roots=true then pins each block individually
+// — load-bearing on Filebase (which otherwise pins only the nominal root
+// and returns CONTENT_NOT_HOSTED for inner CIDs), harmless on Kubo.
 func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error) {
 	innerCAR, err := os.CreateTemp(os.TempDir(), "*-inner.car")
 	if err != nil {
@@ -58,7 +58,7 @@ func (ipfsNode *IPFSNode) Pin(ctx context.Context, root cid.Cid) (cid.Cid, error
 		return cid.Undef, fmt.Errorf("repack CAR with all roots: %w", err)
 	}
 
-	if err := ipfsNode.fb.Pin(multiCAR, allBlockCIDs); err != nil {
+	if err := ipfsNode.pin.Pin(multiCAR, allBlockCIDs); err != nil {
 		return cid.Undef, err
 	}
 	return root, nil

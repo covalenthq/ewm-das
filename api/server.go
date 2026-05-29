@@ -20,13 +20,13 @@ const MaxMultipartMemory = 100 << 20 // 100 MB
 
 // ServerConfig contains the configuration for the HTTP server.
 type ServerConfig struct {
-	Addr     string
-	Filebase ipfsnode.FilebaseConfig
+	Addr   string
+	Pinner ipfsnode.PinnerConfig
 }
 
 // StartServer initializes and starts the HTTP server.
 func StartServer(config ServerConfig) {
-	ipfsNode, err := ipfsnode.NewIPFSNode(config.Filebase)
+	ipfsNode, err := ipfsnode.NewIPFSNode(config.Pinner)
 	if err != nil {
 		log.Fatalf("Failed to initialize IPFS node: %v", err)
 	}
