@@ -21,13 +21,37 @@ services:
       - "4001:4001"
       - "5080:5080"
     environment:
+      # Pick one pin backend:
+      #   - IPFS_RPC_URL  → self-hosted IPFS (Kubo), see the `ipfs` service below
+      #   - FILEBASE_RPC_TOKEN → managed Filebase
+      # If both are set, IPFS_RPC_URL wins.
       - FILEBASE_RPC_TOKEN=${FILEBASE_RPC_TOKEN}
+      # - IPFS_RPC_URL=http://ipfs:5001/api/v0
+      # - IPFS_RPC_TOKEN=                       # optional; only for auth-fronted Kubo
+      # - DEDICATED_GATEWAY=http://ipfs:8080/   # point reads at the self-hosted gateway
       - PROOF_OUT_HEX=${PROOF_OUT_HEX}
     networks:
       - cxt-net
     ports:
       - "4001:4001"
       - "5080:5080"
+
+  # Opt-in self-hosted IPFS daemon. Enable by setting IPFS_RPC_URL on ewm-das
+  # above and adding `depends_on: [ipfs]`. Not started by default so the
+  # existing Filebase-based CI flow continues to work unchanged.
+  ipfs:
+    image: ipfs/kubo:v0.32.1
+    container_name: ewm-ipfs
+    restart: on-failure
+    volumes:
+      - ipfs-data:/data/ipfs
+    networks:
+      - cxt-net
+    ports:
+      - "4002:4001"   # swarm (host port shifted to avoid clash with ewm-das)
+      - "5001:5001"   # RPC API
+      - "8080:8080"   # gateway
+    profiles: ["selfhosted"]
 
   ewm-das-tester:
     image: "us-docker.pkg.dev/covalent-project/network/ewm-das:latest"
@@ -36,6 +60,9 @@ services:
     entrypoint: /root/.covalent/test/das-pinner-tester.sh
     networks:
       - cxt-net
+
+volumes:
+  ipfs-data:
 
 networks:
   cxt-net:
