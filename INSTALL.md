@@ -1,5 +1,7 @@
 # Light Client installation guide for Mac OS X
 
+> **RETIRED (2026-11-23).** The single-command macOS installer below is no longer published: it downloaded the installer and the light client from a storage location that no longer exists, so it does not work. Run the light client with Docker or build it from source instead (see the light client documentation). Never pipe a downloaded script into `bash` together with your private key.
+
 ## Prerequisites
 
 - [Homebrew](https://brew.sh/)
@@ -24,6 +26,7 @@ Run the following command to initialize the client:
 ipfs init
 ```
 
+<!-- RETIRED 2026-11-23 (installer no longer published; see the note at the top)
 ## Install & Launch Light Client
 
 Single command to install and launch the Light Client:
@@ -45,6 +48,7 @@ To uninstall the Light Client, run the following command:
 ```bash
 $HOME/.covalent/uninstall.sh
 ```
+-->
 
 ## Status
 
