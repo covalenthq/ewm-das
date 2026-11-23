@@ -47,19 +47,23 @@ jobs:
         cp scripts/macos/* das-macos/
         cp test/data/trusted_setup.txt das-macos/
 
-    - name: Install Google Cloud SDK
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-      run: brew install --cask google-cloud-sdk
+    # RETIRED 2026-11-23: the macOS release upload target gs://ewm-release-artefacts no longer exists (404), so every
+    # tag run failed here; terraform-gcp claims the name (public access blocked) so nobody else can serve
+    # install.sh from it. GCP_SA_KEY is gone (no stored keys). Restore only with a keyless identity and an
+    # explicit decision to publish macOS builds again.
+    # - name: Install Google Cloud SDK
+    #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    #   run: brew install --cask google-cloud-sdk
 
-    - name: Authenticate with Google Cloud
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-      env:
-        GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
-      run: |
-        cat <<EOF > gcp-key.json
-        ${{ secrets.GCP_SA_KEY }}
-        EOF
-        gcloud auth activate-service-account --key-file=gcp-key.json
+    # - name: Authenticate with Google Cloud
+    #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    #   env:
+    #     GOOGLE_APPLICATION_CREDENTIALS: ${{ secrets.GCP_SA_KEY }}
+    #   run: |
+    #     cat <<EOF > gcp-key.json
+    #     ${{ secrets.GCP_SA_KEY }}
+    #     EOF
+    #     gcloud auth activate-service-account --key-file=gcp-key.json
 
     - name: Update `install.sh` with version number
       if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
@@ -67,13 +71,14 @@ jobs:
         VERSION=${GITHUB_REF##*/}
         sed -i.bak "s/{{VERSION}}/${VERSION}/g" scripts/macos/install.sh
 
-    - name: Upload to Google Cloud Storage
-      if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-      run: |
-        VERSION=${GITHUB_REF##*/}
-        GCS_BUCKET_PATH_BIN="gs://ewm-release-artefacts/${VERSION}/macos/light-client"
-        GCS_BUCKET_PATH_SETUP="gs://ewm-release-artefacts/${VERSION}/macos/trusted_setup.txt"
-        GCS_BUCKET_PATH_INSTALL="gs://ewm-release-artefacts/${VERSION}/macos/install.sh"
-        gsutil cp -a public-read bin/light-client $GCS_BUCKET_PATH_BIN
-        gsutil cp -a public-read test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
-        gsutil cp -a public-read scripts/macos/install.sh $GCS_BUCKET_PATH_INSTALL
+    # RETIRED 2026-11-23: upload target gone (see above).
+    # - name: Upload to Google Cloud Storage
+    #   if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    #   run: |
+    #     VERSION=${GITHUB_REF##*/}
+    #     GCS_BUCKET_PATH_BIN="gs://ewm-release-artefacts/${VERSION}/macos/light-client"
+    #     GCS_BUCKET_PATH_SETUP="gs://ewm-release-artefacts/${VERSION}/macos/trusted_setup.txt"
+    #     GCS_BUCKET_PATH_INSTALL="gs://ewm-release-artefacts/${VERSION}/macos/install.sh"
+    #     gsutil cp -a public-read bin/light-client $GCS_BUCKET_PATH_BIN
+    #     gsutil cp -a public-read test/data/trusted_setup.txt $GCS_BUCKET_PATH_SETUP
+    #     gsutil cp -a public-read scripts/macos/install.sh $GCS_BUCKET_PATH_INSTALL

@@ -1,0 +1,29 @@
+name: keyless-auth-check
+# Manual, read-only proof that this repository's keyless Google identity works (2026-11-23, incident 2026-11-17
+# follow-up: no stored keys in CI). It exchanges the GitHub OIDC token through the github-oidc Workload
+# Identity provider for ewm-das-ci-image@covalent-project.iam.gserviceaccount.com and reads the newest ewm-das image in the registry the build pushes to.
+# It builds and pushes nothing. Only main and release tags may use the identity (terraform-gcp
+# ci_images.tf); run from any other branch, the auth step must fail.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Authenticate to Google Cloud (keyless)
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/238882278010/locations/global/workloadIdentityPools/github/providers/github-oidc
+          service_account: ewm-das-ci-image@covalent-project.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Read the registry with that identity
+        run: gcloud artifacts docker images list us-docker.pkg.dev/covalent-project/network/ewm-das --limit=1 --sort-by=~UPDATE_TIME --format='value(version)'
