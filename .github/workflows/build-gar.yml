@@ -8,6 +8,14 @@ on:
     branches:
       - "main"
       - "develop"
+
+# Keyless Google auth needs the GitHub OIDC token (id-token: write). Listing permissions replaces the
+# repository default (write-all), so this keeps only what the steps use: checkout, cancel previous runs.
+permissions:
+  contents: read
+  actions: write  # styfle/cancel-workflow-action
+  id-token: write
+
 jobs:
   ewm-das:
     runs-on: ubuntu-latest
@@ -16,17 +24,32 @@ jobs:
         uses: styfle/cancel-workflow-action@0.6.0
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Login to GCR
+      # Keyless (terraform-gcp ci_images.tf, WIF): only main and release tags of covalenthq/ewm-das may push.
+      # Pull requests now build and test only; they no longer push ewm-das:latest from unmerged branches.
+      - name: Authenticate to Google Cloud (keyless)
+        id: gcp-auth
+        if: github.event_name == 'push'
+        uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: projects/238882278010/locations/global/workloadIdentityPools/github/providers/github-oidc
+          service_account: ewm-das-ci-image@covalent-project.iam.gserviceaccount.com
+          token_format: access_token
+
+      - name: Login to GAR
+        if: github.event_name == 'push'
         uses: docker/login-action@v2
         with:
           registry: us-docker.pkg.dev
-          username: _json_key
-          password: ${{ secrets.GCR_JSON_KEY }}
+          username: oauth2accesstoken
+          password: ${{ steps.gcp-auth.outputs.access_token }}
+          # RETIRED 2026-11-23 (incident follow-up, no stored keys): username: _json_key, password: ${{ secrets.GCR_JSON_KEY }}
 
       - uses: actions/checkout@v2
       - name: Build & Publish the Docker image
+        env:
+          PUSH: ${{ github.event_name == 'push' && '--push' || '' }}
         run: |
-          docker buildx create --name builder --use --platform=linux/amd64  && docker buildx build --platform=linux/amd64 . -f Dockerfile.pinner -t us-docker.pkg.dev/covalent-project/network/ewm-das:latest --push
+          docker buildx create --name builder --use --platform=linux/amd64  && docker buildx build --platform=linux/amd64 . -f Dockerfile.pinner -t us-docker.pkg.dev/covalent-project/network/ewm-das:latest $PUSH
 
       - name: Create .env file
         env:
